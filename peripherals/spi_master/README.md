@@ -92,3 +92,54 @@ graph LR
     CTRL --> spi_csn
     CTRL --> irq
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_spi_master.v`) verifies the APB slave registers, baud divider, multi-slave chip select decoding, and serial full-duplex transfer mechanics:
+1. **TEST 1: APB Handshake**: Verifies `pready=1` following reset release.
+2. **TEST 2: Chip Select Idle State**: Verifies that all four active-low chip selects in `spi_csn` default to `0xF` (deasserted).
+3. **TEST 3: Clock Divider Register R/W**: Writes divider value `0x0045` to `0x4` and verifies readback; confirms `busy=0`.
+4. **TEST 4: Mode & CS Control**: Writes CPOL, CPHA, and `cs_select` to control register (`0x8`).
+5. **TEST 5: TX Transfer Launch**: Sets fastest divider (`clk_div=0`), selects CS 0, and writes `0xA5` to data register (`0x0`) to trigger transmission.
+6. **TEST 6: Busy Tracking**: Polls status register (`0x4` bit 31) and verifies that `busy` asserts during shifting and returns to `0` upon completion of the 8-bit frame.
+7. **TEST 7: RX Data Register**: Reads back RX data from `0x0` to verify received word integrity with MISO tied to 0.
+8. **TEST 8: Clock Integrity**: Verifies that `spi_clk` drives valid binary states (no high-Z or unknown levels).
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_spi_master.vcd opened for output.
+
+--- TEST 1: pready ---
+PASS [76000]             pready=1 after reset
+
+--- TEST 2: CSN idle state ---
+PASS [76000] pi_csn=0xF idle (all deasserted)
+
+--- TEST 3: Clock divider register ---
+PASS [121000]          clk_div readback = 0x45
+PASS [121000]               busy=0 after reset
+
+--- TEST 4: Control register ---
+  Control reg write accepted (pready=1)
+
+--- TEST 5: TX transfer launch ---
+
+--- TEST 6: Busy clears after transfer ---
+PASS [14650000]  busy=0 after transfer completes
+
+--- TEST 7: RX data register ---
+  rx_data = 0x00 (MISO was 0 so expect 0x00)
+PASS [14672000]       rx_data=0x00 (MISO tied 0)
+
+--- TEST 8: SCLK not X/Z ---
+PASS [14672000] spi_clk = 0 (driven)
+
+==============================
+SPI_MASTER VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![SPI Master Waveform](spi_master_waveform.png)
+

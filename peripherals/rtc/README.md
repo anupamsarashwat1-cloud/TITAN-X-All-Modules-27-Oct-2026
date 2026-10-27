@@ -88,3 +88,47 @@ graph LR
     LOGIC --> pslverr
     LOGIC --> timer_irq
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_rtc.v`) verifies the 64-bit real-time counter, clock domain crossing, register mapping, and interrupt generation across 5 harts:
+1. **TEST 1: APB Handshake**: Verifies `pready` is asserted high immediately following reset release.
+2. **TEST 2: Reset Counter Value**: Verifies that both lower (`0xBFF8`) and upper (`0xBFFC`) words of `mtime` initialize to 0.
+3. **TEST 3: Counter Incrementation**: Advances `rtc_clk` for 5 cycles, synchronizes into `clk`, and confirms that `mtime_lo` increments monotonically from 0 to 5.
+4. **TEST 4: Timer Interrupt Firing**: Programs `mtimecmp[0]` with an imminent trigger value (`current_mtime + 3`); verifies that `timer_irq[0]` fires when `mtime >= mtimecmp`.
+5. **TEST 5: Interrupt Clearing**: Writes all 1s (`0xFFFFFFFFFFFFFFFF`) to `mtimecmp[0]`; verifies that `timer_irq[0]` clears.
+6. **TEST 6: Multi-Core Register Access**: Writes pattern `0xDEADBEEF_CAFEBABE` to `mtimecmp[1]` (Hart 1) and validates 32-bit lower and upper readback.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rtc.vcd opened for output.
+
+--- TEST 1: pready asserts ---
+PASS [104000]           pready = 1 after reset
+
+--- TEST 2: mtime reset value ---
+PASS [128000]         mtime_lo = 0 after reset
+PASS [150000]         mtime_hi = 0 after reset
+
+--- TEST 3: mtime increments ---
+PASS [137367000] mtime_lo incremented: 0 -> 5
+
+--- TEST 4: timer_irq generation ---
+PASS [442516000] [0] fires when mtime >= mtimecmp
+
+--- TEST 5: Clear irq by resetting mtimecmp ---
+PASS [442580000] [0] cleared after mtimecmp reset
+
+--- TEST 6: mtimecmp readback ---
+PASS [442647000]          mtimecmp[1] lo readback
+PASS [442669000]          mtimecmp[1] hi readback
+
+==============================
+RTC VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![RTC Waveform](rtc_waveform.png)
+

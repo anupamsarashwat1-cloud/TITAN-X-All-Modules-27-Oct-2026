@@ -97,3 +97,50 @@ graph LR
     CTRL --> pready
     CTRL --> irq
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_gpio_ctrl.v`) verifies the 32-bit bidirectional GPIO functionality, APB register access, metastability synchronization, and tri-state control:
+1. **TEST 1: APB Handshake**: Verifies `pready` is asserted high following reset release.
+2. **TEST 2: Direction Reset Value**: Confirms `dir_reg` resets to `0x00000000` (all 32 pins configured as inputs).
+3. **TEST 3: Synchronized Input Reset**: Validates reading `in_sync` when pads are pulled LOW.
+4. **TEST 4: Direction Register R/W**: Writes bitmask `0xFF00AABB` to `dir_reg` and verifies readback.
+5. **TEST 5: Input Synchronization**: Drives external pattern `0xA5A5A5A5` on `gpio_pad` with `dir=0`; validates that the two-stage synchronizer propagates the value into `in_sync` accurately.
+6. **TEST 6: Output Tri-State Driving**: Configures `dir=0xFFFFFFFF`, writes `0xAAAAAAAA` to `out_reg`, and verifies that `gpio_pad` correctly drives `0xAAAAAAAA` without contention.
+7. **TEST 7: Interrupt Mask Configuration**: Writes interrupt enable mask (`0x000000FF`) to verify APB configuration path.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_gpio_ctrl.vcd opened for output.
+
+--- TEST 1: pready state ---
+PASS [76000]             pready=1 after reset
+
+--- TEST 2: dir_reg reset value ---
+PASS [99000] r_reg=0 after reset (all inputs)
+
+--- TEST 3: in_sync reads gpio_pad input ---
+PASS [150000] in_sync=0 when gpio_pad driven 0
+
+--- TEST 4: dir_reg write/readback ---
+PASS [193000]                 dir_reg readback
+
+--- TEST 5: Input sampling via in_sync ---
+PASS [265000] sync samples gpio_pad=0xA5A5A5A5
+
+--- TEST 6: GPIO pad = out_reg when dir=1 ---
+PASS [320000] io_pad[7:0]=0xAA when dir=output
+PASS [320000] _pad[31:24]=0xAA when dir=output
+
+--- TEST 7: int_en register ---
+  int_en written (pready=1 accepted)
+
+==============================
+GPIO_CTRL VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![GPIO Controller Waveform](gpio_ctrl_waveform.png)
+

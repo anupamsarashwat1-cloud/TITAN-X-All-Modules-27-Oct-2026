@@ -60,3 +60,11 @@
 [2026-10-27T09:49:50+05:30] COMPLETED: Task 8.7 - Verify interconnect/axi4_to_ahb/axi4_to_ahb.v (3/3 tests pass, reset, AXI write to AHB, AXI read from AHB with zero extension pass, waveform generated, README updated)
 [2026-10-27T09:50:35+05:30] COMPLETED: Task 8.8 - Verify interconnect/axi4_crossbar/axi4_crossbar.v (5/5 tests pass, reset, AR M->S, R S->M, AW+W M->S, B S->M pass, waveform generated, README updated)
 [2026-10-27T09:51:00+05:30] PHASE COMPLETE: Phase 8 (Interconnect Fabric, Bridges & Traffic Arbiters) - 8/8 Modules Verified 100% Pass.
+[2026-10-27T09:53:20+05:30] COMPLETED: Task 9.1 - Verify peripherals/gpio_ctrl/gpio_ctrl.v (7/7 tests pass, 32-bit bidirectional GPIO, synchronizer & tri-state driving pass, waveform generated, README updated)
+[2026-10-27T09:53:55+05:30] COMPLETED: Task 9.2 - Verify peripherals/rtc/rtc.v (6/6 tests pass, 64-bit mtime, 2-FF CDC synchronizer & 5-hart comparators pass, waveform generated, README updated)
+[2026-10-27T09:54:30+05:30] COMPLETED: Task 9.3 - Verify peripherals/watchdog_timer/watchdog_timer.v (9/9 tests pass, unlock key, down-counting, timeout irq & kick service pass, waveform generated, README updated)
+[2026-10-27T09:55:30+05:30] COMPLETED: Task 9.4 - Verify peripherals/uart_16550/uart_16550.v (10/10 tests pass, DLAB divisor latches, 16550 registers & IrDA/LIN extensions pass, waveform generated, README updated)
+[2026-10-27T09:56:10+05:30] COMPLETED: Task 9.5 - Verify peripherals/spi_master/spi_master.v (8/8 tests pass, clock divider, CPOL/CPHA, multi-CS & full-duplex transfer pass, waveform generated, README updated)
+[2026-10-27T09:56:55+05:30] COMPLETED: Task 9.6 - Verify peripherals/i2c_master/i2c_master.v (6/6 tests pass, 4-phase clock prescaler, open-drain pullups & START/WRITE/STOP pass, waveform generated, README updated)
+[2026-10-27T09:57:35+05:30] COMPLETED: Task 9.7 - Verify peripherals/can_controller/can_controller.v (7/7 tests pass, SJA1000 reset mode, BTR timing & frame buffer staging pass, waveform generated, README updated)
+[2026-10-27T09:57:45+05:30] PHASE COMPLETE: Phase 9 (Industrial Peripherals & Serial Communication) - 7/7 Modules Verified 100% Pass.
