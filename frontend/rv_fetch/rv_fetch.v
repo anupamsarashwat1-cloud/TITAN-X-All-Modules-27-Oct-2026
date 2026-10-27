@@ -143,7 +143,8 @@ module rv_fetch #(
                 F_FLUSH: begin
                     valid_out <= 1'b0;
                     // Latest target wins if another redirect arrives mid-drain.
-                    pc        <= branch_target;
+                    if (redirect)
+                        pc    <= branch_target;
                     if (imem_arvalid) begin
                         // Old request still waiting for its AR handshake:
                         // hold address/arvalid stable until accepted.
