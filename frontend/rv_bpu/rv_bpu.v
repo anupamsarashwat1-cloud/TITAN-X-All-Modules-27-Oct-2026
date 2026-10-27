@@ -88,6 +88,12 @@ module rv_bpu #(
     wire       use_global = meta_ctr[1];
     wire       final_pred = use_global ? global_pred : local_pred;
 
+    // Execute-time predictions (indexed by ex_pc for resolved branch training)
+    wire [1:0] local_ctr_wr  = bht_local[local_idx_wr];
+    wire       ex_local_pred = local_ctr_wr[1];
+    wire [1:0] global_ctr_wr = bht_global[global_idx_wr];
+    wire       ex_global_pred = global_ctr_wr[1];
+
     // -------------------------------------------------------
     // BTB — 512-entry Direct-Mapped
     // Tag: PC[63:10], Target: full 64-bit
@@ -159,11 +165,11 @@ module rv_bpu #(
                      bht_global[global_idx_wr] - 2'b01;
             end
 
-            // Update Meta-predictor: only when local and global disagree
-            if (local_pred != global_pred) begin
+            // Update Meta-predictor: only when local and global disagree on resolved branch
+            if (ex_local_pred != ex_global_pred) begin
                 // If global was correct: increment (bias toward global)
                 // If local was correct: decrement (bias toward local)
-                if (global_pred == ex_taken) begin
+                if (ex_global_pred == ex_taken) begin
                     bht_meta[meta_idx_wr] <=
                         (bht_meta[meta_idx_wr] == 2'b11) ? 2'b11 :
                          bht_meta[meta_idx_wr] + 2'b01;

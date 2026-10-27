@@ -100,15 +100,15 @@ module rv_pmp #(
             wire [37:0] napot_base = addr_m & ~napot_mask;   // aligned base
             wire [37:0] napot_end  = napot_base | napot_mask; // end address
 
-            // NA4: 4-byte aligned, address in [addr_m, addr_m+3]
-            wire na4_match = (paddr[37:2] == addr_m[37:2]);
+            // NA4: 4-byte aligned, address in [addr_m<<2, (addr_m<<2)+3]
+            wire na4_match = (paddr[37:2] == addr_m[35:0]);
 
-            // TOR: paddr >= prev_addr (<<2) AND paddr < addr_m (<<2)
-            wire tor_match = ({paddr, 2'b00} >= {addr_prev, 2'b00}) &&
-                              ({paddr, 2'b00} <  {addr_m,   2'b00});
+            // TOR: paddr >= (prev_addr << 2) AND paddr < (addr_m << 2)
+            wire tor_match = (paddr >= {addr_prev[35:0], 2'b00}) &&
+                             (paddr <  {addr_m[35:0],    2'b00});
 
-            // NAPOT: base ≤ paddr ≤ end (after right-shifting by 2 since pmpaddr is word addr)
-            wire napot_match = ((paddr & ~napot_mask[37:0]) == napot_base);
+            // NAPOT: base <= paddr <= end (using word address paddr[37:2])
+            wire napot_match = ((paddr[37:2] & ~napot_mask[35:0]) == napot_base[35:0]);
 
             assign pmp_match[m] = (pmp_a[m] == 2'b00) ? 1'b0 :          // OFF
                                    (pmp_a[m] == 2'b01) ? tor_match :      // TOR

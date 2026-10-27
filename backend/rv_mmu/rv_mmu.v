@@ -124,7 +124,7 @@ module rv_mmu (
         .va_req        (va_req[38:0]),
         .asid_req      (satp_asid),
         .satp_ppn      (satp_ppn),
-        .ptw_req       (sv39_active && req_valid && !tlb_hit && !ptw_busy),
+        .ptw_req       (sv39_active && req_valid && !tlb_hit && !ptw_busy && !ptw_fill_valid),
         .access_r      (req_r),
         .access_w      (req_w),
         .access_x      (req_x),
@@ -153,7 +153,7 @@ module rv_mmu (
     // -------------------------------------------------------
     // Physical address
     assign pa_out       = sv39_active ?
-                           {tlb_pa[37:0], va_req[11:0]} :
+                           {2'b00, tlb_pa} :
                            pa_bare;
 
     // Translation complete:

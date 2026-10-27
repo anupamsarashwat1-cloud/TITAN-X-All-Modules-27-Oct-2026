@@ -85,13 +85,14 @@ module plic #(
                 // Enable: base 0x002000, 4 bytes per 32 sources per target
                 else if (paddr[23:16] == 8'h00 && paddr[15:13] == 3'b001)
                     enable[paddr[12:8]][paddr[6:2]*32 +: 32] <= pwdata;
-                // Threshold: base 0x200000, 0x1000 per target
-                else if (paddr[23:16] == 8'h20)
-                    threshold[paddr[15:12]] <= pwdata[2:0];
-                // Claim complete: base 0x200004
-                else if (paddr[3:2] == 2'b01) begin
-                    if (pwdata[7:0] < NUM_SOURCES[7:0])
-                        pending[pwdata[7:0]] <= 1'b0;
+                // Target context registers: base 0x200000, 0x1000 per target
+                else if (paddr[23:16] == 8'h20) begin
+                    if (paddr[3:2] == 2'b00)
+                        threshold[paddr[15:12]] <= pwdata[2:0];
+                    else if (paddr[3:2] == 2'b01) begin
+                        if (pwdata[7:0] < NUM_SOURCES[7:0])
+                            pending[pwdata[7:0]] <= 1'b0;
+                    end
                 end
             end else begin
                 if (paddr[23:16] == 8'h20 && paddr[3:2] == 2'b01)
