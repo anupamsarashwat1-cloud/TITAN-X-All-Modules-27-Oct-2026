@@ -105,3 +105,36 @@ graph LR
     FSM_CTRL --> cpu_stall
     FSM_CTRL --> axi_ar
 ```
+
+---
+
+## 🧪 Verification & Simulation Results
+
+### Test Matrix
+
+| Test ID | Test Scenario | Stimulus Details | Expected Output | Observed Output | Verdict |
+|:---:|:---|:---|:---:|:---:|:---:|
+| **TC-01** | Cold Cache Miss & AXI Burst Refill | Request unmapped address `0x10000` | `cpu_stall=1`, 8-beat AXI burst, then `cpu_valid=1` | `cpu_valid=1` after 8-beat burst | ✅ PASS |
+| **TC-02** | Zero-Stall Cache Hit | Re-request same address `0x10000` | Immediate `cpu_valid=1`, `cpu_stall=0` | Immediate `cpu_valid=1` (0 stall) | ✅ PASS |
+| **TC-03** | Synchronous Invalidation | Assert `invalidate = 1` | Valid bits cleared, next read misses | `m_arvalid=1` re-asserted on miss | ✅ PASS |
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_icache.vcd opened for output.
+
+--- TEST 1: Cold miss → AXI burst fill ---
+PASS [245000] cpu_valid=1 after burst fill
+
+--- TEST 2: Cache hit on same line ---
+PASS [326000] cpu_valid=1 on cache hit
+
+--- TEST 3: Invalidate → miss ---
+PASS [386000] Cache miss after invalidate (arvalid=1 stall=0)
+
+==============================
+RV_ICACHE VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform Analysis
+![rv_icache Waveform](rv_icache_waveform.png)

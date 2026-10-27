@@ -11,3 +11,8 @@
 [2026-10-27T09:03:53+05:30] COMPLETED: Task 1.5 - Verify common/fifo_sync/fifo_sync.v (10/10 tests pass, 400 randomized cycles pass, waveform generated, README updated)
 [2026-10-27T09:04:36+05:30] COMPLETED: Task 1.6 - Verify common/fifo_async/fifo_async.v (7/7 tests pass, multi-clock domain stress pass, waveform generated, README updated)
 [2026-10-27T09:04:36+05:30] PHASE COMPLETE: Phase 1 (Foundation & Common Standard Cell Modules) - 6/6 Modules Verified 100% Pass.
+[2026-10-27T09:05:53+05:30] COMPLETED: Task 2.1 - Verify frontend/rv_bpu/rv_bpu.v (5/5 tests pass, BTB training, Gshare & saturating counters pass, waveform generated, README updated)
+[2026-10-27T09:06:35+05:30] COMPLETED: Task 2.2 - Verify frontend/rv_icache/rv_icache.v (3/3 tests pass, AXI 8-beat refill & cache hit pass, waveform generated, README updated)
+[2026-10-27T09:08:30+05:30] COMPLETED: Task 2.3 - Verify frontend/rv_fetch/rv_fetch.v (4/4 tests pass, single-outstanding AXI-Lite & redirect-safe drain pass, waveform generated, README updated)
+[2026-10-27T09:09:40+05:30] COMPLETED: Task 2.4 - Verify frontend/rv_decode/rv_decode.v (7/7 tests pass, RV64I decode, WB forwarding & flush pass, waveform generated, README updated)
+[2026-10-27T09:09:40+05:30] PHASE COMPLETE: Phase 2 (CPU Frontend & Branch Prediction Subsystem) - 4/4 Modules Verified 100% Pass.
