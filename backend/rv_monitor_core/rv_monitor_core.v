@@ -97,7 +97,9 @@ module rv_monitor_core #(
     end
     assign fe_pc = pc_reg;
     assign flush_fe = branch_taken;
-    assign flush_de = branch_taken || stall;
+    // BUG-MONCORE-001: Pipeline stalls must freeze registers, not flush them.
+    // Flushing on stall caused in-flight memory transactions to be aborted prematurely.
+    assign flush_de = branch_taken;
 
     // Decode → Execute
     wire [63:0] de_pc, de_rs1, de_rs2, de_imm;
@@ -107,6 +109,9 @@ module rv_monitor_core #(
     wire [4:0]  de_aluop;
     wire [4:0]  de_amo_f5;
     wire        de_memr, de_memw, de_regw, de_branch, de_jal, de_jalr, de_is_amo, de_valid;
+    wire        de_is_csr;
+    wire [1:0]  de_csr_op;
+    wire        de_is_ecall, de_is_ebreak, de_is_mret;
     
     rv_decode u_decode (
         .clk       (clk),         .rst_n    (rst_n),
@@ -119,7 +124,9 @@ module rv_monitor_core #(
         .funct3    (de_f3),       .funct7   (de_f7),       .opcode   (de_op),
         .alu_op    (de_aluop),    .mem_read (de_memr),     .mem_write(de_memw),
         .reg_write (de_regw),     .branch   (de_branch),   .jal      (de_jal),
-        .jalr      (de_jalr),     .valid_out(de_valid)
+        .jalr      (de_jalr),     .valid_out(de_valid),
+        .is_csr    (de_is_csr),   .csr_op   (de_csr_op),
+        .is_ecall  (de_is_ecall), .is_ebreak(de_is_ebreak),.is_mret  (de_is_mret)
     );
     assign de_amo_f5 = 5'h0;
     assign de_is_amo = 1'b0;
@@ -142,6 +149,9 @@ module rv_monitor_core #(
         .alu_op       (de_aluop),   .mem_read     (de_memr),   .mem_write   (de_memw),
         .reg_write    (de_regw),    .branch       (de_branch), .jal         (de_jal),
         .jalr         (de_jalr),    .is_amo       (de_is_amo), .amo_funct5  (de_amo_f5),
+        .is_csr       (de_is_csr),  .csr_op       (de_csr_op),
+        .is_ecall     (de_is_ecall),.is_ebreak    (de_is_ebreak), .is_mret  (de_is_mret),
+        .irq_m_ext    (irq_m_ext),  .irq_m_timer  (irq_m_timer), .irq_m_soft (irq_m_soft),
         .valid_in     (de_valid),
         .fwd_mem_data (64'h0),      .fwd_mem_valid(1'b0),      .fwd_mem_rd  (5'h0),
         .fwd_wb_data  (64'h0),      .fwd_wb_valid (1'b0),      .fwd_wb_rd   (5'h0),

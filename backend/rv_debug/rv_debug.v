@@ -238,6 +238,10 @@ module rv_debug #(
             dmactive      <= 1'b0;
             halt_req      <= {NUM_HARTS{1'b0}};
             resume_req    <= {NUM_HARTS{1'b0}};
+            hartsel       <= 20'h0;
+            haltreq_r     <= 1'b0;
+            resumereq_r   <= 1'b0;
+            ndmreset      <= 1'b0;
             cmderr        <= 3'h0;
             busy          <= 1'b0;
             data0         <= 32'h0;
@@ -267,8 +271,8 @@ module rv_debug #(
                             hartsel      <= {dmi_req_data[25:16], dmi_req_data[15:6]};
                             haltreq_r    <= dmi_req_data[31];
                             resumereq_r  <= dmi_req_data[30];
-                            if (dmi_req_data[31]) halt_req[hartsel[2:0]]   <= 1'b1;
-                            if (dmi_req_data[30]) resume_req[hartsel[2:0]] <= 1'b1;
+                            if (dmi_req_data[31]) halt_req[dmi_req_data[8:6]]   <= 1'b1;
+                            if (dmi_req_data[30]) resume_req[dmi_req_data[8:6]] <= 1'b1;
                         end else begin
                             dmi_resp_data <= {haltreq_r, resumereq_r, 4'h0,
                                               hartsel[9:0], hartsel[19:10],

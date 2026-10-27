@@ -58,10 +58,10 @@ module clint #(
         end else if (psel && penable) begin
             // Write
             if (pwrite) begin
-                if (paddr[15:4] == 12'h000) begin
+                if (paddr < 16'h0020) begin
                     // msip region: 0x0000 + hart*4
-                    if (paddr[3:2] < NUM_HARTS[3:0])
-                        msip_reg[paddr[3:2]] <= pwdata[0];
+                    if (paddr[5:2] < NUM_HARTS)
+                        msip_reg[paddr[5:2]] <= pwdata[0];
                 end else if (paddr >= 16'h4000 && paddr < 16'h4028) begin
                     // mtimecmp region
                     case (paddr[5:2])
@@ -80,9 +80,12 @@ module clint #(
                 end
             end else begin
                 // Read
-                if (paddr[15:4] == 12'h000)
-                    prdata <= {31'h0, msip_reg[paddr[3:2]]};
-                else if (paddr == 16'hBFF8)
+                if (paddr < 16'h0020) begin
+                    if (paddr[5:2] < NUM_HARTS)
+                        prdata <= {31'h0, msip_reg[paddr[5:2]]};
+                    else
+                        prdata <= 32'h0;
+                end else if (paddr == 16'hBFF8)
                     prdata <= mtime[31:0];
                 else if (paddr == 16'hBFFC)
                     prdata <= mtime[63:32];
