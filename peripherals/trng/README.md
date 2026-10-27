@@ -97,3 +97,54 @@ graph LR
     LOGIC --> trng_valid
     LOGIC --> trng_irq
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_trng.v`) verifies the Ring Oscillator entropy generation, Von Neumann debiasing extractor, Repetition Count health testing, and consumer handshake interface:
+1. **TEST 1: APB Handshake**: Verifies `pready=1` following reset release.
+2. **TEST 2: Control Register Reset**: Verifies `ctrl_reg` initializes to 0.
+3. **TEST 3: Entropy Collection & Valid Flag**: Lets the 16 ring oscillators generate raw entropy bits; validates that the Von Neumann debiasing filter and accumulator assert `trng_valid=1` after exactly 256 extracted bits.
+4. **TEST 4: Status Register Polling**: Reads status register `0x04` to confirm `entropy_valid=1` and `health_fail=0`.
+5. **TEST 5: Non-Zero Entropy Integrity**: Confirms that the collected 256-bit entropy payload (`trng_entropy`) is non-zero.
+6. **TEST 6: Hardware Consumer Handshake**: Pulses `trng_ready=1` to acknowledge consumption; verifies `trng_valid` deasserts to re-arm the accumulator.
+7. **TEST 7: Independent Subsequent Extraction**: Collects a second 256-bit entropy word and validates that it differs from the first word.
+8. **TEST 8: NIST Health Tests**: Validates that continuous Repetition Count Test (RCT) passes without raising `trng_irq`.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_trng.vcd opened for output.
+
+--- TEST 1: pready ---
+PASS [104000]             pready=1 after reset
+
+--- TEST 2: ctrl_reg reset value ---
+PASS [128000]         ctrl_reg = 0 after reset
+
+--- TEST 3: trng_valid asserts (collecting entropy) ---
+PASS [7290000] trng_valid=1 after 995 clock cycles
+
+--- TEST 4: Status register entropy_valid bit ---
+PASS [7314000]      status_reg[1]=entropy_valid
+PASS [7314000]      status_reg[0]=health_fail=0
+
+--- TEST 5: trng_entropy non-zero ---
+PASS [7314000] trng_entropy = non-zero (0x00000000000000000000000000000000000000000000000000000000ac9671f9)
+
+--- TEST 6: trng_ready handshake → new collection ---
+PASS [7362000] erted after trng_ready handshake
+
+--- TEST 7: Second entropy batch is different ---
+PASS [15023000] Second entropy batch differs from first
+
+--- TEST 8: trng_irq (health fail) = 0 ---
+PASS [15023000] g_irq=0 (no health test failure)
+
+==============================
+TRNG VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![TRNG Waveform](trng_waveform.png)
+

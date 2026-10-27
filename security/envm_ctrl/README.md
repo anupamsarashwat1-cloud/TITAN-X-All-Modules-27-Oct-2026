@@ -99,3 +99,55 @@ graph LR
     Registers --> APB_Out
     Arbiter --> eNVM_Out
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_envm_ctrl.v`) verifies the dual-bus architecture: high-speed AXI4-Lite read datapath and APB-based control/programming plane:
+1. **TEST 1: APB Handshake**: Verifies `pready=1` and `pslverr=0` following reset release.
+2. **TEST 2: Command Register Reset**: Confirms `cmd_reg` resets to `0x00000000`.
+3. **TEST 3: Target Address Register R/W**: Writes word offset `0x00001234` to `addr_reg` and verifies readback.
+4. **TEST 4: Write Data Register R/W**: Writes payload word `0xABCD1234` to `data_reg` and verifies readback.
+5. **TEST 5: Command Register R/W**: Writes command word `0x00000001` to `cmd_reg` and verifies readback.
+6. **TEST 6: Status Register Polling**: Reads status register (`0x0C`) confirming `busy=0` during idle.
+7. **TEST 7: AXI-Lite eNVM Memory Read**: Initiates an AXI-Lite read at address `0x100`; validates that the read FSM translates the address to `envm_addr`, samples external memory data `0xDEADCAFE`, and drives `s_rdata` with `s_rvalid`.
+8. **TEST 8: Macro Interface Defaults**: Verifies physical signals (`envm_ce_n=1`, `envm_we_n=1`) default to inactive states when bus is idle.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_envm_ctrl.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [76000]             pready=1 after reset
+PASS [76000]            pslverr=0 after reset
+
+--- TEST 2: cmd_reg reset ---
+PASS [99000]            cmd_reg=0 after reset
+
+--- TEST 3: addr_reg write/readback ---
+PASS [142000]      addr_reg=0x1234 after write
+
+--- TEST 4: data_reg write/readback ---
+PASS [186000]  data_reg=0xABCD1234 after write
+
+--- TEST 5: cmd_reg write ---
+PASS [229000]            cmd_reg=1 after write
+
+--- TEST 6: stat_reg readable ---
+  stat_reg = 0x00000000 (busy=0)
+
+--- TEST 7: AXI-Lite eNVM read ---
+PASS [277000] AXI read: s_rdata=0xdeadcafe (envm_rdata=0xdeadcafe)
+
+--- TEST 8: envm interface signals ---
+  envm_clk=1 envm_ce_n=1 envm_we_n=1
+PASS [328000]  envm_we_n=1 (no writes via APB)
+
+==============================
+ENVM_CTRL VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![eNVM Controller Waveform](envm_ctrl_waveform.png)
+

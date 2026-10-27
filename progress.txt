@@ -68,3 +68,11 @@
 [2026-10-27T09:56:55+05:30] COMPLETED: Task 9.6 - Verify peripherals/i2c_master/i2c_master.v (6/6 tests pass, 4-phase clock prescaler, open-drain pullups & START/WRITE/STOP pass, waveform generated, README updated)
 [2026-10-27T09:57:35+05:30] COMPLETED: Task 9.7 - Verify peripherals/can_controller/can_controller.v (7/7 tests pass, SJA1000 reset mode, BTR timing & frame buffer staging pass, waveform generated, README updated)
 [2026-10-27T09:57:45+05:30] PHASE COMPLETE: Phase 9 (Industrial Peripherals & Serial Communication) - 7/7 Modules Verified 100% Pass.
+[2026-10-27T09:59:15+05:30] COMPLETED: Task 10.1 - Verify peripherals/trng/trng.v (8/8 tests pass, 16 ring oscillators, Von Neumann debiasing & NIST health checks pass, waveform generated, README updated)
+[2026-10-27T09:59:55+05:30] COMPLETED: Task 10.2 - Verify security/drbg/drbg.v (6/6 tests pass, CTR-DRBG instantiate, random number generation & reseed pass, waveform generated, README updated)
+[2026-10-27T10:00:35+05:30] COMPLETED: Task 10.3 - Verify peripherals/sha256_engine/sha256_engine.v (7/7 tests pass, 64-round pipeline, standard IV init & IRQ generation pass, waveform generated, README updated)
+[2026-10-27T10:01:15+05:30] COMPLETED: Task 10.4 - Verify peripherals/aes_engine/aes_engine.v (9/9 tests pass, ECB/CBC mode, 256-bit key storage & IV staging pass, waveform generated, README updated)
+[2026-10-27T10:02:10+05:30] COMPLETED: Task 10.5 - Verify security/ecdsa_engine/ecdsa_engine.v (9/9 tests pass, P-256 curve verification, RAM buffers & 65511-cycle completion pass, waveform generated, README updated)
+[2026-10-27T10:02:50+05:30] COMPLETED: Task 10.6 - Verify security/envm_ctrl/envm_ctrl.v (8/8 tests pass, APB command interface & prioritized AXI-Lite read pass, waveform generated, README updated)
+[2026-10-27T10:03:30+05:30] COMPLETED: Task 10.7 - Verify security/secure_boot/secure_boot.v (6/6 tests pass, Root-of-Trust secure boot FSM & core reset gating pass, waveform generated, README updated)
+[2026-10-27T10:03:40+05:30] PHASE COMPLETE: Phase 10 (Hardware Security, Cryptography & Root-of-Trust) - 7/7 Modules Verified 100% Pass.

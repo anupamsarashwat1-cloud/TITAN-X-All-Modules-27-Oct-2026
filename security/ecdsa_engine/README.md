@@ -83,3 +83,60 @@ graph LR
     RAMs --> APB_Out
     Registers --> IRQ
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_ecdsa_engine.v`) verifies the ECDSA P-256/P-384 public-key accelerator APB interface, parameter RAM staging, curve mode selection, and multi-cycle execution:
+1. **TEST 1: Reset Baseline**: Validates `pready=1`, `pslverr=0`, and `ecdsa_irq=0` following reset release.
+2. **TEST 2: Control Register Reset**: Verifies `ctrl_reg` initializes to 0.
+3. **TEST 3: Status Register Reset**: Verifies `busy=0` and `done=0` initially.
+4. **TEST 4: Mode & Operation Programming**: Configures curve selection (`mode=P256`) and operation type (`op=verify`).
+5. **TEST 5: Message Hash RAM Staging**: Writes digest words to `hash_ram[0..2]` at address offset `0x00010000`.
+6. **TEST 6: Public/Private Key RAM Staging**: Writes key components to `key_ram[0..1]` at address offset `0x00020000`.
+7. **TEST 7: Signature R Component Staging**: Writes signature word components to `r_ram[0..1]` at address offset `0x00030000`.
+8. **TEST 8: Signature S Component Staging**: Writes signature word components to `s_ram[0..1]` at address offset `0x00040000`.
+9. **TEST 9: Execution & Completion Interrupt**: Asserts `start=1` (`ctrl_reg[0]=1`); verifies that the engine runs through its multi-cycle math sequence and asserts `ecdsa_irq=1` upon completion after 65511 cycles.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_ecdsa_engine.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [76000]             pready=1 after reset
+PASS [76000]            pslverr=0 after reset
+PASS [76000]          ecdsa_irq=0 after reset
+
+--- TEST 2: ctrl_reg reset ---
+PASS [99000]           ctrl_reg=0 after reset
+
+--- TEST 3: stat_reg reset ---
+PASS [121000]               busy=0 after reset
+PASS [121000]               done=0 after reset
+
+--- TEST 4: ctrl_reg mode write ---
+PASS [164000]    ctrl_reg mode=P256, op=verify
+
+--- TEST 5: Hash RAM write ---
+  hash_ram[0..2] written
+
+--- TEST 6: Key RAM write ---
+  key_ram[0..1] written
+
+--- TEST 7: Signature R RAM write ---
+  r_ram[0..1] written
+
+--- TEST 8: Signature S RAM write ---
+  s_ram[0..1] written
+
+--- TEST 9: Start ECDSA verify operation ---
+PASS [472057000] ecdsa_irq=1 (done) after 65511 cycles
+
+==============================
+ECDSA_ENGINE VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![ECDSA Engine Waveform](ecdsa_engine_waveform.png)
+

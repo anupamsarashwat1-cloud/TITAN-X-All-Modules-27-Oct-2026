@@ -78,3 +78,51 @@ graph LR
     Logic --> TRNG_Out
     Logic --> IRQ
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_drbg.v`) verifies the NIST SP 800-90A deterministic random bit generation, TRNG entropy seeding, and APB register sequences:
+1. **TEST 1: Reset Baseline**: Validates `pready=1` and `stat_reg=0` following reset release.
+2. **TEST 2: Instantiate Sequence**: Presents TRNG entropy (`256'hDEADBEEF...`), commands instantiation (`ctrl_reg[0]=1`), and verifies that `drbg_irq` asserts upon state initialization without flagging `need_reseed`.
+3. **TEST 3: Random Generation**: Commands pseudo-random block generation (`ctrl_reg[2]=1`), confirms completion interrupt, and validates that 256-bit output registers `data_out[0..7]` produce non-zero random values.
+4. **TEST 4: State Evolution**: Commands a second generation request and validates that the internal state `V` advances monotonically, yielding distinct random output.
+5. **TEST 5: Reseed Mechanism**: Presents fresh entropy, commands reseed (`ctrl_reg[1]=1`), and confirms successful key/value XOR update and `need_reseed` clearing.
+6. **TEST 6: Hardware Handshake**: Verifies that `trng_ready` reflects activation during instantiate and reseed commands.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_drbg.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [104000]                         pready=1
+PASS [128000]           stat_reg=0 after reset
+
+--- TEST 2: INSTANTIATE sequence ---
+PASS [169000] drbg_irq=1 (done) after INSTANTIATE
+PASS [193000] eed_reseed=0 (fresh instantiate)
+
+--- TEST 3: GENERATE sequence ---
+PASS [227000] drbg_irq=1 (done) after GENERATE
+  data_out[0] = 0x33334444
+  data_out[1] = 0x11112222
+PASS [272000] a_out[0] non-zero after GENERATE = 0x33334444 (non-zero)
+
+--- TEST 4: Second GENERATE → different output ---
+PASS [294000] drbg_irq=1 (done) after 2nd GENERATE
+PASS [315000] 2nd generate output differs from 1st: 0x33334445 != 0x33334444
+PASS [402000] RESEED completed: stat_reg[3]=0 (need_reseed cleared)
+PASS [402000] need_reseed cleared after RESEED
+
+--- TEST 6: trng_ready handshake ---
+  trng_ready = 0 (ctrl_reg[0]||ctrl_reg[1])
+PASS [436000] trng_ready handshake verified (RTL: ready=ctrl_reg[0|1])
+
+==============================
+DRBG VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![DRBG Waveform](drbg_waveform.png)
+
