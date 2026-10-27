@@ -23,7 +23,8 @@ STEP_H = 1.0
 def collect(vcd_path):
     vcd = VCDVCD(str(vcd_path))
     sigs = {}
-    for name, sig in vcd.signals.items():
+    for name in vcd.signals:
+        sig = vcd[name]
         tv = sig.tv  # list of (time, valuestr)
         if not tv:
             continue
