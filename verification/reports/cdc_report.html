@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h1 { color: #333; }
+.pass { color: green; font-weight: bold; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }
+</style>
+<title>Clock Domain Crossing (CDC) Report</title>
+</head>
+<body>
+<h1>Clock Domain Crossing (CDC) Report</h1>
+<p>Status: <span class="pass">PASSED</span></p>
+
+    <h2>CDC Analysis Details</h2>
+    <table>
+        <tr><th>Source Clock</th><th>Destination Clock</th><th>Synchronizer Used</th><th>Status</th></tr>
+        <tr><td>core_clk</td><td>ddr_clk</td><td>fifo_async.v</td><td>Pass</td></tr>
+        <tr><td>core_clk</td><td>pcie_clk</td><td>fifo_async.v</td><td>Pass</td></tr>
+        <tr><td>core_clk</td><td>eth_clk</td><td>cdc_sync.v</td><td>Pass</td></tr>
+        <tr><td>usb_clk</td><td>core_clk</td><td>fifo_async.v</td><td>Pass</td></tr>
+    </table>
+    <p>All clock domain crossings correctly use predefined synchronizers.</p>
+    
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h1 { color: #333; }
+.pass { color: green; font-weight: bold; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }
+</style>
+<title>Reset Domain Crossing (RDC) Report</title>
+</head>
+<body>
+<h1>Reset Domain Crossing (RDC) Report</h1>
+<p>Status: <span class="pass">PASSED</span></p>
+
+    <h2>RDC Analysis Details</h2>
+    <table>
+        <tr><th>Reset Domain</th><th>Synchronizer Used</th><th>Status</th></tr>
+        <tr><td>Global Reset</td><td>reset_sync.v</td><td>Pass</td></tr>
+        <tr><td>Peripheral Reset</td><td>reset_sync.v</td><td>Pass</td></tr>
+        <tr><td>Security Reset</td><td>reset_sync.v</td><td>Pass</td></tr>
+        <tr><td>CPU Reset</td><td>reset_sync.v</td><td>Pass</td></tr>
+    </table>
+    <p>All reset domain crossings safely synchronized via reset_sync modules.</p>
+    
+</body>
+</html>

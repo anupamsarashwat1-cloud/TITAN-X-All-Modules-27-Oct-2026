@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h1 { color: #333; }
+.status-pass { color: green; font-weight: bold; }
+.status-fail { color: red; font-weight: bold; }
+pre { background-color: #f4f4f4; padding: 10px; border-radius: 5px; overflow-x: auto; }
+</style>
+<title>Verilator Lint Report</title>
+</head>
+<body>
+<h1>Verilator Lint Report</h1>
+<p><strong>Date:</strong> 2026-05-31 16:29:49</p>
+<p><strong>Status:</strong> <span class="status-pass">PASSED</span></p>
+<h2>Lint Output</h2>
+<pre>
+============================================
+ SMVDU-TITAN-X SoC RTL Lint Analysis
+ Linter : Verilator
+============================================
+[1/2] Running Verilator lint...
+%Warning-SHORTREAL: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu.v:469:51: Unsupported: shortreal being promoted to real (suggest use real instead)
+  469 |                                           {32'h0, $shortrealtobits($itor(int_src))} :
+      |                                                   ^~~~~~~~~~~~~~~~
+                    ... For warning description see https://verilator.org/warn/SHORTREAL?v=5.020
+                    ... Use "/* verilator lint_off SHORTREAL */" and lint_on around source to disable this message.
+%Warning-SHORTREAL: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu.v:475:70: Unsupported: shortreal being promoted to real (suggest use real instead)
+  475 |                                            {{32{fp_src1[31]}}, $rtoi($bitstoshortreal(fp_src1[31:0]))} :
+      |                                                                      ^~~~~~~~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu.v:121:12: Cell has missing pin: 'fault_type'
+  121 |     rv_ptw u_ptw (
+      |            ^~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:115:12: Cell has missing pin: 'fault_va'
+  115 |     rv_mmu u_immu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:115:12: Cell has missing pin: 'ptw_arvalid'
+  115 |     rv_mmu u_immu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:115:12: Cell has missing pin: 'ptw_araddr'
+  115 |     rv_mmu u_immu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:115:12: Cell has missing pin: 'ptw_rready'
+  115 |     rv_mmu u_immu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:146:15: Cell has missing pin: 'ecc_1bit'
+  146 |     rv_icache u_icache (
+      |               ^~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:146:15: Cell has missing pin: 'ecc_2bit'
+  146 |     rv_icache u_icache (
+      |               ^~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:290:12: Cell has missing pin: 'fault_va'
+  290 |     rv_mmu u_dmmu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:290:12: Cell has missing pin: 'ptw_arvalid'
+  290 |     rv_mmu u_dmmu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:290:12: Cell has missing pin: 'ptw_araddr'
+  290 |     rv_mmu u_dmmu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:290:12: Cell has missing pin: 'ptw_rready'
+  290 |     rv_mmu u_dmmu (
+      |            ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'snoop_valid'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'snoop_addr'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'snoop_type'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'snoop_ack'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'snoop_data_valid'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'snoop_data'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'halt_req'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'resume_req'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'hart_halted'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:180:15: Cell has missing pin: 'hart_running'
+  180 |             ) u_core (
+      |               ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_wstrb'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_wlast'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_arvalid'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_arready'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_araddr'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_arlen'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_arsize'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_arburst'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_rvalid'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_rready'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_rdata'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_rlast'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'dmem_rresp'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'halt_req'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'resume_req'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'hart_halted'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:222:36: Cell has missing pin: 'hart_running'
+  222 |     rv_monitor_core #(.HART_ID(4)) u_monitor (
+      |                                    ^~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_arvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_arready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_araddr'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_rvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_rready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_rdata'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_rresp'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_awvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_awready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_awaddr'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_wvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_wready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_wdata'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_wstrb'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_bvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_bready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 's_bresp'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_arvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_arready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_araddr'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_rvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_rready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_rdata'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_rresp'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_awvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_awready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_awaddr'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_wvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_wready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_wdata'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_wstrb'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_bvalid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'm_bready'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'snoop_valid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'snoop_addr'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'snoop_type'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'snoop_ack'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:243:18: Cell has missing pin: 'snoop_data_valid'
+  243 |     l2_cache_top u_l2_cache (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:247:18: Cell has missing pin: 'ddr_dm'
+  247 |     ddr_ctrl_top u_ddr_ctrl (
+      |                  ^~~~~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:343:18: Cell has missing pin: 'm_awlen'
+  343 |     gem_ethernet u_gem (
+      |                  ^~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:343:18: Cell has missing pin: 'm_awsize'
+  343 |     gem_ethernet u_gem (
+      |                  ^~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:343:18: Cell has missing pin: 'm_arlen'
+  343 |     gem_ethernet u_gem (
+      |                  ^~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:343:18: Cell has missing pin: 'm_arsize'
+  343 |     gem_ethernet u_gem (
+      |                  ^~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:343:18: Cell has missing pin: 'm_rid'
+  343 |     gem_ethernet u_gem (
+      |                  ^~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 'm_awlen'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 'm_awsize'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 'm_arlen'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 'm_arsize'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_awvalid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_awready'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_awaddr'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_awid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_awlen'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_awsize'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_wvalid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_wready'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_wdata'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_wstrb'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_wlast'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_bvalid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_bready'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_bresp'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_bid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_arvalid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_arready'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_araddr'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_arid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_arlen'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_arsize'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_rvalid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_rready'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_rdata'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_rresp'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_rlast'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top.v:354:14: Cell has missing pin: 's_rid'
+  354 |     pcie_top u_pcie (
+      |              ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_ctrl_top.v:210:19: Cell has missing pin: 'dfi_act_n'
+  210 |     ddr_scheduler u_sched (
+      |                   ^~~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_cs'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_we'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_bank'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_wmask'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_addr'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_din'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_dout'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-PINMISSING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top.v:71:19: Cell has missing pin: 'dat_dout_valid'
+   71 |     l2_cache_ctrl u_ctrl (
+      |                   ^~~~~~
+%Warning-UNSIGNED: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_pmp.v:107:46: Comparison is constant due to unsigned arithmetic
+                                                                                          : ... note: In instance 'titan_x_top.gen_cores[3].u_core.u_pmp'
+  107 |             wire tor_match = ({paddr, 2'b00} >= {addr_prev, 2'b00}) &&
+      |                                              ^~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_ethernet.v:84:13: Case values incompletely covered (example pattern 0x1)
+   84 |             case (paddr[11:0])
+      |             ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/usb_otg.v:75:13: Case values incompletely covered (example pattern 0x0)
+   75 |             case (paddr[7:0])
+      |             ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot.v:62:9: Case values incompletely covered (example pattern 0x6)
+   62 |         case (state)
+      |         ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/envm_ctrl.v:62:13: Case values incompletely covered (example pattern 0x1)
+   62 |             case (paddr[7:0])
+      |             ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/envm_ctrl.v:97:13: Case values incompletely covered (example pattern 0x2)
+   97 |             case (state)
+      |             ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/aes_engine.v:55:13: Case values incompletely covered (example pattern 0x1)
+   55 |             case (paddr[7:0])
+      |             ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/uart_16550.v:73:13: Case values incompletely covered (example pattern 0x1)
+   73 |             case (paddr[5:0])
+      |             ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/can_controller.v:61:13: Case values incompletely covered (example pattern 0x1)
+   61 |             case (paddr[7:0])
+      |             ^~~~
+%Warning-CASEINCOMPLETE: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/hdmi_ctrl.v:58:13: Case values incompletely covered (example pattern 0x1)
+   58 |             case (paddr[7:0])
+      |             ^~~~
+%Warning-UNOPTFLAT: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:90:17: Signal unoptimizable: Circular combinational logic: 'titan_x_top.gen_cores[0].u_core.stall'
+   90 |     wire        stall, flush_fe, flush_de;
+      |                 ^~~~~
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:90:17:      Example path: titan_x_top.gen_cores[0].u_core.stall
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:187:22:      Example path: ASSIGNW
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:110:17:      Example path: titan_x_top.gen_cores[0].u_core.fetch_req
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:393:18:      Example path: ASSIGNW
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:90:17:      Example path: titan_x_top.gen_cores[0].u_core.stall
+%Warning-UNOPTFLAT: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:90:24: Signal unoptimizable: Circular combinational logic: 'titan_x_top.gen_cores[0].u_core.flush_fe'
+   90 |     wire        stall, flush_fe, flush_de;
+      |                        ^~~~~~~~
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:90:24:      Example path: titan_x_top.gen_cores[0].u_core.flush_fe
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:187:22:      Example path: ASSIGNW
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:110:17:      Example path: titan_x_top.gen_cores[0].u_core.fetch_req
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:393:18:      Example path: ASSIGNW
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:90:17:      Example path: titan_x_top.gen_cores[0].u_core.stall
+                    /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top.v:187:22:      Example path: ASSIGNW
+============================================
+ Verilator Lint: PASSED (Clean)
+============================================
+
+</pre>
+</body>
+</html>

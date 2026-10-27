@@ -36,7 +36,11 @@ module ddr_ctrl_top (
     // -------------------------------------------------------
     // Initialization & Refresh Manager
     // -------------------------------------------------------
+`ifdef FAST_INIT
+    localparam INIT_CYCLES = 16'd50;
+`else
     localparam INIT_CYCLES = 16'd40000;
+`endif
     localparam REFRESH_INTERVAL = 16'd1560; // 7.8us at 200MHz
 
     reg [15:0] init_cnt;
@@ -110,6 +114,7 @@ module ddr_ctrl_top (
     // the write still answered OKAY — data loss with a success response.
     reg         cmd_pend;
     wire        cmd_fire = cmd_pend && sched_ready; // scheduler accepts this edge
+    wire        sched_cmd_valid;
     assign      sched_cmd_valid = cmd_pend;         // legacy name for traces
     reg [1:0]   sched_cmd_type; // 0=RD, 1=WR, 2=REF
     reg [2:0]   sched_bank;
