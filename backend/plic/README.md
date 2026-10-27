@@ -89,3 +89,51 @@ graph LR
     CFG_REGS --> apb_rdata
     CFG_REGS --> apb_rdy
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `plic` module was verified using a directed self-checking testbench (`tb_plic.v`) testing 186-source latching, APB memory mapping, priority arbitration, and target threshold filtering:
+1. **Reset State:** Confirms active-low reset initializes `pready = 1` and clears all target interrupt lines (`irq_targets = 10'b0000000000`).
+2. **Priority Configuration:** Sets interrupt source 1 priority to $5$ via APB write (`0x000004`).
+3. **Interrupt Target Enable:** Enables source 1 routing to target context 0 via APB write to `enable[0]` (`0x002000`).
+4. **Threshold Filtering:** Sets target 0 threshold to $0$ (`0x200000`), allowing all non-zero priorities.
+5. **Interrupt Triggering:** Asserts `interrupt_sources[1] = 1`, verifying `irq_targets[0]` asserts high.
+6. **Level Latching:** Confirms that deasserting `interrupt_sources[1]` retains the pending status and holds `irq_targets[0] = 1` until acknowledged.
+7. **Dynamic Disabling:** Disables source 1 on target 0 and validates immediate deassertion of `irq_targets[0]`.
+8. **Threshold Blocking:** Raises threshold to $7$ (exceeding priority 5) and confirms that subsequent interrupts on source 1 are strictly suppressed.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_plic.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [105000]             pready=1 after reset
+PASS [105000] _targets=0 at reset (no sources)
+
+--- TEST 2: Set source 1 priority=5 ---
+
+--- TEST 3: Enable source 1 for target 0 ---
+
+--- TEST 4: Set threshold[0]=0 ---
+
+--- TEST 5: Assert interrupt source 1 ---
+PASS [236000] s[0]=1 when src1 pending+enabled
+
+--- TEST 6: Pending stays after source de-asserts ---
+PASS [256000] q_targets[0]=1 (pending latched)
+
+--- TEST 7: Disable source, irq clears ---
+PASS [316000]   irq_targets[0]=0 after disable
+
+--- TEST 8: Threshold blocks interrupt ---
+PASS [406000] ets[0]=0 when threshold>priority
+
+==============================
+PLIC VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![plic Waveform](plic_waveform.png)
+

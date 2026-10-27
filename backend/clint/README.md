@@ -90,3 +90,50 @@ graph LR
     APB_LOGIC --> msip_out
     TIME_LOGIC --> mtip_out
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `clint` module was verified using a directed self-checking testbench (`tb_clint.v`) testing APB register transactions, 64-bit real-time counter incrementation, and timer interrupt comparators:
+1. **Reset State:** Confirms active-low reset initializes `pready = 1` (zero-wait APB) and clears all hart software interrupts (`msip = 5'b00000`).
+2. **Real-Time Counter Incrementation:** Reads `mtime_lo` (`0xBFF8`) over APB and confirms continuous monotonic incrementation every cycle.
+3. **Software Interrupt Generation & Clearing:** Performs APB write to `msip[0]` (`0x0000`), verifying immediate assertion of `msip[0] = 1`, followed by clearing back to 0.
+4. **Timer Comparator Matching (`mtip`):** Programs `mtimecmp[0]` (`0x4000/0x4004`) to a low threshold ($1$), verifying that `mtip[0]` asserts as soon as `mtime >= mtimecmp[0]`.
+5. **Timer Clearing:** Re-programs `mtimecmp[0]` to `0xFFFFFFFFFFFFFFFF` and confirms immediate deassertion of `mtip[0]`.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_clint.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [85000]             pready=1 (zero-wait)
+PASS [85000]               msip=0 after reset
+
+--- TEST 2: mtime increments ---
+  mtime_lo after reset+3 cycles = 0x00000006 (non-zero expected)
+PASS [117000] mtime_lo > 0 (incrementing)
+
+--- TEST 3: msip[0] set ---
+PASS [156000]            msip[0]=1 after write
+
+--- TEST 4: msip[0] clear ---
+PASS [196000]            msip[0]=0 after clear
+
+--- TEST 5: mtip generation ---
+PASS [306000] 0]=1 when mtime >= mtimecmp[0]=1
+
+--- TEST 6: mtip cleared by large mtimecmp ---
+PASS [396000]      mtip[0]=0 when mtimecmp=max
+
+--- TEST 7: mtime readback ---
+  mtime_lo = 0x00000025 (incremented)
+PASS [427000] mtime_lo > 16 after running
+
+==============================
+CLINT VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![clint Waveform](clint_waveform.png)
+

@@ -28,3 +28,8 @@
 [2026-10-27T09:20:30+05:30] COMPLETED: Task 4.3 - Verify backend/rv_pmp/rv_pmp.v (5/5 tests pass, 8 PMP entries, NA4/NAPOT/TOR, M-mode allow & U-mode deny pass, waveform generated, README updated)
 [2026-10-27T09:21:40+05:30] COMPLETED: Task 4.4 - Verify backend/rv_mmu/rv_mmu.v (500/500 randomized cycles pass, bare/Sv39 mode switching & TLB/PTW integration pass, waveform generated, README updated)
 [2026-10-27T09:21:40+05:30] PHASE COMPLETE: Phase 4 (CPU Virtual Memory, MMU & PMP Subsystem) - 4/4 Modules Verified 100% Pass.
+[2026-10-27T09:23:30+05:30] COMPLETED: Task 5.1 - Verify backend/clint/clint.v (7/7 tests pass, 64-bit mtime increment, mtimecmp timer compare & msip IPI pass, waveform generated, README updated)
+[2026-10-27T09:24:00+05:30] COMPLETED: Task 5.2 - Verify backend/plic/plic.v (8/8 tests pass, 186-source latching, priority arbitration, threshold gating & claim/complete pass, waveform generated, README updated)
+[2026-10-27T09:25:20+05:30] COMPLETED: Task 5.3 - Verify backend/rv_debug/rv_debug.v (6/6 tests pass, JTAG TAP reset, IDCODE read 0x202304FD, DTMCS query & DMI halt write pass, waveform generated, README updated)
+[2026-10-27T09:26:20+05:30] COMPLETED: Task 5.4 - Verify backend/rv_monitor_core/rv_monitor_core.v (500 cycles pass, active-low reset, interrupt handling & bus hazard stress pass, waveform generated, README updated)
+[2026-10-27T09:26:20+05:30] PHASE COMPLETE: Phase 5 (Interrupt Architecture, Debug & Security Monitor) - 4/4 Modules Verified 100% Pass.

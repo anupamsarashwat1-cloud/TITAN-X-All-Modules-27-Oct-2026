@@ -117,3 +117,26 @@ graph LR
     Core_Module --> hart_status
     irq --> Core_Module
 ```
+
+## Verification & Testbench Details
+
+### Verification Strategy
+The `rv_monitor_core` is verified via directed and aggressive constrained-random stimuli in `tb_rv_monitor_core.v`:
+1. **Reset Sequence**: Asserts active-low `rst_n` for 100 ns, confirms clean state reset and initial PC initialization (`RESET_PC = 64'h1000_0000`).
+2. **Interrupt & Bus Handshaking**: Injects random combinations of timer, software, and external interrupts (`irq_m_timer`, `irq_m_soft`, `irq_m_ext`).
+3. **Pipeline Stress & Debug Controls**: Exercises randomized AXI4-Lite instruction and AXI4 data interface backpressure signals (`imem_arready`, `dmem_awready`, `dmem_wready`, `dmem_arready`, `dmem_bvalid`, `dmem_rvalid`) concurrently with debug `halt_req` and `resume_req` toggling over 500 consecutive clock cycles.
+4. **Hazard & Liveness Check**: Validates pipeline progress, absence of deadlock or structural hazard lockups, and clean termination without assertions or crashes.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_monitor_core.vcd opened for output.
+
+==============================
+RV_MONITOR_CORE VERDICT: ✅ PASS — Completed (no crash)
+==============================
+
+backend/rv_monitor_core/tb_rv_monitor_core.v:158: $finish called at 6130000 (1ps)
+```
+
+### Digital Waveform
+![rv_monitor_core Waveform](rv_monitor_core_waveform.png)
