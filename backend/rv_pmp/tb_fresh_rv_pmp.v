@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Brand-New Fresh Self-Checking Testbench for rv_pmp
-// Generated strictly from prd.json architectural truth tables & constraints
+// Strictly adheres to RISC-V Privileged Architecture Spec v1.12 (pmpaddr = PA >> 2)
 
 `timescale 1ns/1ps
 `include "params.vh"
@@ -45,10 +45,10 @@ module tb_fresh_rv_pmp;
     task set_pmp_entry;
         input integer entry;
         input [7:0]  cfg;
-        input [37:0] addr;
+        input [37:0] addr_word; // Standard RISC-V word address (PA >> 2)
         begin
             pmpcfg0[entry*8 +: 8] = cfg;
-            pmpaddr_packed[entry*38 +: 38] = addr;
+            pmpaddr_packed[entry*38 +: 38] = addr_word;
         end
     endtask
 
@@ -126,13 +126,14 @@ module tb_fresh_rv_pmp;
             end
         end
 
-        // Test 4: TOR (Top of Range) Entry Check
-        // Configure Entry 0: range [0, 0x00_8000_1000), permissions R=1, W=0, X=0 (Read-Only)
+        // Test 4: TOR (Top of Range) Entry Check (Word Addressing PA >> 2)
+        // Configure Entry 0: range [0, 0x00_8000_1000), pmpaddr0 = 0x8000_1000 >> 2 = 0x2000_0400
+        // permissions R=1, W=0, X=0 (Read-Only)
         // cfg = {L=0, 2'b00, A=2'b01 (TOR), X=0, W=0, R=1} = 8'b0000_1001 = 8'h09
         test_cnt = test_cnt + 1;
         clear_all_pmp();
         check_en = 1;
-        set_pmp_entry(0, 8'h09, 38'h00_8000_1000);
+        set_pmp_entry(0, 8'h09, 38'h00_2000_0400); // 0x8000_1000 >> 2
         priv_mode = `PRIV_U;
         paddr = 38'h00_8000_0400; // Inside range
 
@@ -158,18 +159,19 @@ module tb_fresh_rv_pmp;
                     $display("ERROR [T4]: U-mode address outside TOR range was permitted");
                     err_cnt = err_cnt + 1;
                 end else begin
-                    $display("PASS [T4]: TOR (Top of Range) mode match and permissions verified");
+                    $display("PASS [T4]: TOR (Top of Range) mode match and permissions verified (word addressed)");
                 end
             end
         end
 
         // Test 5: NA4 (4-Byte Aligned) Entry Check
-        // Configure Entry 1: NA4 address 0x00_4000_0004, permissions W=1, R=0, X=0 (Write-Only)
+        // Configure Entry 1: NA4 address 0x00_4000_0004 >> 2 = 0x00_1000_0001
+        // permissions W=1, R=0, X=0 (Write-Only)
         // cfg = {L=0, 2'b00, A=2'b10 (NA4), X=0, W=1, R=0} = 8'b0001_0010 = 8'h12
         test_cnt = test_cnt + 1;
         clear_all_pmp();
         check_en = 1;
-        set_pmp_entry(1, 8'h12, 38'h00_4000_0004);
+        set_pmp_entry(1, 8'h12, 38'h00_1000_0001); // 0x4000_0004 >> 2
         priv_mode = `PRIV_U;
         paddr = 38'h00_4000_0004; // Matches Entry 1
         check_r = 0; check_w = 1; check_x = 0;
@@ -193,20 +195,21 @@ module tb_fresh_rv_pmp;
                     $display("ERROR [T5]: Unmatched NA4 address was permitted");
                     err_cnt = err_cnt + 1;
                 end else begin
-                    $display("PASS [T5]: NA4 (4-Byte Aligned) mode match and permissions verified");
+                    $display("PASS [T5]: NA4 (4-Byte Aligned) mode match and permissions verified (word addressed)");
                 end
             end
         end
 
         // Test 6: NAPOT (Naturally Aligned Power-of-Two) Entry Check
-        // Configure Entry 2: NAPOT 16-byte region at 0x00_2000_0000..0x00_2000_000F
-        // pmpaddr has lower 3 bits set to 1 => mask = 0xF
-        // addr = 38'h00_2000_0007
+        // 16-byte region at 0x00_2000_0000..0x00_2000_000F
+        // Base word = 0x00_2000_0000 >> 2 = 0x00_0800_0000
+        // In NAPOT word encoding: 16 bytes = 4 words => trailing ones = 2'b01 in word addr
+        // pmpaddr = base_word | 2'b01 = 38'h00_0800_0001
         // cfg = {L=0, 2'b00, A=2'b11 (NAPOT), X=1, W=1, R=1} = 8'b0001_1111 = 8'h1F
         test_cnt = test_cnt + 1;
         clear_all_pmp();
         check_en = 1;
-        set_pmp_entry(2, 8'h1F, 38'h00_2000_0007);
+        set_pmp_entry(2, 8'h1F, 38'h00_0800_0001);
         priv_mode = `PRIV_U;
         paddr = 38'h00_2000_000C; // Inside 16-byte NAPOT block
         check_r = 1; check_w = 1; check_x = 1;
@@ -222,7 +225,7 @@ module tb_fresh_rv_pmp;
                 $display("ERROR [T6]: NAPOT outside-region access was permitted");
                 err_cnt = err_cnt + 1;
             end else begin
-                $display("PASS [T6]: NAPOT mode match and permissions verified");
+                $display("PASS [T6]: NAPOT mode match and permissions verified (word addressed)");
             end
         end
 
@@ -234,8 +237,8 @@ module tb_fresh_rv_pmp;
         test_cnt = test_cnt + 1;
         clear_all_pmp();
         check_en = 1;
-        set_pmp_entry(0, 8'h09, 38'h00_8000_1000);
-        set_pmp_entry(3, 8'h0F, 38'h00_8000_2000);
+        set_pmp_entry(0, 8'h09, 38'h00_2000_0400); // 0x8000_1000 >> 2
+        set_pmp_entry(3, 8'h0F, 38'h00_2000_0800); // 0x8000_2000 >> 2
         priv_mode = `PRIV_U;
         paddr = 38'h00_8000_0500;
         check_r = 0; check_w = 1; check_x = 0; // Write attempt
@@ -250,11 +253,11 @@ module tb_fresh_rv_pmp;
         // Test 8: Locked (L-bit) Entry Strict Enforcement in M-Mode
         // In M-mode, unlocked entries are bypassed.
         // Set Entry 4 with Lock bit L=1: cfg = {L=1, 2'b00, A=2'b11 (NAPOT), X=0, W=0, R=1} = 8'b1001_1001 = 8'h99
-        // addr = 38'h00_1000_0007 (16B region at 0x00_1000_0000)
+        // 16B region at 0x00_1000_0000: word = 0x00_0400_0000 | 2'b01 = 38'h00_0400_0001
         test_cnt = test_cnt + 1;
         clear_all_pmp();
         check_en = 1;
-        set_pmp_entry(4, 8'h99, 38'h00_1000_0007);
+        set_pmp_entry(4, 8'h99, 38'h00_0400_0001);
         priv_mode = `PRIV_M;
         paddr = 38'h00_1000_0004;
 
@@ -284,7 +287,7 @@ module tb_fresh_rv_pmp;
         $display("Total Errors: %0d", err_cnt);
 
         if (err_cnt == 0) begin
-            $display("ALL TESTS PASSED: rv_pmp 100%% VERIFIED");
+            $display("ALL TESTS PASSED: rv_pmp 100%% VERIFIED (RISC-V Word Address Compliant)");
         end else begin
             $display("VERIFICATION FAILED: %0d errors detected!", err_cnt);
         end

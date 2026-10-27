@@ -79,11 +79,11 @@ module tb_fresh_rv_regfile;
 
         // Test 3: Write to x0 must be ignored
         test_cnt = test_cnt + 1;
-        @(posedge clk);
+        @(posedge clk); #1;
         wr_en = 1;
         wr_addr = 5'd0;
         wr_data = 64'hDEAD_BEEF_CAFE_BABE;
-        @(posedge clk);
+        @(posedge clk); #1;
         wr_en = 0;
         #1;
         rd_addr1 = 5'd0;
@@ -99,12 +99,12 @@ module tb_fresh_rv_regfile;
         // Test 4: Write all registers x1 to x31 with distinct patterns and read back
         test_cnt = test_cnt + 1;
         for (i = 1; i < 32; i = i + 1) begin
-            @(posedge clk);
+            @(posedge clk); #1;
             wr_en = 1;
             wr_addr = i[4:0];
             wr_data = (64'hA5A5_0000_0000_0000) ^ (64'd1 << i) ^ (64'h55AA_55AA * i);
         end
-        @(posedge clk);
+        @(posedge clk); #1;
         wr_en = 0;
         #5;
 
@@ -128,7 +128,7 @@ module tb_fresh_rv_regfile;
 
         // Test 5: Internal Write-First Bypass Verification
         test_cnt = test_cnt + 1;
-        @(posedge clk);
+        @(posedge clk); #1;
         wr_en = 1;
         wr_addr = 5'd14;
         wr_data = 64'hFEED_FACE_CAFE_D00D;
@@ -157,7 +157,7 @@ module tb_fresh_rv_regfile;
             $display("PASS [T6]: Bypass correctly suppressed for x0");
         end
 
-        @(posedge clk);
+        @(posedge clk); #1;
         wr_en = 0;
         #20;
 

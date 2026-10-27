@@ -135,12 +135,13 @@ module tb_fresh_rv_fpu;
             $display("PASS [T3]: FMV.X.W sign-extension verified (%0d cycles)", wait_cycles);
         end
 
-        // Test 4: FCMP (Float Equality Comparison)
+        // Test 4a: FCMP FEQ (Float Equality Comparison: 2.0f == 2.0f)
         test_cnt = test_cnt + 1;
         @(posedge clk); #1;
         valid_in = 1;
         fop = `FOP_FCMP;
         fmt = `FMT_S;
+        rm  = 3'b010; // FEQ (funct3[1:0] == 2'b10)
         fp_src1 = 64'hFFFF_FFFF_4000_0000; // 2.0f
         fp_src2 = 64'hFFFF_FFFF_4000_0000; // 2.0f
         @(posedge clk); #1;
@@ -152,10 +153,108 @@ module tb_fresh_rv_fpu;
             wait_cycles = wait_cycles + 1;
         end
         if (int_result !== 64'd1 || !int_result_valid) begin
-            $display("ERROR [T4]: FCMP FEQ failed for equal floats: int_result=%h", int_result);
+            $display("ERROR [T4a]: FCMP FEQ failed for equal floats: int_result=%h", int_result);
             err_cnt = err_cnt + 1;
         end else begin
-            $display("PASS [T4]: FCMP FEQ verified for equal operands");
+            $display("PASS [T4a]: FCMP FEQ verified for equal operands (2.0f == 2.0f)");
+        end
+
+        // Test 4b: FCMP FEQ Zero Equality (+0.0f == -0.0f per IEEE 754)
+        test_cnt = test_cnt + 1;
+        @(posedge clk); #1;
+        valid_in = 1;
+        fop = `FOP_FCMP;
+        fmt = `FMT_S;
+        rm  = 3'b010; // FEQ
+        fp_src1 = 64'hFFFF_FFFF_0000_0000; // +0.0f
+        fp_src2 = 64'hFFFF_FFFF_8000_0000; // -0.0f
+        @(posedge clk); #1;
+        valid_in = 0;
+
+        wait_cycles = 0;
+        while (!fpu_done && wait_cycles < 10) begin
+            @(posedge clk); #1;
+            wait_cycles = wait_cycles + 1;
+        end
+        if (int_result !== 64'd1 || !int_result_valid) begin
+            $display("ERROR [T4b]: FCMP FEQ failed for +0.0f == -0.0f: int_result=%h", int_result);
+            err_cnt = err_cnt + 1;
+        end else begin
+            $display("PASS [T4b]: FCMP FEQ verified for +0.0f == -0.0f (IEEE 754 compliance)");
+        end
+
+        // Test 4c: FCMP FLT Negative Float Comparison (-2.0f < -1.0f)
+        // -2.0f = 0xC0000000, -1.0f = 0xBF800000
+        test_cnt = test_cnt + 1;
+        @(posedge clk); #1;
+        valid_in = 1;
+        fop = `FOP_FCMP;
+        fmt = `FMT_S;
+        rm  = 3'b001; // FLT
+        fp_src1 = 64'hFFFF_FFFF_C000_0000; // -2.0f
+        fp_src2 = 64'hFFFF_FFFF_BF80_0000; // -1.0f
+        @(posedge clk); #1;
+        valid_in = 0;
+
+        wait_cycles = 0;
+        while (!fpu_done && wait_cycles < 10) begin
+            @(posedge clk); #1;
+            wait_cycles = wait_cycles + 1;
+        end
+        if (int_result !== 64'd1 || !int_result_valid) begin
+            $display("ERROR [T4c]: FCMP FLT failed for negative numbers (-2.0f < -1.0f): int_result=%h", int_result);
+            err_cnt = err_cnt + 1;
+        end else begin
+            $display("PASS [T4c]: FCMP FLT verified for negative floats (-2.0f < -1.0f)");
+        end
+
+        // Test 4d: FCMP FLT Negative vs Positive (-1.0f < +1.0f)
+        test_cnt = test_cnt + 1;
+        @(posedge clk); #1;
+        valid_in = 1;
+        fop = `FOP_FCMP;
+        fmt = `FMT_S;
+        rm  = 3'b001; // FLT
+        fp_src1 = 64'hFFFF_FFFF_BF80_0000; // -1.0f
+        fp_src2 = 64'hFFFF_FFFF_3F80_0000; // +1.0f
+        @(posedge clk); #1;
+        valid_in = 0;
+
+        wait_cycles = 0;
+        while (!fpu_done && wait_cycles < 10) begin
+            @(posedge clk); #1;
+            wait_cycles = wait_cycles + 1;
+        end
+        if (int_result !== 64'd1 || !int_result_valid) begin
+            $display("ERROR [T4d]: FCMP FLT failed for -1.0f < +1.0f: int_result=%h", int_result);
+            err_cnt = err_cnt + 1;
+        end else begin
+            $display("PASS [T4d]: FCMP FLT verified for negative vs positive (-1.0f < +1.0f)");
+        end
+
+        // Test 4e: Double-Precision FCMP FLT (-2.0d < -1.0d)
+        // -2.0d = 0xC000_0000_0000_0000, -1.0d = 0xBFF0_0000_0000_0000
+        test_cnt = test_cnt + 1;
+        @(posedge clk); #1;
+        valid_in = 1;
+        fop = `FOP_FCMP;
+        fmt = `FMT_D; // Double precision
+        rm  = 3'b001; // FLT
+        fp_src1 = 64'hC000_0000_0000_0000; // -2.0d
+        fp_src2 = 64'hBFF0_0000_0000_0000; // -1.0d
+        @(posedge clk); #1;
+        valid_in = 0;
+
+        wait_cycles = 0;
+        while (!fpu_done && wait_cycles < 10) begin
+            @(posedge clk); #1;
+            wait_cycles = wait_cycles + 1;
+        end
+        if (int_result !== 64'd1 || !int_result_valid) begin
+            $display("ERROR [T4e]: FCMP DP FLT failed (-2.0d < -1.0d): int_result=%h", int_result);
+            err_cnt = err_cnt + 1;
+        end else begin
+            $display("PASS [T4e]: FCMP Double-Precision FLT verified (-2.0d < -1.0d)");
         end
 
         // Test 5: Single Precision Float Addition (1.0f + 2.0f = 3.0f)
@@ -234,6 +333,33 @@ module tb_fresh_rv_fpu;
             err_cnt = err_cnt + 1;
         end else begin
             $display("PASS [T7]: FMUL SP 2.0f * 3.0f = 6.0f verified");
+        end
+
+        // Test 8: Double Precision Float Addition (1.0d + 2.0d = 3.0d)
+        // 1.0d = 0x3FF0_0000_0000_0000
+        // 2.0d = 0x4000_0000_0000_0000
+        // 3.0d = 0x4008_0000_0000_0000
+        test_cnt = test_cnt + 1;
+        @(posedge clk); #1;
+        valid_in = 1;
+        fop = `FOP_FADD;
+        fmt = `FMT_D; // Double precision
+        rm = `RM_RNE;
+        fp_src1 = 64'h3FF0_0000_0000_0000; // 1.0d
+        fp_src2 = 64'h4000_0000_0000_0000; // 2.0d
+        @(posedge clk); #1;
+        valid_in = 0;
+
+        wait_cycles = 0;
+        while (!fpu_done && wait_cycles < 10) begin
+            @(posedge clk); #1;
+            wait_cycles = wait_cycles + 1;
+        end
+        if (fp_result !== 64'h4008_0000_0000_0000) begin
+            $display("ERROR [T8]: FADD DP 1.0 + 2.0 failed: expected 4008000000000000, got %h", fp_result);
+            err_cnt = err_cnt + 1;
+        end else begin
+            $display("PASS [T8]: FADD DP 1.0d + 2.0d = 3.0d verified");
         end
 
         #20;

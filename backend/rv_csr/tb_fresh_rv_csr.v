@@ -77,9 +77,9 @@ module tb_fresh_rv_csr;
 
         // Test 1: Reset check
         test_cnt = test_cnt + 1;
-        #2 rst_n = 0;
-        #10 rst_n = 1;
-        #2;
+        @(posedge clk); #1 rst_n = 0;
+        repeat (2) @(posedge clk); #1 rst_n = 1;
+        @(posedge clk); #1;
         csr_raddr = 12'h301; // misa
         #1;
         if (csr_rdata !== EXPECTED_MISA) begin
@@ -104,11 +104,11 @@ module tb_fresh_rv_csr;
 
         // Test 2: Standard CSR Register Write/Readback
         test_cnt = test_cnt + 1;
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 1;
         csr_waddr = 12'h340; // mscratch
         csr_wdata = 64'hCAFE_BABE_1234_5678;
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 0;
         csr_raddr = 12'h340;
         #1;
@@ -121,11 +121,11 @@ module tb_fresh_rv_csr;
 
         // Test 3: mtvec 4-byte Alignment WARL Check
         test_cnt = test_cnt + 1;
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 1;
         csr_waddr = 12'h305; // mtvec
         csr_wdata = 64'h0000_0000_8000_0003; // unaligned
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 0;
         csr_raddr = 12'h305;
         #1;
@@ -139,19 +139,19 @@ module tb_fresh_rv_csr;
         // Test 4: Trap Entry and MRET Status Transition
         test_cnt = test_cnt + 1;
         // Step 4a: First enable MIE in mstatus
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 1;
         csr_waddr = 12'h300; // mstatus
         csr_wdata = (64'd1 << 3); // MIE = 1
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 0;
 
         // Step 4b: Trigger trap
-        @(posedge clk);
+        @(posedge clk); #1;
         trap_we = 1;
         trap_pc = 64'h0000_0000_8000_1022; // unaligned PC
         trap_cause = 64'd2; // Illegal instruction
-        @(posedge clk);
+        @(posedge clk); #1;
         trap_we = 0;
         #1;
         // Check mepc (low 2 bits clear), mcause, and mstatus (MIE=0, MPIE=1, MPP=3)
@@ -178,9 +178,9 @@ module tb_fresh_rv_csr;
         end
 
         // Step 4c: Execute MRET
-        @(posedge clk);
+        @(posedge clk); #1;
         mret_we = 1;
-        @(posedge clk);
+        @(posedge clk); #1;
         mret_we = 0;
         #1;
         csr_raddr = 12'h300;
@@ -195,11 +195,11 @@ module tb_fresh_rv_csr;
         // Test 5: Interrupt Pending Logic
         test_cnt = test_cnt + 1;
         // Enable timer interrupt in mie (bit 7)
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 1;
         csr_waddr = 12'h304; // mie
         csr_wdata = (64'd1 << 7); // MTIE = 1
-        @(posedge clk);
+        @(posedge clk); #1;
         csr_we = 0;
 
         mip_m_timer = 1;
@@ -231,10 +231,10 @@ module tb_fresh_rv_csr;
 
         // Pulse retire 3 times
         repeat (3) begin
-            @(posedge clk);
+            @(posedge clk); #1;
             retire_pulse = 1;
         end
-        @(posedge clk);
+        @(posedge clk); #1;
         retire_pulse = 0;
         #1;
         csr_raddr = 12'hB02; // minstret

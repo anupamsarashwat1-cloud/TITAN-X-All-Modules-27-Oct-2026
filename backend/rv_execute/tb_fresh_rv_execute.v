@@ -201,7 +201,7 @@ module tb_fresh_rv_execute;
 
         // Test 2: Standard Integer ALU Operations (ADD, SUB, AND, OR, XOR, SLT, SLTU, SLL, SRL, SRA)
         test_cnt = test_cnt + 1;
-        @(posedge clk);
+        @(posedge clk); #1;
         valid_in = 1;
         opcode = `OP_REG;
         rd_in = 5'd1;
@@ -210,8 +210,7 @@ module tb_fresh_rv_execute;
         rs1_data = 64'h1000_0000_0000_0005;
         rs2_data = 64'h0000_0000_0000_0003;
         alu_op = `ALU_ADD;
-        @(posedge clk);
-        #1;
+        @(posedge clk); #1;
         if (alu_result !== 64'h1000_0000_0000_0008) begin
             $display("ERROR [T2 - ADD]: Expected %h, got %h", 64'h1000_0000_0000_0008, alu_result);
             err_cnt = err_cnt + 1;
@@ -219,10 +218,29 @@ module tb_fresh_rv_execute;
 
         // SUB
         alu_op = `ALU_SUB;
-        @(posedge clk);
-        #1;
+        @(posedge clk); #1;
         if (alu_result !== 64'h1000_0000_0000_0002) begin
             $display("ERROR [T2 - SUB]: Expected %h, got %h", 64'h1000_0000_0000_0002, alu_result);
+            err_cnt = err_cnt + 1;
+        end
+
+        // AND
+        alu_op = `ALU_AND;
+        rs1_data = 64'hFFFF_0000_FFFF_0000;
+        rs2_data = 64'h0F0F_0F0F_0F0F_0F0F;
+        @(posedge clk); #1;
+        if (alu_result !== 64'h0F0F_0000_0F0F_0000) begin
+            $display("ERROR [T2 - AND]: Expected 0F0F00000F0F0000, got %h", alu_result);
+            err_cnt = err_cnt + 1;
+        end
+
+        // OR
+        alu_op = `ALU_OR;
+        rs1_data = 64'hF000_0000_0000_0000;
+        rs2_data = 64'h0000_0000_0000_000F;
+        @(posedge clk); #1;
+        if (alu_result !== 64'hF000_0000_0000_000F) begin
+            $display("ERROR [T2 - OR]: Expected F00000000000000F, got %h", alu_result);
             err_cnt = err_cnt + 1;
         end
 
@@ -230,10 +248,29 @@ module tb_fresh_rv_execute;
         alu_op = `ALU_XOR;
         rs1_data = 64'hF0F0_AAAA_5555_0F0F;
         rs2_data = 64'hFFFF_FFFF_0000_0000;
-        @(posedge clk);
-        #1;
+        @(posedge clk); #1;
         if (alu_result !== (64'hF0F0_AAAA_5555_0F0F ^ 64'hFFFF_FFFF_0000_0000)) begin
             $display("ERROR [T2 - XOR]: Got %h", alu_result);
+            err_cnt = err_cnt + 1;
+        end
+
+        // SLT (Signed Less Than: -5 < +3 is TRUE)
+        alu_op = `ALU_SLT;
+        rs1_data = -64'sd5;
+        rs2_data = 64'sd3;
+        @(posedge clk); #1;
+        if (alu_result !== 64'd1) begin
+            $display("ERROR [T2 - SLT]: Expected 1, got %h", alu_result);
+            err_cnt = err_cnt + 1;
+        end
+
+        // SLTU (Unsigned Less Than: 3 < 5 is TRUE)
+        alu_op = `ALU_SLTU;
+        rs1_data = 64'd3;
+        rs2_data = 64'd5;
+        @(posedge clk); #1;
+        if (alu_result !== 64'd1) begin
+            $display("ERROR [T2 - SLTU]: Expected 1, got %h", alu_result);
             err_cnt = err_cnt + 1;
         end
 
@@ -241,10 +278,19 @@ module tb_fresh_rv_execute;
         alu_op = `ALU_SLL;
         rs1_data = 64'h0000_0000_0000_0001;
         rs2_data = 64'd4;
-        @(posedge clk);
-        #1;
+        @(posedge clk); #1;
         if (alu_result !== 64'h0000_0000_0000_0010) begin
             $display("ERROR [T2 - SLL]: Got %h", alu_result);
+            err_cnt = err_cnt + 1;
+        end
+
+        // SRL (Shift Right Logical by 4)
+        alu_op = `ALU_SRL;
+        rs1_data = 64'hF000_0000_0000_0000;
+        rs2_data = 64'd4;
+        @(posedge clk); #1;
+        if (alu_result !== 64'h0F00_0000_0000_0000) begin
+            $display("ERROR [T2 - SRL]: Expected 0F00..., got %h", alu_result);
             err_cnt = err_cnt + 1;
         end
 
@@ -252,13 +298,12 @@ module tb_fresh_rv_execute;
         alu_op = `ALU_SRA;
         rs1_data = 64'hF000_0000_0000_0000;
         rs2_data = 64'd4;
-        @(posedge clk);
-        #1;
+        @(posedge clk); #1;
         if (alu_result !== 64'hFF00_0000_0000_0000) begin
             $display("ERROR [T2 - SRA]: Expected FF00..., got %h", alu_result);
             err_cnt = err_cnt + 1;
         end
-        if (err_cnt == 0) $display("PASS [T2]: Standard integer 64-bit ALU operations verified");
+        if (err_cnt == 0) $display("PASS [T2]: Standard integer 64-bit ALU operations verified (ADD,SUB,AND,OR,XOR,SLT,SLTU,SLL,SRL,SRA)");
 
         // Test 3: 32-bit Word Operations (W-form sign extension)
         test_cnt = test_cnt + 1;

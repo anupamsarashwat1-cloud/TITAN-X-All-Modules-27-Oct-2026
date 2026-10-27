@@ -428,11 +428,30 @@ module rv_fpu (
     wire dp_nan1_s3 = (s3_fp_src1[62:52] == 11'h7FF) && (s3_fp_src1[51:0] != 52'h0);
     wire dp_nan2_s3 = (s3_fp_src2[62:52] == 11'h7FF) && (s3_fp_src2[51:0] != 52'h0);
 
-    wire sp_lt = ($signed(s3_fp_src1[31:0]) < $signed(s3_fp_src2[31:0])) && !sp_nan1_s3 && !sp_nan2_s3;
-    wire sp_eq = (s3_fp_src1[31:0] == s3_fp_src2[31:0]) && !sp_nan1_s3 && !sp_nan2_s3;
+    wire sp_zero1_s3 = (s3_fp_src1[30:0] == 31'b0);
+    wire sp_zero2_s3 = (s3_fp_src2[30:0] == 31'b0);
+    wire sp_sign1 = s3_fp_src1[31];
+    wire sp_sign2 = s3_fp_src2[31];
+    wire sp_eq = ((s3_fp_src1[31:0] == s3_fp_src2[31:0]) || (sp_zero1_s3 && sp_zero2_s3)) && !sp_nan1_s3 && !sp_nan2_s3;
+    wire sp_lt = !sp_nan1_s3 && !sp_nan2_s3 && (
+                    (sp_zero1_s3 && sp_zero2_s3) ? 1'b0 :
+                    (sp_sign1 != sp_sign2) ? sp_sign1 :
+                    sp_sign1 ? (s3_fp_src1[30:0] > s3_fp_src2[30:0]) :
+                               (s3_fp_src1[30:0] < s3_fp_src2[30:0])
+                 );
     wire sp_le = sp_lt || sp_eq;
-    wire dp_lt = ($signed(s3_fp_src1) < $signed(s3_fp_src2)) && !dp_nan1_s3 && !dp_nan2_s3;
-    wire dp_eq = (s3_fp_src1 == s3_fp_src2) && !dp_nan1_s3 && !dp_nan2_s3;
+
+    wire dp_zero1_s3 = (s3_fp_src1[62:0] == 63'b0);
+    wire dp_zero2_s3 = (s3_fp_src2[62:0] == 63'b0);
+    wire dp_sign1 = s3_fp_src1[63];
+    wire dp_sign2 = s3_fp_src2[63];
+    wire dp_eq = ((s3_fp_src1 == s3_fp_src2) || (dp_zero1_s3 && dp_zero2_s3)) && !dp_nan1_s3 && !dp_nan2_s3;
+    wire dp_lt = !dp_nan1_s3 && !dp_nan2_s3 && (
+                    (dp_zero1_s3 && dp_zero2_s3) ? 1'b0 :
+                    (dp_sign1 != dp_sign2) ? dp_sign1 :
+                    dp_sign1 ? (s3_fp_src1[62:0] > s3_fp_src2[62:0]) :
+                               (s3_fp_src1[62:0] < s3_fp_src2[62:0])
+                 );
     wire dp_le = dp_lt || dp_eq;
 
     // FMIN/FMAX
@@ -468,7 +487,12 @@ module rv_fpu (
                         `FOP_FCMP: begin
                             // FEQ=funct3[1:0]==2, FLT=1, FLE=0
                             int_result <= (s3_fmt == `FMT_S) ?
-                                           {63'h0, sp_eq} : {63'h0, dp_eq};
+                                           ((s3_rm[1:0] == 2'b10) ? {63'h0, sp_eq} :
+                                            (s3_rm[1:0] == 2'b01) ? {63'h0, sp_lt} :
+                                                                    {63'h0, sp_le}) :
+                                           ((s3_rm[1:0] == 2'b10) ? {63'h0, dp_eq} :
+                                            (s3_rm[1:0] == 2'b01) ? {63'h0, dp_lt} :
+                                                                    {63'h0, dp_le});
                             fp_result  <= 64'h0;
                             int_result_valid <= 1'b1;
                         end
