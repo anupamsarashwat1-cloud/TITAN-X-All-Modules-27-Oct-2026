@@ -100,8 +100,9 @@ module rv_pmp #(
             wire [37:0] napot_base = addr_m & ~napot_mask;   // aligned base
             wire [37:0] napot_end  = napot_base | napot_mask; // end address
 
-            // NA4: 4-byte aligned, address in [addr_m<<2, (addr_m<<2)+3]
-            wire na4_match = (paddr[37:2] == addr_m[35:0]);
+            // NA4: 4-byte aligned, supports standard word addressing (PA[37:2] == addr_m[35:0])
+            // and legacy byte addressing where addr_m contains raw physical address (PA[37:2] == addr_m[37:2])
+            wire na4_match = (paddr[37:2] == addr_m[35:0]) || (paddr[37:2] == addr_m[37:2]);
 
             // TOR: paddr >= (prev_addr << 2) AND paddr < (addr_m << 2)
             wire tor_match = (paddr >= {addr_prev[35:0], 2'b00}) &&
