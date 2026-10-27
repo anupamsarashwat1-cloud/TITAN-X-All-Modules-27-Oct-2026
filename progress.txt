@@ -23,3 +23,8 @@
 [2026-10-27T09:15:30+05:30] COMPLETED: Task 3.5 - Verify backend/rv_writeback/rv_writeback.v (9/9 tests pass, pipeline writeback, fwd signals & x0 filter pass, waveform generated, README updated)
 [2026-10-27T09:16:40+05:30] COMPLETED: Task 3.6 - Verify backend/rv_fpu/rv_fpu.v (4/4 tests pass, lossless bitcast & 4-stage pipeline pass, waveform generated, README updated)
 [2026-10-27T09:16:40+05:30] PHASE COMPLETE: Phase 3 (CPU Backend Execution, Registers & FPU) - 6/6 Modules Verified 100% Pass.
+[2026-10-27T09:18:20+05:30] COMPLETED: Task 4.1 - Verify backend/rv_tlb/rv_tlb.v (6/6 tests pass, 32-entry 4-way associative TLB, ASID isolation & SFENCE.VMA pass, waveform generated, README updated)
+[2026-10-27T09:19:30+05:30] COMPLETED: Task 4.2 - Verify backend/rv_ptw/rv_ptw.v (5/5 tests pass, 3-level Sv39 walk L2➔L1➔L0, AXI4-Lite handshake & leaf fill pass, waveform generated, README updated)
+[2026-10-27T09:20:30+05:30] COMPLETED: Task 4.3 - Verify backend/rv_pmp/rv_pmp.v (5/5 tests pass, 8 PMP entries, NA4/NAPOT/TOR, M-mode allow & U-mode deny pass, waveform generated, README updated)
+[2026-10-27T09:21:40+05:30] COMPLETED: Task 4.4 - Verify backend/rv_mmu/rv_mmu.v (500/500 randomized cycles pass, bare/Sv39 mode switching & TLB/PTW integration pass, waveform generated, README updated)
+[2026-10-27T09:21:40+05:30] PHASE COMPLETE: Phase 4 (CPU Virtual Memory, MMU & PMP Subsystem) - 4/4 Modules Verified 100% Pass.

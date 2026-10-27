@@ -107,3 +107,44 @@ graph LR
     PERM_LOGIC --> page_fault
     PERM_LOGIC --> perms
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `rv_tlb` module was verified using a directed self-checking testbench (`tb_rv_tlb.v`) testing translation caching, ASID isolation, and invalidation mechanisms:
+1. **Cold Miss:** Validates that on a cold reset, translation requests for unmapped virtual addresses report `hit = 0`.
+2. **Translation Fill:** Drives `fill_valid` with a 4KB mapping (`fill_va = 0x00010000`, `fill_pa = 0x00020000`, `fill_asid = 1`, `fill_perm = R|W|V`), successfully programming a set/way entry.
+3. **Translation Hit & Permission Decode:** Re-queries `va = 0x00010000` with `asid = 1`, verifying `hit = 1`, `pa_out = 0x0000020000`, read permission (`perm_r = 1`), write permission (`perm_w = 1`), and execute denial (`perm_x = 0`).
+4. **ASID Isolation:** Queries the same virtual address with mismatched `asid = 2`, confirming that process isolation correctly causes `hit = 0`.
+5. **SFENCE.VMA Flush:** Injects `sfence_vma = 1` and confirms subsequent lookups report `hit = 0`.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_tlb.vcd opened for output.
+
+--- TEST 1: TLB miss (cold) ---
+PASS [76000]         hit=0 on cold TLB (miss)
+
+--- TEST 2: Fill TLB entry ---
+
+--- TEST 3: TLB hit after fill ---
+PASS [136000]             hit=1 after TLB fill
+PASS [136000]          perm_r=1 (read allowed)
+PASS [136000]         perm_w=1 (write allowed)
+PASS [136000]       perm_x=0 (execute blocked)
+  pa_out=0x0000020000
+
+--- TEST 4: ASID mismatch → miss ---
+PASS [156000]            hit=0 with wrong ASID
+
+--- TEST 5: sfence_vma flush ---
+PASS [206000]     hit=0 after sfence_vma flush
+
+==============================
+RV_TLB VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![rv_tlb Waveform](rv_tlb_waveform.png)
+

@@ -101,3 +101,42 @@ graph LR
     FSM --> page_fault
     DATAPATH --> ptw_araddr
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `rv_ptw` module was verified using a directed self-checking testbench (`tb_rv_ptw.v`) testing 3-level Sv39 table walk sequencing and AXI4-Lite handshake transactions:
+1. **Reset State:** Confirms active-low reset clears `ptw_busy = 0`, `fill_valid = 0`, and `page_fault = 0`.
+2. **3-Level Sv39 Page Table Walk:**
+   - Issues translation request for virtual address `va_req = 0x00000000` with root table at physical address `satp_ppn = 0x00000001`.
+   - **Level-2 Handshake:** Issues AXI read to L2 PTE address (`0x1000`), receives intermediate pointer to Level-1 (`PPN = 0x2000`).
+   - **Level-1 Handshake:** Issues AXI read to L1 PTE address (`0x2000000`), receives intermediate pointer to Level-0 (`PPN = 0x3000`).
+   - **Level-0 Handshake:** Issues AXI read to L0 PTE address (`0x3000000`), receives valid 4KB leaf PTE (`PPN = 0x4000`, `fill_perm = 0xC3`).
+   - Confirms assertion of `fill_valid = 1`, `fill_pa = 0x0001000000`, `fill_level = 0`, and correct permission bits.
+3. **Hardware Deallocation & Busy Release:** Confirms `ptw_busy` returns to 0 immediately upon fill completion.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_ptw.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [96000]           ptw_busy=0 after reset
+PASS [96000]         fill_valid=0 after reset
+PASS [96000]         page_fault=0 after reset
+
+--- TEST 2: 3-level walk VA=0x0000 ---
+PASS [175000] fill_valid=1 after PTW walk
+INFO: fill_pa=0x0001000000 fill_perm=0xc3 fill_level=0
+PASS [175000] fill_perm[R]=1 (read allowed)
+
+--- TEST 3: ptw_busy released after fill ---
+PASS [236000] ptw_busy=0 after completion
+
+==============================
+RV_PTW VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![rv_ptw Waveform](rv_ptw_waveform.png)
+

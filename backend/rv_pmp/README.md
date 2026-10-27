@@ -79,3 +79,40 @@ graph LR
     
     RESOLVER --> fault_out
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `rv_pmp` module was verified using a directed self-checking testbench (`tb_rv_pmp.v`) validating privilege isolation and range enforcement per RISC-V Privileged Architecture:
+1. **Machine Mode Default Allow:** Verifies that unconfigured PMP registers allow all memory transactions without faults (`pmp_fault = 0`) when executing in Machine mode (`priv_mode = 2'b11`).
+2. **Naturally Aligned 4-Byte (NA4) Region:** Configures entry 0 for NA4 at address `0x1000` with read-only permissions (`R=1, W=0, X=0`):
+   - **Allowed Read:** Exercises read transaction in Supervisor mode (`priv_mode = 2'b01`) and confirms `pmp_fault = 0`.
+   - **Denied Write:** Exercises store transaction to `0x1000` and confirms immediate trap assertion (`pmp_fault = 1`).
+3. **Machine Mode Bypass on Unmapped Memory:** Verifies that Machine mode accesses to addresses outside configured regions (`0x5000`) proceed without faults (`pmp_fault = 0`).
+4. **Default Deny for User/Supervisor Modes:** Verifies that unmapped address accesses in User mode (`priv_mode = 2'b00`) strictly trigger access violations (`pmp_fault = 1`).
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_pmp.vcd opened for output.
+
+--- TEST 1: M-mode, no PMP configured → allow ---
+PASS [76000] mode with no PMP (default allow)
+
+--- TEST 2: NA4 region 0x1000-0x1003, R-only ---
+PASS [106000] ault=0: read within NA4 R-region
+PASS [126000] lt=1: write to R-only NA4 region
+
+--- TEST 3: Address outside all PMP regions → M-mode allow ---
+PASS [146000] M-mode access outside PMP region
+
+--- TEST 4: U-mode no matching PMP → fault ---
+PASS [166000] with no PMP match (default deny)
+
+==============================
+RV_PMP VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![rv_pmp Waveform](rv_pmp_waveform.png)
+
