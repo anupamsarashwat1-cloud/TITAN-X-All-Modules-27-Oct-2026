@@ -111,8 +111,9 @@ module rv_fpu (
     reg [53:0]  s1_dp_sig_a, s1_dp_sig_b;
     reg [7:0]   s1_exp_diff;
     reg [10:0]  s1_dp_exp_diff;
-    // For FCVT
+    // For FCVT and operands
     reg [63:0]  s1_int_src;
+    reg [63:0]  s1_fp_src1, s1_fp_src2;
 
     // Stage 2 registers
     reg         s2_valid;
@@ -126,6 +127,7 @@ module rv_fpu (
     reg [105:0] s2_dp_result_sig;
     reg [4:0]   s2_fflags;
     reg [63:0]  s2_int_src;
+    reg [63:0]  s2_fp_src1, s2_fp_src2;
     reg         s2_is_nan, s2_is_inf, s2_is_zero;
     reg [63:0]  s2_special_result;
     reg         s2_special_valid;
@@ -135,6 +137,8 @@ module rv_fpu (
     reg [4:0]   s3_fop;
     reg [1:0]   s3_fmt;
     reg [2:0]   s3_rm;
+    reg [63:0]  s3_int_src;
+    reg [63:0]  s3_fp_src1, s3_fp_src2;
     reg         s3_result_sgn;
     reg [8:0]   s3_result_exp;   // Extended for overflow detection
     reg [25:0]  s3_result_sig;   // SP: 1+23+guard+round+sticky
@@ -169,6 +173,8 @@ module rv_fpu (
             s1_fmt      <= fmt;
             s1_rm       <= eff_rm;
             s1_int_src  <= int_src;
+            s1_fp_src1  <= fp_src1;
+            s1_fp_src2  <= fp_src2;
             // SP
             s1_sgn_a    <= sp_sgn1;
             s1_sgn_b    <= sp_sgn2;
@@ -241,6 +247,8 @@ module rv_fpu (
             s2_fmt      <= s1_fmt;
             s2_rm       <= s1_rm;
             s2_int_src  <= s1_int_src;
+            s2_fp_src1  <= s1_fp_src1;
+            s2_fp_src2  <= s1_fp_src2;
             // Default: no special case
             s2_is_nan       <= 1'b0;
             s2_is_inf       <= 1'b0;
@@ -287,7 +295,7 @@ module rv_fpu (
                         `FOP_FMUL: begin
                             s2_result_sgn <= s1_sgn_a ^ s1_sgn_b;
                             s2_result_exp <= s1_exp_a + s1_exp_b - 8'd127;
-                            s2_result_sig <= {sp_mul_result[47:24], 26'h0};
+                            s2_result_sig <= {sp_mul_result, 2'b00};
                         end
                         default: begin
                             s2_result_sgn <= s1_sgn_a;
@@ -335,9 +343,11 @@ module rv_fpu (
     integer    lzc_i;
     always @(*) begin
         sp_lzc = 6'd0;
-        for (lzc_i = 49; lzc_i >= 24; lzc_i = lzc_i - 1)
-            if (!s2_result_sig[lzc_i] && (sp_lzc == 6'd0))
-                sp_lzc = 6'd49 - lzc_i;
+        for (lzc_i = 49; lzc_i >= 24; lzc_i = lzc_i - 1) begin
+            if (s2_result_sig[lzc_i] && (sp_lzc == 6'd0)) begin
+                sp_lzc = lzc_i[5:0];
+            end
+        end
     end
 
     always @(posedge clk or negedge rst_n) begin
@@ -348,6 +358,9 @@ module rv_fpu (
             s3_fop           <= s2_fop;
             s3_fmt           <= s2_fmt;
             s3_rm            <= s2_rm;
+            s3_int_src       <= s2_int_src;
+            s3_fp_src1       <= s2_fp_src1;
+            s3_fp_src2       <= s2_fp_src2;
             s3_is_nan        <= s2_is_nan;
             s3_is_inf        <= s2_is_inf;
             s3_is_zero       <= s2_is_zero;
@@ -358,8 +371,15 @@ module rv_fpu (
                 // Normalize SP
                 if (s2_fmt == `FMT_S) begin
                     s3_result_sgn <= s2_result_sgn;
-                    s3_result_exp <= {1'b0, s2_result_exp} - {3'h0, sp_lzc};
-                    s3_result_sig <= s2_result_sig[49:24] << sp_lzc;
+                    if (sp_lzc == 6'd0) begin
+                        s3_result_exp <= 9'd0;
+                        s3_result_sig <= 26'd0;
+                    end else begin
+                        s3_result_exp <= {1'b0, s2_result_exp} + {3'h0, sp_lzc} - 9'd48;
+                        s3_result_sig <= (sp_lzc >= 6'd25) ?
+                                         (s2_result_sig >> (sp_lzc - 6'd25)) :
+                                         (s2_result_sig << (6'd25 - sp_lzc));
+                    end
                 end
                 // DP normalize (simplified — production uses proper LZC)
                 s3_dp_result_exp <= s2_dp_result_exp;
@@ -399,20 +419,25 @@ module rv_fpu (
 
     // FCVT integer → float (single precision)
     // int_src → normalized float
-    wire        fcvt_sgn  = int_src[63];
-    wire [63:0] fcvt_abs  = fcvt_sgn ? (~int_src + 64'd1) : int_src;
+    wire        fcvt_sgn  = s3_int_src[63];
+    wire [63:0] fcvt_abs  = fcvt_sgn ? (~s3_int_src + 64'd1) : s3_int_src;
 
     // FCMP result
-    wire sp_lt = ($signed(fp_src1[31:0]) < $signed(fp_src2[31:0])) && !sp_nan1 && !sp_nan2;
-    wire sp_eq = (fp_src1[31:0] == fp_src2[31:0]) && !sp_nan1 && !sp_nan2;
+    wire sp_nan1_s3 = (s3_fp_src1[30:23] == 8'hFF) && (s3_fp_src1[22:0] != 23'h0);
+    wire sp_nan2_s3 = (s3_fp_src2[30:23] == 8'hFF) && (s3_fp_src2[22:0] != 23'h0);
+    wire dp_nan1_s3 = (s3_fp_src1[62:52] == 11'h7FF) && (s3_fp_src1[51:0] != 52'h0);
+    wire dp_nan2_s3 = (s3_fp_src2[62:52] == 11'h7FF) && (s3_fp_src2[51:0] != 52'h0);
+
+    wire sp_lt = ($signed(s3_fp_src1[31:0]) < $signed(s3_fp_src2[31:0])) && !sp_nan1_s3 && !sp_nan2_s3;
+    wire sp_eq = (s3_fp_src1[31:0] == s3_fp_src2[31:0]) && !sp_nan1_s3 && !sp_nan2_s3;
     wire sp_le = sp_lt || sp_eq;
-    wire dp_lt = ($signed(fp_src1) < $signed(fp_src2)) && !dp_nan1 && !dp_nan2;
-    wire dp_eq = (fp_src1 == fp_src2) && !dp_nan1 && !dp_nan2;
+    wire dp_lt = ($signed(s3_fp_src1) < $signed(s3_fp_src2)) && !dp_nan1_s3 && !dp_nan2_s3;
+    wire dp_eq = (s3_fp_src1 == s3_fp_src2) && !dp_nan1_s3 && !dp_nan2_s3;
     wire dp_le = dp_lt || dp_eq;
 
     // FMIN/FMAX
-    wire sp_min = sp_lt ? fp_src1[31:0] : fp_src2[31:0];
-    wire dp_min = dp_lt ? fp_src1 : fp_src2;
+    wire [31:0] sp_min = sp_lt ? s3_fp_src1[31:0] : s3_fp_src2[31:0];
+    wire [63:0] dp_min = dp_lt ? s3_fp_src1 : s3_fp_src2;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -455,25 +480,25 @@ module rv_fpu (
                         `FOP_FMVXW: begin
                             // FMV.X.W: move float bits to integer register (sign-extend SP)
                             int_result <= (s3_fmt == `FMT_S) ?
-                                           {{32{fp_src1[31]}}, fp_src1[31:0]} : fp_src1;
+                                           {{32{s3_fp_src1[31]}}, s3_fp_src1[31:0]} : s3_fp_src1;
                             int_result_valid <= 1'b1;
                         end
                         `FOP_FMVWX: begin
                             // FMV.W.X: move integer bits to float register
                             fp_result <= (s3_fmt == `FMT_S) ?
-                                          {32'hFFFF_FFFF, int_src[31:0]} : int_src;
+                                          {32'hFFFF_FFFF, s3_int_src[31:0]} : s3_int_src;
                         end
                         `FOP_FCVT_FW: begin
                             // Integer → float (simplified: behavioral model for sim accuracy)
                             fp_result <= (s3_fmt == `FMT_S) ?
-                                          {32'h0, int_src[31:0]} :
-                                          int_src[63:0];
+                                          {32'h0, s3_int_src[31:0]} :
+                                          s3_int_src[63:0];
                         end
                         `FOP_FCVT_WF: begin
                             // Float → integer (truncate per rm)
                             int_result <= (s3_fmt == `FMT_S) ?
-                                           {{32{fp_src1[31]}}, fp_src1[31:0]} :
-                                           fp_src1[63:0];
+                                           {{32{s3_fp_src1[31]}}, s3_fp_src1[31:0]} :
+                                           s3_fp_src1[63:0];
                             int_result_valid <= 1'b1;
                         end
                         default: fp_result <= (s3_fmt == `FMT_S) ?
