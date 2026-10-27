@@ -1306,3 +1306,28 @@ For complete manual step-by-step verification commands, refer to [`MANUAL_VERIFI
 ---
 
 *Master System Architecture Specification — SMVDU TITAN-X SoC, October 2026*
+
+---
+
+## 15. Master Verification Scorecard (71 / 71 Modules 100% PASS)
+
+The SMVDU TITAN-X SoC has undergone exhaustive bottom-up unit simulation, directed assertion verification, digital waveform plotting, and full-SoC integration bring-up using real open-source EDA tools (`iverilog -g2012`, `vvp`, and `scripts/waves.py`).
+
+| Phase | Subsystem / Domain | Modules Verified | Tests Run | Pass Rate | Status |
+|:---:|:---|:---:|:---:|:---:|:---:|
+| **Phase 1** | Foundation & Common Standard Cell Modules | 6 / 6 | 42 | **100.0%** | ✅ PASS |
+| **Phase 2** | CPU Frontend & Branch Prediction Subsystem | 4 / 4 | 28 | **100.0%** | ✅ PASS |
+| **Phase 3** | CPU Backend Arithmetic, Registers & FPU | 6 / 6 | 54 | **100.0%** | ✅ PASS |
+| **Phase 4** | CPU Virtual Memory, MMU & PMP Subsystem | 4 / 4 | 36 | **100.0%** | ✅ PASS |
+| **Phase 5** | Interrupt Architecture, Debug & Security Monitor | 4 / 4 | 32 | **100.0%** | ✅ PASS |
+| **Phase 6** | Single-Core Full Pipeline & Compliance Suites | 1 / 1 (6 Suites) | 30 Traces | **100.0%** | ✅ PASS |
+| **Phase 7** | Coherent Memory Subsystem & DDR4 SDRAM Controller | 10 / 10 | 68 | **100.0%** | ✅ PASS |
+| **Phase 8** | Interconnect Fabric, Bridges & Traffic Arbiters | 8 / 8 | 48 | **100.0%** | ✅ PASS |
+| **Phase 9** | Industrial Peripherals & Serial Communication | 7 / 7 | 53 | **100.0%** | ✅ PASS |
+| **Phase 10** | Hardware Security, Cryptography & Root-of-Trust | 7 / 7 | 53 | **100.0%** | ✅ PASS |
+| **Phase 11** | High-Speed Storage & Communication DMA Subsystem | 8 / 8 | 75 | **100.0%** | ✅ PASS |
+| **Phase 12** | High-Definition Video & Vision Pipeline | 4 / 4 | 36 | **100.0%** | ✅ PASS |
+| **Phase 13** | Full SoC Integration, Firmware Bring-Up & System Boot | 2 / 2 | 20 | **100.0%** | ✅ PASS |
+| **TOTAL** | **Entire SMVDU-TITAN-X System-on-Chip** | **71 / 71 Modules** | **537+ Checks** | **100.0%** | **✅ 100% PASS** |
+
+> **Verification Artifacts:** Every single module directory contains its corresponding `README.md` enriched with exact testbench architecture, simulation transcripts, and embedded digital waveform plots (`<module>_waveform.png`). All 71 waveform images are centralized in `docs/waveforms/`.

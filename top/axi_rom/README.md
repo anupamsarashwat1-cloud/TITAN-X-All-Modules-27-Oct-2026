@@ -97,3 +97,40 @@ graph LR
     CTRL --> s_rlast
     CTRL --> s_rid
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking unit testbench (`tb_axi_rom.v`) verifies AXI4 read-only slave transactions and ROM data fetches:
+1. **Reset State**: Asserts that `s_arready` defaults to 1, `s_rvalid=0`, and `s_rlast=0`.
+2. **Read Operations**:
+   - Accesses address `0x00_0000_0000` and validates packed RV64 NOP instruction payload (`0x0000001300000013`).
+   - Asserts AXI transaction ID tag forwarding (`s_arid -> s_rid`).
+   - Validates response code OKAY (`2'b00`) and burst last indicator `s_rlast=1`.
+3. **Sequential Addressing**:
+   - Validates reading consecutive words at byte offsets `0x08` and `0x10`.
+4. **Handshake Integrity**:
+   - Confirms synchronous deassertion of `s_rvalid` upon receiver `s_rready` handshake and return of `s_arready` to accept subsequent transactions.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_axi_rom.vcd opened for output.
+PASS [25000] TEST 1: Reset defaults - s_arready=1, s_rvalid=0, s_rlast=0
+PASS [76000] TEST 2: Read word 0 returns packed NOP (0x0000001300000013)
+PASS [76000] TEST 3: ID tag forwarded correctly (s_rid=1)
+PASS [76000] TEST 4: AXI response is OKAY (s_rresp=2'b00)
+PASS [76000] TEST 5: Burst last asserted (s_rlast=1)
+PASS [126000] TEST 6: Read word 1 returns packed NOP
+PASS [126000] TEST 7: ID tag forwarded correctly (s_rid=5)
+PASS [126000] TEST 8: Burst last asserted on word 1
+PASS [176000] TEST 9: Read word 2 returns packed NOP
+PASS [176000] TEST 10: ID tag forwarded correctly (s_rid=10)
+PASS [196000] TEST 11: Bus returns to ready state after read completion
+
+==============================
+AXI_ROM VERDICT: ✅ PASS — All 11 tests green
+==============================
+```
+
+### Digital Waveform
+![AXI ROM Waveform](axi_rom_waveform.png)
