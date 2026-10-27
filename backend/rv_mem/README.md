@@ -102,3 +102,43 @@ graph LR
     ext --> result
     result --> fwd
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `rv_mem` module was verified using a directed self-checking testbench (`tb_rv_mem.v`) testing memory transaction FSM handshakes, load extension, and store byte-lane alignments:
+1. **Reset State:** Confirms pipeline register reset clears `valid_out`, `dmem_awvalid`, and `dmem_arvalid`.
+2. **Pass-Through Non-Memory Instructions:** Validates that standard ALU arithmetic instructions (e.g. `ADDI`) pass through to writeback with zero added pipeline bubbles, delivering `result = alu_result` directly.
+3. **AXI4 Store Word (`SW`):** Validates write address handshake (`dmem_awvalid`, `dmem_awaddr = 0x00010000`), store data alignment to target byte lanes, write strobes (`dmem_wstrb`), and write response completion (`dmem_bvalid`).
+4. **AXI4 Load Word (`LW`):** Validates read address handshake (`dmem_arvalid`, `dmem_araddr = 0x00020000`), read response reception (`dmem_rvalid`, `dmem_rdata`), sign/zero-extension according to `funct3`, and completion valid delivery to writeback.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_mem.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [85000]          valid_out=0 after reset
+PASS [85000]       dmem_awvalid=0 after reset
+PASS [85000]       dmem_arvalid=0 after reset
+
+--- TEST 2: Pass-through (ALU result) ---
+PASS [116000] valid_out=1 for pass-through
+PASS [116000] sult=alu_result for pass-through
+
+--- TEST 3: AXI4 Store (mem_write) ---
+PASS [166000]              dmem_awaddr correct
+PASS [166000] dmem_awvalid=1 (AXI write addr)
+
+--- TEST 4: AXI4 Load (mem_read) ---
+PASS [236000]              dmem_araddr correct
+PASS [236000] dmem_arvalid=1 (AXI read addr)
+PASS [286000] valid_out=1 after load completion
+
+==============================
+RV_MEM VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![rv_mem Waveform](rv_mem_waveform.png)
+

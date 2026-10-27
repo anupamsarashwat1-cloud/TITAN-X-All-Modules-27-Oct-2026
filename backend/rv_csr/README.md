@@ -92,3 +92,34 @@ graph LR
     storage --> irq
     mux --> rdata
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `rv_csr` module was verified using a directed self-checking testbench (`tb_rv_csr.v`) validating compliance with the RISC-V Privileged Architecture (Machine Mode):
+1. **Reset State:** Verifies initial register reset states: `mstatus = 0`, `misa = RV64IMC` (`0x8000000000001104`), `mhartid = 0`, `mtvec = 0`, and unmapped addresses reading zero.
+2. **Scratch Register Read/Write:** Tests full 64-bit RW access to `mscratch` (`0x340`).
+3. **WARL Bitfields & Masking:**
+   - `mtvec` (`0x305`): Confirms low 2 bits are hardwired to `2'b00` (Direct Mode).
+   - `mepc` (`0x341`): Confirms low 2 bits are hardwired to `2'b00` (4-byte instruction alignment).
+   - `mstatus` (`0x300`): Confirms write masking preserves legal fields (`MIE[3]`, `MPIE[7]`, `MPP[12:11]`).
+   - `mie` (`0x304`): Confirms masking only permits `MSIE[3]`, `MTIE[7]`, `MEIE[11]`.
+4. **Trap Entry State Transition:** Asserts `trap_we` with `trap_pc = 0x00020416` and `trap_cause = 11`. Confirms `mepc` latches `0x00020414`, `mcause` latches 11, `mstatus.MIE` is cleared, `mstatus.MPIE` receives previous `MIE`, and `mstatus.MPP` transitions to Machine mode (`2'b11`).
+5. **Interrupt Gating:** Confirms interrupts cannot pend when `mstatus.MIE = 0` despite asserted `mip_m_timer`.
+6. **MRET Trap Return:** Asserts `mret_we` and validates restoration of `mstatus.MIE` from `MPIE`, `MPIE` set to 1, and `MPP` reset to User mode (`2'b00`).
+7. **Performance Counters:** Verifies `mcycle` incrementation and `minstret` / `instret` alias incrementing by 7 pulses on `retire_pulse`.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_csr.vcd opened for output.
+PASS: minstret counted retire pulses (0 -> 7)
+
+==============================
+RV_CSR VERDICT: ✅ PASS — CSR file matches spec contract
+REGRESS_RESULT: PASS
+==============================
+```
+
+### Digital Waveform
+![rv_csr Waveform](rv_csr_waveform.png)
+

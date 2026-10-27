@@ -125,3 +125,62 @@ graph LR
     regs --> br_tgt
     regs --> br_tk
 ```
+
+## Verification & Simulation Results
+
+### Verification Strategy
+The `rv_execute` module was verified using a directed self-checking testbench (`tb_rv_execute.v`) exercising the 64-bit integer ALU datapath, operand selection, and control flushes:
+1. **Reset State:** Confirms pipeline register reset clears `valid_out` and internal control registers.
+2. **64-bit ADD:** Tests integer addition ($100 + 200 = 300$) and valid delivery to memory stage.
+3. **64-bit SUB:** Tests integer subtraction ($500 - 200 = 300$).
+4. **Bitwise AND:** Tests bitwise AND mask ($0\text{xFF} \ \& \ 0\text{x0F} = 0\text{x0F}$).
+5. **Bitwise OR:** Tests bitwise OR mask ($0\text{xF0} \ | \ 0\text{x0F} = 0\text{xFF}$).
+6. **Bitwise XOR:** Tests bitwise XOR ($0\text{xAA} \oplus 0\text{x55} = 0\text{xFF}$).
+7. **Logical Left Shift (SLL):** Tests 64-bit barrel shifting ($1 \ll 4 = 16$).
+8. **Set Less Than (SLT):** Tests signed comparison ($-1 < 1 \rightarrow 1$).
+9. **AUIPC Operation:** Tests PC-relative upper immediate arithmetic ($0\text{x1000} + 0\text{x10000} = 0\text{x11000}$).
+10. **Pipeline Flush:** Injects pipeline flush assertion and confirms cancellation of execution stage output valid.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_rv_execute.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [86000]          valid_out=0 after reset
+
+--- TEST 2: ADD 100+200=300 ---
+PASS [96000]                 ADD: 100+200=300
+PASS [96000]              valid_out=1 for ADD
+
+--- TEST 3: SUB 500-200=300 ---
+PASS [106000]                 SUB: 500-200=300
+
+--- TEST 4: AND 0xFF & 0x0F ---
+PASS [116000]          AND: 0xFF & 0x0F = 0x0F
+
+--- TEST 5: OR 0xF0 | 0x0F ---
+PASS [126000]               OR: 0xF0|0x0F=0xFF
+
+--- TEST 6: XOR 0xAA^0x55 ---
+PASS [136000]              XOR: 0xAA^0x55=0xFF
+
+--- TEST 7: SLL 1<<4=16 ---
+PASS [146000]                     SLL: 1<<4=16
+
+--- TEST 8: SLT (-1)<1=1 ---
+PASS [156000]             SLT: -1<1=1 (signed)
+
+--- TEST 9: AUIPC 0x1000 + 0x10000 ---
+PASS [166000]    AUIPC: 0x1000+0x10000=0x11000
+
+--- TEST 10: Flush ---
+PASS [176000]         valid_out=0 when flush=1
+
+==============================
+RV_EXECUTE VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![rv_execute Waveform](rv_execute_waveform.png)
+
