@@ -219,7 +219,9 @@ module titan_x_top (
                 .dmem_arvalid(axm_arvalid[c+4]), .dmem_arready(axm_arready[c+4]), .dmem_araddr(axm_araddr[(c+4)*40 +: 40]), 
                 .dmem_arlen(), .dmem_arsize(), .dmem_arburst(), .dmem_arlock(),
                 .dmem_rvalid(axm_rvalid[c+4]), .dmem_rready(axm_rready[c+4]), .dmem_rdata(axm_rdata[(c+4)*64 +: 64]), 
-                .dmem_rresp(axm_rresp[(c+4)*2 +: 2]), .dmem_rlast(axm_rlast[c+4])
+                .dmem_rresp(axm_rresp[(c+4)*2 +: 2]), .dmem_rlast(axm_rlast[c+4]),
+                .snoop_valid(1'b0), .snoop_addr(40'h0), .snoop_type(2'b00),
+                .halt_req(1'b0), .resume_req(1'b0)
             );
             assign axm_arid[c*4 +: 4] = c[3:0];
             assign axm_awid[(c+4)*4 +: 4] = c[3:0] + 4'd4;
@@ -252,10 +254,16 @@ module titan_x_top (
         .dmem_awvalid(axm_awvalid[9]), .dmem_awready(axm_awready[9]), .dmem_awaddr(axm_awaddr[9*40 +: 40]),
         .dmem_awlen(), .dmem_awsize(), .dmem_awburst(),
         .dmem_wvalid(axm_wvalid[9]), .dmem_wready(axm_wready[9]), .dmem_wdata(axm_wdata[9*64 +: 64]),
-        .dmem_bvalid(axm_bvalid[9]), .dmem_bready(axm_bready[9]), .dmem_bresp(axm_bresp[9*2 +: 2])
+        .dmem_bvalid(axm_bvalid[9]), .dmem_bready(axm_bready[9]), .dmem_bresp(axm_bresp[9*2 +: 2]),
+        .halt_req(1'b0), .resume_req(1'b0)
     );
     assign axm_arvalid[9] = 1'b0;
     assign axm_araddr[9*40 +: 40] = 40'h0;
+
+    // DDR4 static pin control
+    assign ddr_reset_n = rst_n;
+    assign ddr_odt     = 1'b0;
+    assign ddr_act_n   = 1'b1;
 
     // -------------------------------------------------------
     // Memory Subsystem (Slave 0)
@@ -407,6 +415,9 @@ module titan_x_top (
     wire        envm_req;
     wire [31:0] envm_rdata;
     wire        envm_valid;
+
+    assign envm_valid = envm_req;
+    assign envm_rdata = 32'h0;
 
     secure_boot u_secure_boot (
         .clk(clk), .rst_n(rst_n),
