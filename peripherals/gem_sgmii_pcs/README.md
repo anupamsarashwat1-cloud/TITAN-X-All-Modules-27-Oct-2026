@@ -92,3 +92,34 @@ graph LR
     Status --> MDIO_Stat
     Status --> GMII_RX
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_gem_sgmii_pcs.v`) asserts the following contracts across 125 MHz transmit and receive clock domains:
+1. **Reset Defaults**: Validates default speed (1G `2'b10`), full-duplex (`1'b1`), and initial link state (`link_up=0`).
+2. **TX Idle Encoding**: Validates continuous K28.5 idle pattern (`10'b0011111010`) emission when `gmii_tx_en=0`.
+3. **TX Data Encoding**: Validates registered 8b/10b data mapping with 2-bit prefix framing (`0x1A5`).
+4. **Error Code Propagation**: Asserts `/V/` error symbol generation (`10'b1111100100`) on `gmii_tx_er` assertion.
+5. **RX Idle Filtering**: Verifies K28.5 idle symbols suppress `gmii_rx_dv` and zero out receive data.
+6. **RX Data Decoding**: Verifies valid TBI symbols deserialize into GMII 8-bit octets and activate `gmii_rx_dv` and carrier sense `gmii_crs`.
+7. **Link State & Collision**: Verifies `signal_detect` directly drives `link_up` and collision detection stays clean in full-duplex.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_gem_sgmii_pcs.vcd opened for output.
+PASS [20000] TEST 1: Reset defaults - speed=1G, duplex=FD, link=down
+PASS [44000] TEST 2: TX Idle K28.5 emitted when gmii_tx_en=0
+PASS [68000] TEST 3: TX Data Encoded correctly (0x01A5)
+PASS [84000] TEST 4: TX Error propagation emitted (/V/ code 10'b1111100100)
+PASS [116000] TEST 5: RX Idle K28.5 drops gmii_rx_dv and clears rxd
+PASS [148000] TEST 6: RX Data decoded and gmii_rx_dv asserted
+PASS [158000] TEST 7: Signal detect asserts link_up and reports full duplex
+
+==============================
+GEM_SGMII_PCS VERDICT: ✅ PASS — All 7 tests green
+==============================
+```
+
+### Digital Waveform
+![GEM SGMII PCS Waveform](gem_sgmii_pcs_waveform.png)

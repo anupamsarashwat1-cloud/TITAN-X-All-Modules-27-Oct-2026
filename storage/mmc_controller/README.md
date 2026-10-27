@@ -149,3 +149,37 @@ graph LR
     PHY <--> sd_cmd
     PHY <--> sd_dat
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_mmc_controller.v`) validates the SDHC register programming model and physical signaling:
+1. **Reset State**: Asserts that `sd_reset_n` tracks core reset and APB responds with `pready=1`.
+2. **SDMA System Address**: Verifies 32-bit DMA physical target pointer (`0x00`) write and readback.
+3. **Block Attributes**: Validates block size (512B) and block count (`0x04`) configuration.
+4. **Command Argument**: Verifies sector address argument staging in `ARG1` (`0x08`).
+5. **Transfer Mode & Command**: Validates single-block read command issue (`CMD17` with DMA enable in `0x0C`).
+6. **Present State Status**: Asserts default card and bus state reporting in `PRES_STATE` (`0x24`).
+7. **Physical Interface**: Validates direct clock forwarding on `sd_clk` and clean tri-state bus lines.
+8. **AXI4 DMA Bus Quiescence**: Validates idle bus states during standby.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_mmc_controller.vcd opened for output.
+PASS [25000] TEST 1: Reset active sets sd_reset_n=0
+PASS [45000] TEST 2: Reset released sets sd_reset_n=1 and pready=1
+PASS [105000] TEST 3: SDMASYSAD register R/W 0x80002000
+PASS [165000] TEST 4: BLKATTR register R/W 0x00010200
+PASS [225000] TEST 5: ARG1 register R/W 0x00001000
+PASS [285000] TEST 6: TRNMOD_CMD register R/W 0x00110001
+PASS [315000] TEST 7: PRES_STATE register default 0x00000000
+PASS [315000] TEST 8: sd_clk follows clk directly
+PASS [315000] TEST 9: AXI4 master idle tie-offs valid (awvalid=0, arvalid=0, bready=1, rready=1)
+
+==============================
+MMC_CONTROLLER VERDICT: ✅ PASS — All 9 tests green
+==============================
+```
+
+### Digital Waveform
+![MMC Controller Waveform](mmc_controller_waveform.png)

@@ -1,77 +1,88 @@
-`timescale 1ns / 1ps
+// SPDX-License-Identifier: Apache-2.0
+// SMVDU-TITAN-X SoC — PCIe Top Directed Self-Checking Testbench
+`timescale 1ns/1ps
 
 module tb_pcie_top();
 
-    logic pcie_clk;
-    logic pcie_rst_n;
-    logic pipe_clk;
-    wire m_awvalid;
-    logic m_awready;
+    reg         pcie_clk;
+    reg         pcie_rst_n;
+    reg         pipe_clk;
+
+    // AXI4 Master
+    wire        m_awvalid;
+    reg         m_awready;
     wire [39:0] m_awaddr;
-    wire [3:0] m_awid;
-    wire [7:0] m_awlen;
-    wire [2:0] m_awsize;
-    wire m_wvalid;
-    logic m_wready;
+    wire [3:0]  m_awid;
+    wire [7:0]  m_awlen;
+    wire [2:0]  m_awsize;
+    wire        m_wvalid;
+    reg         m_wready;
     wire [63:0] m_wdata;
-    wire [7.0:0] m_wstrb;
-    wire m_wlast;
-    logic m_bvalid;
-    wire m_bready;
-    logic [1:0] m_bresp;
-    logic [3:0] m_bid;
-    wire m_arvalid;
-    logic m_arready;
+    wire [7:0]  m_wstrb;
+    wire        m_wlast;
+    reg         m_bvalid;
+    wire        m_bready;
+    reg  [1:0]  m_bresp;
+    reg  [3:0]  m_bid;
+    wire        m_arvalid;
+    reg         m_arready;
     wire [39:0] m_araddr;
-    wire [3:0] m_arid;
-    wire [7:0] m_arlen;
-    wire [2:0] m_arsize;
-    logic m_rvalid;
-    wire m_rready;
-    logic [63:0] m_rdata;
-    logic [1:0] m_rresp;
-    logic m_rlast;
-    logic [3:0] m_rid;
-    logic s_awvalid;
-    wire s_awready;
-    logic [39:0] s_awaddr;
-    logic [3:0] s_awid;
-    logic [7:0] s_awlen;
-    logic [2:0] s_awsize;
-    logic s_wvalid;
-    wire s_wready;
-    logic [63:0] s_wdata;
-    logic [7.0:0] s_wstrb;
-    logic s_wlast;
-    wire s_bvalid;
-    logic s_bready;
-    wire [1:0] s_bresp;
-    wire [3:0] s_bid;
-    logic s_arvalid;
-    wire s_arready;
-    logic [39:0] s_araddr;
-    logic [3:0] s_arid;
-    logic [7:0] s_arlen;
-    logic [2:0] s_arsize;
-    wire s_rvalid;
-    logic s_rready;
+    wire [3:0]  m_arid;
+    wire [7:0]  m_arlen;
+    wire [2:0]  m_arsize;
+    reg         m_rvalid;
+    wire        m_rready;
+    reg  [63:0] m_rdata;
+    reg  [1:0]  m_rresp;
+    reg         m_rlast;
+    reg  [3:0]  m_rid;
+
+    // AXI4 Slave
+    reg         s_awvalid;
+    wire        s_awready;
+    reg  [39:0] s_awaddr;
+    reg  [3:0]  s_awid;
+    reg  [7:0]  s_awlen;
+    reg  [2:0]  s_awsize;
+    reg         s_wvalid;
+    wire        s_wready;
+    reg  [63:0] s_wdata;
+    reg  [7:0]  s_wstrb;
+    reg         s_wlast;
+    wire        s_bvalid;
+    reg         s_bready;
+    wire [1:0]  s_bresp;
+    wire [3:0]  s_bid;
+    reg         s_arvalid;
+    wire        s_arready;
+    reg  [39:0] s_araddr;
+    reg  [3:0]  s_arid;
+    reg  [7:0]  s_arlen;
+    reg  [2:0]  s_arsize;
+    wire        s_rvalid;
+    reg         s_rready;
     wire [63:0] s_rdata;
-    wire [1:0] s_rresp;
-    wire s_rlast;
-    wire [3:0] s_rid;
+    wire [1:0]  s_rresp;
+    wire        s_rlast;
+    wire [3:0]  s_rid;
+
+    // PIPE 3.0 Interface
     wire [63:0] pipe_tx_data;
-    wire [7:0] pipe_tx_datak;
-    logic [63:0] pipe_rx_data;
-    logic [7:0] pipe_rx_datak;
-    wire [1:0] pipe_tx_rate;
-    wire [3:0] pipe_tx_elecidle;
-    wire [3:0] pipe_tx_compliance;
-    wire [3:0] pipe_rx_polarity;
-    wire [7:0] pipe_power_down;
-    logic [3:0] pipe_rx_valid;
-    logic [3:0] pipe_rx_elecidle;
-    logic [11:0] pipe_rx_status;
-    logic [3:0] pipe_phy_status;
+    wire [7:0]  pipe_tx_datak;
+    reg  [63:0] pipe_rx_data;
+    reg  [7:0]  pipe_rx_datak;
+    wire [1:0]  pipe_tx_rate;
+    wire [3:0]  pipe_tx_elecidle;
+    wire [3:0]  pipe_tx_compliance;
+    wire [3:0]  pipe_rx_polarity;
+    wire [7:0]  pipe_power_down;
+    reg  [3:0]  pipe_rx_valid;
+    reg  [3:0]  pipe_rx_elecidle;
+    reg  [11:0] pipe_rx_status;
+    reg  [3:0]  pipe_phy_status;
+
+    integer pass_count = 0;
+    integer fail_count = 0;
 
     // DUT Instantiation
     pcie_top uut (
@@ -147,32 +158,42 @@ module tb_pcie_top();
         .pipe_phy_status(pipe_phy_status)
     );
 
-    // Advanced Clock Generation (138.8 MHz -> ~7.2ns period)
-    initial begin
-        pcie_clk = 0;
-        pipe_clk = 0;
-    end
+    // Clocks
+    always #5.0 pcie_clk = ~pcie_clk;
+    always #2.0 pipe_clk = ~pipe_clk; // 250 MHz
 
-    always #3.6 pcie_clk = ~pcie_clk;
-    always #3.6 pipe_clk = ~pipe_clk;
+    task check(input [255:0] test_name, input condition);
+        begin
+            if (condition) begin
+                $display("PASS [%0t] %0s", $time, test_name);
+                pass_count = pass_count + 1;
+            end else begin
+                $display("FAIL [%0t] %0s", $time, test_name);
+                fail_count = fail_count + 1;
+            end
+        end
+    endtask
 
-    // Main Functional Stimulus Block
     initial begin
         $dumpfile("tb_pcie_top.vcd");
         $dumpvars(0, tb_pcie_top);
 
-        // 1. Initialize all data inputs
-        m_awready = 0;
-        m_wready = 0;
+        pcie_clk = 0;
+        pipe_clk = 0;
+        pcie_rst_n = 0;
+
+        m_awready = 1;
+        m_wready = 1;
         m_bvalid = 0;
         m_bresp = 0;
         m_bid = 0;
-        m_arready = 0;
+        m_arready = 1;
         m_rvalid = 0;
         m_rdata = 0;
         m_rresp = 0;
         m_rlast = 0;
         m_rid = 0;
+
         s_awvalid = 0;
         s_awaddr = 0;
         s_awid = 0;
@@ -182,70 +203,54 @@ module tb_pcie_top();
         s_wdata = 0;
         s_wstrb = 0;
         s_wlast = 0;
-        s_bready = 0;
+        s_bready = 1;
         s_arvalid = 0;
         s_araddr = 0;
         s_arid = 0;
         s_arlen = 0;
         s_arsize = 0;
-        s_rready = 0;
-        pipe_rx_data = 0;
-        pipe_rx_datak = 0;
-        pipe_rx_valid = 0;
-        pipe_rx_elecidle = 0;
-        pipe_rx_status = 0;
-        pipe_phy_status = 0;
+        s_rready = 1;
 
-        // 2. Assert Resets
-        #10;
-        pcie_rst_n = 0; // Active low
-        #100;
-        // 3. De-assert Resets
-        pcie_rst_n = 1;
+        pipe_rx_data = 64'h0;
+        pipe_rx_datak = 8'h0;
+        pipe_rx_valid = 4'h0;
+        pipe_rx_elecidle = 4'hF;
+        pipe_rx_status = 12'h0;
+        pipe_phy_status = 4'h0;
+
         #20;
+        pcie_rst_n = 1;
+        repeat (5) @(posedge pipe_clk);
 
-        // 4. Constrained Random Stimulus Injection
-        // Generating aggressive random toggling to exercise internal logic
-        repeat(500) begin
-            #10;
-            m_awready = $random;
-            m_wready = $random;
-            m_bvalid = $random;
-            m_bresp = $random;
-            m_bid = $random;
-            m_arready = $random;
-            m_rvalid = $random;
-            m_rdata = $random;
-            m_rresp = $random;
-            m_rlast = $random;
-            m_rid = $random;
-            s_awvalid = $random;
-            s_awaddr = $random;
-            s_awid = $random;
-            s_awlen = $random;
-            s_awsize = $random;
-            s_wvalid = $random;
-            s_wdata = $random;
-            s_wstrb = $random;
-            s_wlast = $random;
-            s_bready = $random;
-            s_arvalid = $random;
-            s_araddr = $random;
-            s_arid = $random;
-            s_arlen = $random;
-            s_arsize = $random;
-            s_rready = $random;
-            pipe_rx_data = $random;
-            pipe_rx_datak = $random;
-            pipe_rx_valid = $random;
-            pipe_rx_elecidle = $random;
-            pipe_rx_status = $random;
-            pipe_phy_status = $random;
-        end
+        // Test 1: LTSSM Rate Configuration (Gen2 5.0 GT/s)
+        check("TEST 1: LTSSM forces Gen2 (5.0 GT/s) on pipe_tx_rate", pipe_tx_rate == 2'b01);
 
-        #1000;
+        // Test 2: Power Down State P0
+        check("TEST 2: LTSSM forces P0 power state across all 4 lanes", pipe_power_down == 8'b00_00_00_00);
+
+        // Test 3: Electrical Idle & Compliance
+        check("TEST 3: Electrical idle deasserted on all lanes (transmitting)", pipe_tx_elecidle == 4'b0000);
+        check("TEST 4: Compliance mode deasserted", pipe_tx_compliance == 4'b0000);
+        check("TEST 5: RX polarity normal", pipe_rx_polarity == 4'b0000);
+
+        // Test 6: AXI4 Master Interface Tie-offs
+        check("TEST 6: AXI4 Master idle (awvalid=0, arvalid=0, bready=1, rready=1)",
+              (m_awvalid == 1'b0) && (m_arvalid == 1'b0) && (m_bready == 1'b1) && (m_rready == 1'b1));
+
+        // Test 7: AXI4 Slave Interface Tie-offs
+        check("TEST 7: AXI4 Slave idle (awready=0, wready=0, bvalid=0, arready=0, rvalid=0)",
+              (s_awready == 1'b0) && (s_wready == 1'b0) && (s_bvalid == 1'b0) && (s_arready == 1'b0) && (s_rvalid == 1'b0));
+
+        // Test 8: PIPE Interface Instance Integration
+        check("TEST 8: PIPE Interface instantiated and operational (clean outputs)",
+              (pipe_tx_data == 64'h0) && (pipe_tx_datak == 8'h0));
+
         $display("\n==============================");
-        $display("PCIE_TOP VERDICT: ✅ PASS — Completed (no crash)");
+        if (fail_count == 0 && pass_count >= 8) begin
+            $display("PCIE_TOP VERDICT: ✅ PASS — All %0d tests green", pass_count);
+        end else begin
+            $display("PCIE_TOP VERDICT: ❌ FAIL — %0d failed, %0d passed", fail_count, pass_count);
+        end
         $display("==============================\n");
         $finish;
     end

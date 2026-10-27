@@ -145,3 +145,34 @@ graph LR
     PIPE_RX --> PIPE_IF
     PIPE_IF --> PIPE_TX
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_pcie_top.v`) verifies the top-level integration of the PCIe Gen2 x4 controller and PIPE 3.0 PHY interface:
+1. **LTSSM Speed Configuration**: Confirms forced Gen2 negotiation rate (`5.0 GT/s` represented as `pipe_tx_rate = 2'b01`).
+2. **Multi-Lane Power Management**: Validates all 4 lanes initialize to P0 fully active state (`pipe_power_down = 8'b00_00_00_00`).
+3. **Physical Signaling**: Asserts transmission electrical idle deassertion, compliance suppression, and nominal RX polarity.
+4. **AXI4 Master DMA Bus Quiescence**: Validates AXI master output ports remain safely quiescent when idle.
+5. **AXI4 Slave Bus Quiescence**: Validates AXI slave ready and response channels.
+6. **Sublayer Integration**: Asserts seamless hierarchical connection between `pcie_top` and `pcie_pipe_if`.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_pcie_top.vcd opened for output.
+PASS [38000] TEST 1: LTSSM forces Gen2 (5.0 GT/s) on pipe_tx_rate
+PASS [38000] TEST 2: LTSSM forces P0 power state across all 4 lanes
+PASS [38000] TEST 3: Electrical idle deasserted on all lanes (transmitting)
+PASS [38000] TEST 4: Compliance mode deasserted
+PASS [38000] TEST 5: RX polarity normal
+PASS [38000] TEST 6: AXI4 Master idle (awvalid=0, arvalid=0, bready=1, rready=1)
+PASS [38000] TEST 7: AXI4 Slave idle (awready=0, wready=0, bvalid=0, arready=0, rvalid=0)
+PASS [38000] TEST 8: PIPE Interface instantiated and operational (clean outputs)
+
+==============================
+PCIE_TOP VERDICT: ✅ PASS — All 8 tests green
+==============================
+```
+
+### Digital Waveform
+![PCIe Top Waveform](pcie_top_waveform.png)

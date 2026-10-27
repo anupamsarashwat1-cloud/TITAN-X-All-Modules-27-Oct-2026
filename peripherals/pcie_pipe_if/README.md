@@ -88,3 +88,37 @@ graph LR
     Mapper --> PHY_TX
     Mapper --> PHY_CTRL
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking unit testbench (`tb_pcie_pipe_if.v`) thoroughly verifies bidirectional mapping across all 4 PCIe Gen2 lanes:
+1. **TX Direction Mapping**: Asserts exact lane-by-lane slicing and transmission of 64-bit `tx_data`, 8-bit `tx_datak`, `tx_elecidle`, `tx_compliance`, and `rx_polarity`.
+2. **RX Direction Mapping**: Asserts deserialized forwarding of 64-bit `pipe_rx_data`, 8-bit `pipe_rx_datak`, `pipe_rx_valid`, `pipe_rx_elecidle`, and `pipe_rx_status` into the link layer.
+3. **LTSSM Control & Power Down**: Verifies `tx_rate` forwarding (5.0 GT/s `2'b01`) and per-lane unpacked power-down codes mapping to packed 8-bit `pipe_power_down` (`P0, P0s, P1, P2`).
+4. **X-State Immunity**: Sweeps all 4 lanes with randomized input patterns to guarantee no uninitialized or unknown states propagate.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_pcie_pipe_if.vcd opened for output.
+PASS [41000]       TX data maps lane-for-lane
+PASS [41000]      TX datak maps lane-for-lane
+PASS [41000]             TX elecidle per-lane
+PASS [41000]           TX compliance per-lane
+PASS [41000]             RX polarity per-lane
+PASS [42000]       RX data maps lane-for-lane
+PASS [42000]      RX datak maps lane-for-lane
+PASS [42000]                RX valid per-lane
+PASS [42000]             RX elecidle per-lane
+PASS [42000]               RX status per-lane
+PASS [43000]                TX rate forwarded
+PASS [43000]         Powerdown codes per-lane
+PASS [51000] outputs X-free across input sweep
+
+==============================
+PCIE_PIPE_IF VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![PCIe PIPE Interface Waveform](pcie_pipe_if_waveform.png)

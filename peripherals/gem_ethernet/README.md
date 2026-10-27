@@ -116,3 +116,37 @@ graph LR
     Logic --> IRQ
     Logic --> GMII_Out
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_gem_ethernet.v`) exercises the control and interface contracts of the GEM MAC:
+1. **Reset Defaults**: Validates `irq_mask` initializes to `32'hFFFF_FFFF`, APB `pready=1`, and `mac_irq=0`.
+2. **Network Control Configuration**: Validates APB programming and readback of the network control register (`0x000`).
+3. **Network Configuration**: Validates line configuration (1G full duplex) programming and readback (`0x004`).
+4. **Scatter-Gather TX Queue Pointer**: Asserts 32-bit descriptor ring base address write and readback (`0x014`).
+5. **Scatter-Gather RX Queue Pointer**: Asserts 32-bit descriptor ring base address write and readback (`0x018`).
+6. **Interrupt Mask Management**: Asserts interrupt enable/disable bitfield programming (`0x024`).
+7. **AXI4 DMA Tie-Off Validation**: Ensures master bus signals stay completely inert during idle mode.
+8. **GMII Interface Quiescence**: Validates `gmii_tx_en` and `gmii_txd` idle states.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_gem_ethernet.vcd opened for output.
+PASS [85000] TEST 1: Reset irq_mask is 0xFFFFFFFF
+PASS [85000] TEST 2: APB pready=1 and pslverr=0 default
+PASS [145000] TEST 3: Network Control reg R/W 0x0000000C
+PASS [205000] TEST 4: Network Config reg R/W 0x00080002
+PASS [265000] TEST 5: TX Queue Pointer reg R/W 0x80010000
+PASS [325000] TEST 6: RX Queue Pointer reg R/W 0x80020000
+PASS [385000] TEST 7: IRQ Mask reg R/W 0x000000FF
+PASS [385000] TEST 8: AXI master idle (awvalid=0, arvalid=0, bready=1, rready=1)
+PASS [385000] TEST 9: GMII output idle (tx_en=0, txd=0x00)
+
+==============================
+GEM_ETHERNET VERDICT: ✅ PASS — All 9 tests green
+==============================
+```
+
+### Digital Waveform
+![GEM Ethernet Waveform](gem_ethernet_waveform.png)

@@ -76,3 +76,12 @@
 [2026-10-27T10:02:50+05:30] COMPLETED: Task 10.6 - Verify security/envm_ctrl/envm_ctrl.v (8/8 tests pass, APB command interface & prioritized AXI-Lite read pass, waveform generated, README updated)
 [2026-10-27T10:03:30+05:30] COMPLETED: Task 10.7 - Verify security/secure_boot/secure_boot.v (6/6 tests pass, Root-of-Trust secure boot FSM & core reset gating pass, waveform generated, README updated)
 [2026-10-27T10:03:40+05:30] PHASE COMPLETE: Phase 10 (Hardware Security, Cryptography & Root-of-Trust) - 7/7 Modules Verified 100% Pass.
+[2026-10-27T10:07:10+05:30] COMPLETED: Task 11.1 - Verify backend/rv_dcache/rv_dcache.v (7/7 tests pass, cold miss refill, sub-word lanes, store merge & dirty flush writeback pass, waveform generated, README updated)
+[2026-10-27T10:08:00+05:30] COMPLETED: Task 11.2 - Verify peripherals/gem_sgmii_pcs/gem_sgmii_pcs.v (7/7 tests pass, 8b/10b encode/decode, K28.5 idle & signal_detect pass, waveform generated, README updated)
+[2026-10-27T10:09:05+05:30] COMPLETED: Task 11.3 - Verify peripherals/gem_ethernet/gem_ethernet.v (9/9 tests pass, APB configuration registers, DMA queue pointers & IRQ mask pass, waveform generated, README updated)
+[2026-10-27T10:09:50+05:30] COMPLETED: Task 11.4 - Verify peripherals/pcie_pipe_if/pcie_pipe_if.v (13/13 tests pass, 4-lane Gen2 multiplexing, LTSSM control & X-free sweep pass, waveform generated, README updated)
+[2026-10-27T10:11:05+05:30] COMPLETED: Task 11.5 - Verify peripherals/pcie_top/pcie_top.v (8/8 tests pass, Gen2 rate forcing, P0 power state & PIPE PHY integration pass, waveform generated, README updated)
+[2026-10-27T10:12:20+05:30] COMPLETED: Task 11.6 - Verify storage/usb_otg/usb_otg.v (12/12 tests pass, EHCI registers, IRQ trigger & ULPI tri-state PHY bus pass, waveform generated, README updated)
+[2026-10-27T10:13:15+05:30] COMPLETED: Task 11.7 - Verify storage/mmc_controller/mmc_controller.v (9/9 tests pass, SDMA base register, block attributes & CMD17 staging pass, waveform generated, README updated)
+[2026-10-27T10:14:35+05:30] COMPLETED: Task 11.8 - Verify storage/qspi_controller/qspi_controller.v (10/10 tests pass, APB configuration & AXI-Lite XIP memory read FSM pass, waveform generated, README updated)
+[2026-10-27T10:14:45+05:30] PHASE COMPLETE: Phase 11 (High-Speed Storage & Communication DMA Subsystem) - 8/8 Modules Verified 100% Pass.

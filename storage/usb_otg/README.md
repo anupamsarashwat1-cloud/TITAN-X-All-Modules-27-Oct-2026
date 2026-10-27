@@ -142,3 +142,43 @@ graph LR
     ULPI --> ulpi_reset
     ULPI <--> ulpi_data
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_usb_otg.v`) validates the register map, interrupt logic, and ULPI PHY interface:
+1. **Reset State**: Validates assertion and deassertion of `ulpi_reset` alongside APB interface ready defaults.
+2. **EHCI/OTG Register Map**:
+   - `USBCMD` (`0x40`): Configures and verifies Run/Stop bit.
+   - `USBINTR` (`0x48`): Configures and verifies interrupt enable mask.
+   - `USBSTS` (`0x44`): Injects interrupt flags and verifies readback.
+   - `ASYNCLISTADDR` (`0x58`): Verifies 32-bit asynchronous schedule base address staging.
+   - `PORTSC1` (`0x84`): Verifies port status and control configuration.
+   - `OTGSC` (`0xA4`): Verifies OTG status and control register.
+3. **Interrupt Vectoring**: Asserts `usb_irq` assertion upon bitwise AND matching between status and interrupt enable.
+4. **ULPI PHY Bus Tri-Stating**: Verifies PHY-driven input on `ulpi_dir=1` and controller output driving on `ulpi_dir=0`.
+5. **AXI4 DMA Bus Quiescence**: Asserts clean master idle defaults.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_usb_otg.vcd opened for output.
+PASS [25000] TEST 1: Reset active sets ulpi_reset=1
+PASS [45000] TEST 2: Reset release clears ulpi_reset=0 and pready=1
+PASS [105000] TEST 3: USBCMD register R/W 0x00000001
+PASS [165000] TEST 4: USBINTR register R/W 0x0000003F
+PASS [225000] TEST 5: USBSTS register R/W 0x00000001
+PASS [225000] TEST 6: usb_irq asserts when (usbsts & usbintr) is non-zero
+PASS [285000] TEST 7: ASYNCLISTADDR register R/W 0x80001000
+PASS [345000] TEST 8: PORTSC1 register R/W 0x00001005
+PASS [405000] TEST 9: OTGSC register R/W 0x00000F00
+PASS [406000] TEST 10: ULPI TX direction (dir=0) drives ulpi_data to 0x00
+PASS [407000] TEST 11: ULPI RX direction (dir=1) releases bus to PHY (0xA5)
+PASS [407000] TEST 12: AXI4 master idle tie-offs valid
+
+==============================
+USB_OTG VERDICT: ✅ PASS — All 12 tests green
+==============================
+```
+
+### Digital Waveform
+![USB OTG Waveform](usb_otg_waveform.png)
