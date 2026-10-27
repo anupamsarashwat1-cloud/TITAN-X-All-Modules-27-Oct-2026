@@ -87,6 +87,7 @@ module vdma (
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             cr <= 32'h0;
+            sr <= 32'h0;
         end else if (psel && penable && pwrite) begin
             case (paddr[7:0])
                 8'h00: cr <= pwdata;

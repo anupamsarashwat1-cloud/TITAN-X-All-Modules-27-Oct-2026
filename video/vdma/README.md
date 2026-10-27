@@ -166,3 +166,38 @@ graph LR
     
     MODULE --> vdma_irq
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_vdma.v`) verifies APB 2D geometry programming and AXI4-Stream / AXI4-MM channel contracts:
+1. **Reset State**: Asserts that `vdma_irq` is 0, status register `sr` is reset to 0, and APB interface responds with `pready=1`.
+2. **Stream Ingestion Readiness**: Asserts `s_axis_s2mm_tready` defaults to active reception.
+3. **Control Register (CR)**: Programs simultaneous enable for MM2S (read) and S2MM (write) channels (`0x00`).
+4. **2D Geometry Configuration**:
+   - MM2S Channel: Validates programming of 1080p frame geometry (`vsize=1080`, `hsize=7680`, `stride=7680`, frame base `0x80000000`).
+   - S2MM Channel: Validates programming of 1080p frame geometry (`vsize=1080`, `hsize=7680`, `stride=7680`, frame base `0x90000000`).
+5. **Status Register Polling**: Validates clean readback of `sr` (`0x04`).
+6. **Video Stream Pixel Ingestion**: Ingests video pixel data beat with start-of-frame flag `tuser` and verifies stream handshaking.
+7. **Bus Interface Quiescence**: Validates AXI4 master memory-mapped channel idle defaults and MM2S stream idle defaults.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_vdma.vcd opened for output.
+PASS [25000] TEST 1: Reset holds vdma_irq=0 and pready=1
+PASS [45000] TEST 2: s_axis_s2mm_tready asserts ready for stream ingestion
+PASS [75000] TEST 3: Control register written without pslverr
+PASS [195000] TEST 4: MM2S 2D frame geometry registers (1080p, 7680B stride) programmed
+PASS [315000] TEST 5: S2MM 2D frame geometry registers (1080p, 7680B stride) programmed
+PASS [345000] TEST 6: Status register returns clean initial state (0x00000000)
+PASS [365000] TEST 7: S2MM accepts video stream pixel beat
+PASS [365000] TEST 8: AXI4 MM master tie-offs valid (awvalid=0, wvalid=0, arvalid=0, bready=1, rready=1)
+PASS [365000] TEST 9: MM2S stream channel idle (m_axis_mm2s_tvalid=0)
+
+==============================
+VDMA VERDICT: ✅ PASS — All 9 tests green
+==============================
+```
+
+### Digital Waveform
+![VDMA Controller Waveform](vdma_waveform.png)

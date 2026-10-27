@@ -85,3 +85,8 @@
 [2026-10-27T10:13:15+05:30] COMPLETED: Task 11.7 - Verify storage/mmc_controller/mmc_controller.v (9/9 tests pass, SDMA base register, block attributes & CMD17 staging pass, waveform generated, README updated)
 [2026-10-27T10:14:35+05:30] COMPLETED: Task 11.8 - Verify storage/qspi_controller/qspi_controller.v (10/10 tests pass, APB configuration & AXI-Lite XIP memory read FSM pass, waveform generated, README updated)
 [2026-10-27T10:14:45+05:30] PHASE COMPLETE: Phase 11 (High-Speed Storage & Communication DMA Subsystem) - 8/8 Modules Verified 100% Pass.
+[2026-10-27T10:16:45+05:30] COMPLETED: Task 12.1 - Verify video/mipi_csi2_rx/mipi_csi2_rx.v (10/10 tests pass, D-PHY byte stream unpacking, AXI4-Stream framing & link status pass, waveform generated, README updated)
+[2026-10-27T10:17:50+05:30] COMPLETED: Task 12.2 - Verify video/isp_pipeline/isp_pipeline.v (10/10 tests pass, bypass mode, active pixel inversion & backpressure flow control pass, waveform generated, README updated)
+[2026-10-27T10:19:28+05:30] COMPLETED: Task 12.3 - Verify video/vdma/vdma.v (9/9 tests pass, 2D stride geometry, status register reset & stream ingestion pass, waveform generated, README updated)
+[2026-10-27T10:20:45+05:30] COMPLETED: Task 12.4 - Verify video/hdmi_ctrl/hdmi_ctrl.v (7/7 tests pass, raster timing generator, active VDE assertion & TMDS differential signaling pass, waveform generated, README updated)
+[2026-10-27T10:21:00+05:30] PHASE COMPLETE: Phase 12 (High-Definition Video & Vision Pipeline) - 4/4 Modules Verified 100% Pass.

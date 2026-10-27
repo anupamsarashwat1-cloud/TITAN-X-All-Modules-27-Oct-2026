@@ -130,3 +130,35 @@ graph LR
     TMDS --> tmds_data_p
     TMDS --> tmds_data_n
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_hdmi_ctrl.v`) verifies APB video timing registers, video data enable (VDE) generation, and TMDS differential line drivers:
+1. **Reset State**: Asserts that APB interface starts with `pready=1` and `pslverr=0`.
+2. **TMDS Clock Differential Pair**: Confirms `tmds_clk_p` and `tmds_clk_n` are complementary and follow pixel clock.
+3. **TMDS Data Differential Pairs**: Confirms 3-lane `tmds_data_p` and `tmds_data_n` are complementary across R, G, B channels.
+4. **APB Timing Register Programming**: Programs custom active and blanking geometry (`h_total`, `h_sync`, `h_start`, `h_active`, `v_total`, `v_sync`, `v_start`, `v_active`).
+5. **Video Data Enable (VDE) Window**:
+   - Asserts `s_axis_tready` goes active during the active video raster window to pull AXI4-Stream pixels from VDMA.
+   - Asserts `s_axis_tready` deasserts during horizontal and vertical blanking/sync periods.
+6. **Streaming Handshake**: Validates uninterrupted streaming during active video scan.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_hdmi_ctrl.vcd opened for output.
+PASS [55000] TEST 1: APB pready=1 and pslverr=0 default
+PASS [55000] TEST 2: TMDS differential clock pairs complementary (p != n)
+PASS [55000] TEST 3: TMDS differential data pairs complementary (p === ~n)
+PASS [295000] TEST 4: Mini-frame timing parameters written via APB
+PASS [7024000] TEST 5: Active video data enable (VDE) asserted during active lines
+PASS [7024000] TEST 6: Blanking / sync suppression asserted during inactive periods
+PASS [7024000] TEST 7: Stream handshaking verified during active window
+
+==============================
+HDMI_CTRL VERDICT: ✅ PASS — All 7 tests green
+==============================
+```
+
+### Digital Waveform
+![HDMI Controller Waveform](hdmi_ctrl_waveform.png)

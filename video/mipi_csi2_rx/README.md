@@ -122,3 +122,37 @@ graph LR
     APB --> pready
     APB --> pslverr
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_mipi_csi2_rx.v`) verifies camera sensor D-PHY deserialization and AXI4-Stream packet framing:
+1. **Reset State**: Validates that `m_axis_tvalid` is held low during reset and APB reports `pready=1`.
+2. **APB Configuration**: Validates write and readback of the control register (`0x00`) to enable the receiver.
+3. **D-PHY Stream Ingestion**:
+   - Asserts that inactive high-speed valid signals (`rxvalidhs=0`) produce no stream outputs (`m_axis_tvalid=0`).
+   - Asserts multi-lane payload unpacking into 32-bit AXI4-Stream pixel data beats (`0xAABBCCDD`, `0x11223344`, `0x55667788`).
+   - Asserts synchronous deassertion of `m_axis_tvalid` immediately upon packet end.
+4. **Link Activity Status**: Verifies APB status register (`0x04`) dynamically asserts and clears link active status based on `rxactivehs`.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_mipi_csi2_rx.vcd opened for output.
+PASS [25000] TEST 1: Reset state holds axis_tvalid=0
+PASS [45000] TEST 2: APB pready=1 and pslverr=0 default
+PASS [105000] TEST 3: Control register R/W 0x00000001
+PASS [105000] TEST 4: D-PHY idle produces tvalid=0
+PASS [126000] TEST 5: Beat 1 m_axis_tvalid asserts and tdata matches 0xAABBCCDD
+PASS [136000] TEST 6: Beat 2 m_axis_tdata matches 0x11223344
+PASS [146000] TEST 7: Beat 3 m_axis_tdata matches 0x55667788
+PASS [156000] TEST 8: Deasserting rxvalidhs drops m_axis_tvalid to 0
+PASS [185000] TEST 9: Status register reports active link (status_reg[0]=1)
+PASS [235000] TEST 10: Status register clears link active when rxactivehs=0
+
+==============================
+MIPI_CSI2_RX VERDICT: ✅ PASS — All 10 tests green
+==============================
+```
+
+### Digital Waveform
+![MIPI CSI-2 Receiver Waveform](mipi_csi2_rx_waveform.png)

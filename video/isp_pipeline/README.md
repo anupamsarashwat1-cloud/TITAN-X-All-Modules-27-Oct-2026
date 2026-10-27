@@ -116,3 +116,41 @@ graph LR
     PIPE --> m_axis_tuser
     PIPE --> m_axis_tlast
 ```
+
+## Verification Strategy & Results
+
+### Testbench Architecture
+The directed self-checking testbench (`tb_isp_pipeline.v`) exercises the video processing datapath across bypass and active transformation modes:
+1. **Reset State**: Asserts that `m_axis_tvalid` is held low during reset and upstream ready `s_axis_tready` initializes high.
+2. **APB Register Interface**: Validates power-on default of `bypass_ctrl=1` and registers R/W for `gamma_ctrl` (`0x04`).
+3. **Bypass Mode Datapath**:
+   - Asserts zero-distortion passthrough of incoming pixel data (`0xA5A55A5A` and `0x12345678`).
+   - Asserts frame framing propagation for start of frame (`tuser`) and end of line (`tlast`).
+4. **Active ISP Processing Mode**:
+   - Clears `bypass_ctrl` to 0 via APB command.
+   - Validates pixel transformations in the datapath (`0x00FFAA55 -> 0xFF0055AA`).
+5. **Backpressure & Flow Control**:
+   - Drops `m_axis_tready` downstream and verifies pipeline deasserts upstream `s_axis_tready` without dropping payload.
+   - Restores downstream ready and verifies smooth pipeline drain.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_isp_pipeline.vcd opened for output.
+PASS [25000] TEST 1: Reset holds m_axis_tvalid=0 and s_axis_tready=1
+PASS [75000] TEST 2: APB bypass_ctrl defaults to 1 (passthrough mode)
+PASS [135000] TEST 3: APB gamma_ctrl R/W 0x00000002
+PASS [156000] TEST 4: Bypass mode propagates pixel unchanged with SOF flag
+PASS [166000] TEST 5: Bypass mode propagates EOL flag
+PASS [176000] TEST 6: Stream idles when s_axis_tvalid drops
+PASS [235000] TEST 7: APB bypass_ctrl cleared to 0 (active processing)
+PASS [256000] TEST 8: Active processing inverts pixel (0x00FFAA55 -> 0xFF0055AA)
+PASS [266000] TEST 9: Backpressure from downstream asserts stall on upstream s_axis_tready
+PASS [286000] TEST 10: Releasing backpressure drains pipeline and restores s_axis_tready
+
+==============================
+ISP_PIPELINE VERDICT: ✅ PASS — All 10 tests green
+==============================
+```
+
+### Digital Waveform
+![ISP Pipeline Waveform](isp_pipeline_waveform.png)
