@@ -68,3 +68,43 @@ graph TD
     class isa_pkg,params,isa_const,stdcell inc
     class DECODE,EXEC,CSR,FPU,CORE_TOP,CACHES,BUF mod
 ```
+
+---
+
+## 🧪 Verification & Simulation Results: `stdcell_stubs.v`
+
+### Test Matrix
+
+| Test ID | Test Scenario | Input Stimulus | Expected Output | Observed Output | Verdict |
+|:---:|:---|:---:|:---:|:---:|:---:|
+| **TC-01** | Static Zero Drive | `A = 0` | `Y = 0` | `Y = 0` | ✅ PASS |
+| **TC-02** | Static One Drive | `A = 1` | `Y = 1` | `Y = 1` | ✅ PASS |
+| **TC-03** | Dynamic High-Frequency Toggle | `A = ~A` (8 cycles) | `Y = A` | `Y = A` | ✅ PASS |
+| **TC-04** | Narrow Pulse Propagation | 2ns pulse `0 ➔ 1 ➔ 0` | `Y = 0` | `Y = 0` | ✅ PASS |
+
+### Simulation Transcript
+```text
+========================================================
+ SMVDU TITAN-X: Unit Test for includes/stdcell_stubs.v
+ Testing SCL 180nm BUFX4 Behavioral Cell Model
+========================================================
+
+✅ PASS [1000 ps]         TC-01: Static Zero Drive: Y=0
+✅ PASS [12000 ps]          TC-02: Static One Drive: Y=1
+✅ PASS [23000 ps]   TC-03: Dynamic Toggle Tracking: Y=0
+✅ PASS [29000 ps]   TC-03: Dynamic Toggle Tracking: Y=1
+✅ PASS [35000 ps]   TC-03: Dynamic Toggle Tracking: Y=0
+✅ PASS [41000 ps]   TC-03: Dynamic Toggle Tracking: Y=1
+✅ PASS [47000 ps]   TC-03: Dynamic Toggle Tracking: Y=0
+✅ PASS [53000 ps]   TC-03: Dynamic Toggle Tracking: Y=1
+✅ PASS [59000 ps]   TC-03: Dynamic Toggle Tracking: Y=0
+✅ PASS [65000 ps]   TC-03: Dynamic Toggle Tracking: Y=1
+✅ PASS [85000 ps]  TC-04: Narrow Pulse Propagation: Y=0
+
+========================================================
+ VERDICT: ✅ PASS — ALL 11 CHECKS PASSED WITH 0 ERRORS
+========================================================
+```
+
+### Digital Waveform Analysis
+![stdcell_stubs Waveform](stdcell_stubs_waveform.png)

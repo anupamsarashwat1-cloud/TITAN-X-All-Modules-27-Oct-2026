@@ -62,3 +62,53 @@ graph LR
     Stage0 -->|"Synchronize"| Stage1
     Stage1 --> data_out
 ```
+
+---
+
+## 🧪 Verification & Simulation Results
+
+### Test Matrix
+
+| Test ID | Test Scenario | Stimulus Condition | Expected `data_out` | Observed `data_out` | Verdict |
+|:---:|:---|:---|:---:|:---:|:---:|
+| **TC-01** | Reset State Flush | `rst_n = 0` | `8'h00` | `8'h00` | ✅ PASS |
+| **TC-02** | 2-Stage Propagation | `data_in = 8'hA5` | `8'hA5` (after 2-3 clocks) | `8'hA5` | ✅ PASS |
+| **TC-03** | Alternating Pattern Shift | `data_in = 8'h3C` | `8'h3C` (after 2-3 clocks) | `8'h3C` | ✅ PASS |
+| **TC-04** | All-Ones Saturation | `data_in = 8'hFF` | `8'hFF` (after 2-3 clocks) | `8'hFF` | ✅ PASS |
+| **TC-05** | Return to Zero | `data_in = 8'h00` | `8'h00` (after 2-3 clocks) | `8'h00` | ✅ PASS |
+| **TC-06** | 3-Stage Chain Reset & Depth | `STAGES=3`, `rst_n3=0`, then `8'hC3` | `8'hC3` (after 3-4 clocks) | `8'hC3` | ✅ PASS |
+| **TC-07** | Randomized Multi-Bit Coherency | 32 pseudo-random 8-bit bytes | 100% matched across 2-FF & 3-FF | 100% matched | ✅ PASS |
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_cdc_sync.vcd opened for output.
+
+--- TEST 1: Reset output = 0 ---
+PASS [46000]           data_out=0 after reset
+
+--- TEST 2: Data propagates after 2 clocks ---
+PASS [75000]     data_out=0xA5 after 3 cycles
+
+--- TEST 3: Data change propagates ---
+PASS [105000]       data_out=0x3C after change
+
+--- TEST 4: All-ones data ---
+PASS [135000]                    data_out=0xFF
+
+--- TEST 5: Return to zero ---
+PASS [165000]                    data_out=0x00
+
+--- TEST 6: STAGES=3 chain ---
+PASS [216000] STAGES=3 data_out=0 after its reset
+PASS [256000] STAGES=3 propagates after 4 cycles
+
+--- TEST 7: Randomized coherency sweep ---
+PASS [1536000] 32 randomized values coherent through both chains
+
+==============================
+CDC_SYNC VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform Analysis
+![cdc_sync Waveform](cdc_sync_waveform.png)

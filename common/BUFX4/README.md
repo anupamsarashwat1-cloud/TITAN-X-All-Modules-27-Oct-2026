@@ -51,3 +51,36 @@ graph LR
     A --> BufNode
     BufNode -->|"Assign"| Y
 ```
+
+---
+
+## 🧪 Verification & Simulation Results
+
+### Test Matrix
+
+| Test ID | Test Scenario | Input `A` | Expected `Y` | Observed `Y` | Verdict |
+|:---:|:---|:---:|:---:|:---:|:---:|
+| **TC-01** | Static Low Drive | `1'b0` | `1'b0` | `1'b0` | ✅ PASS |
+| **TC-02** | Static High Drive | `1'b1` | `1'b1` | `1'b1` | ✅ PASS |
+| **TC-03** | Rapid Toggle Cycle 1 | `1'b0` | `1'b0` | `1'b0` | ✅ PASS |
+| **TC-04** | Rapid Toggle Cycle 2 | `1'b1` | `1'b1` | `1'b1` | ✅ PASS |
+| **TC-05** | Rapid Toggle Cycle 3 | `1'b0` | `1'b0` | `1'b0` | ✅ PASS |
+| **TC-06** | Rapid Toggle Cycle 4 | `1'b1` | `1'b1` | `1'b1` | ✅ PASS |
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_BUFX4.vcd opened for output.
+PASS [10000]                    Y follows A=0
+PASS [20000]                    Y follows A=1
+PASS [25000]        Y tracks A through toggle
+PASS [30000]        Y tracks A through toggle
+PASS [35000]        Y tracks A through toggle
+PASS [40000]        Y tracks A through toggle
+
+==============================
+BUFX4 VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform Analysis
+![BUFX4 Waveform](bufx4_waveform.png)

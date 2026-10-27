@@ -56,3 +56,40 @@ graph LR
     Const1 -->|"Shifted in on posedge clk"| RegChain
     RegChain -->|"sync_chain[STAGES-1]"| sync_rst_n
 ```
+
+---
+
+## 🧪 Verification & Simulation Results
+
+### Test Matrix
+
+| Test ID | Test Scenario | Stimulus Condition | Expected `sync_rst_n` | Observed `sync_rst_n` | Verdict |
+|:---:|:---|:---|:---:|:---:|:---:|
+| **TC-01** | Immediate Async Assertion | `async_rst_n = 0` (between edges) | `0` (immediate async drop) | `0` | ✅ PASS |
+| **TC-02** | Synchronous 2-Stage Deassertion | `async_rst_n = 1` release | `1` after 2 posedge clock cycles | `1` | ✅ PASS |
+| **TC-03** | Mid-Cycle Async Reassertion | `async_rst_n = 0` between clocks | `0` (immediate async drop) | `0` | ✅ PASS |
+| **TC-04** | Second Clean Deassertion | `async_rst_n = 1` release | `1` after 2 posedge clock cycles | `1` | ✅ PASS |
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_reset_sync.vcd opened for output.
+
+--- TEST 1: Reset asserted immediately ---
+PASS [15000] sync_rst_n=0 while async_rst_n=0
+
+--- TEST 2: Reset deassertion synchronizes ---
+PASS [56000] sync_rst_n=1 after 3 clock edges post-deassert
+
+--- TEST 3: Async reassert ---
+PASS [61000] sync_rst_n=0 immediately on async_rst_n=0
+
+--- TEST 4: Second deassert ---
+PASS [96000] sync_rst_n=1 after second deassert
+
+==============================
+RESET_SYNC VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform Analysis
+![reset_sync Waveform](reset_sync_waveform.png)
