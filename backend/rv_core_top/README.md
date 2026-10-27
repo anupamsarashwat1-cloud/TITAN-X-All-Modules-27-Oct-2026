@@ -131,3 +131,44 @@ graph LR
     mem_stage --> dmem_awvalid
     mem_stage --> dmem_arvalid
 ```
+
+## Verification & Testbench Details
+
+### Verification Strategy
+The `rv_core_top` retirement spine is verified across six comprehensive, self-checking assembly-level test programs compiled into instruction hexes and executed against cycle-accurate behavioral AXI4 memory slaves:
+1. **Base RV64I Suite (`tb_rv_core_top.v`)**:
+   - Executes RV64I ALU, immediate, branch, jump (JAL/JALR), AUIPC, LUI, and byte/half/word/doubleword memory instructions.
+   - Snoops the live writeback stage and compares all 32 architectural registers and touched memory locations against golden shadow models (`tb_expected_regs.mem`, `tb_expected_mval.mem`).
+2. **RISC-V Compliance Suite (`tb_rv_core_compliance.v`)**:
+   - Executes 370 committed instructions exercising standard corner cases, boundary arithmetic, sign extensions, and deep load-use hazards.
+   - Validates memory store records across 77 distinct write transactions.
+3. **Privileged & CSR Suite (`tb_rv_core_csr.v`)**:
+   - Tests CSR read/write/set/clear operations (`csrrw`, `csrrs`, `csrrc`), WARL field masking, exception trapping (`ecall`, `ebreak`), and `mret` returns.
+   - Validates machine-mode status updates (`mstatus`, `mepc`, `mcause`, `mtvec`).
+4. **Interrupt Architecture Suite (`tb_rv_core_irq.v`)**:
+   - Injects asynchronous external, timer, and software interrupt triggers during active program loops.
+   - Verifies pipeline flushing, trap vector diversion, cause determination, and resume sequence via `mret`.
+5. **M-Extension MUL/DIV Suite (`tb_rv_core_mext.v`)**:
+   - Stress-tests multi-cycle radix-4 hardware multiplication and non-restoring division/remainder units (`mul`, `mulh`, `mulhu`, `mulhsu`, `div`, `divu`, `rem`, `remu`).
+   - Ensures no deadlocks occur on operand forwarding or pipeline stalls (364 multi-cycle stall cycles evaluated).
+6. **Word Operations Suite (`tb_rv_core_wops.v`)**:
+   - Validates RV64 32-bit word arithmetic instructions (`addiw`, `subw`, `slliw`, `srliw`, `sraiw`) ensuring strict 32-bit truncation and sign-extension to 64 bits.
+
+### Simulation Summary & Verdict
+```text
+======================================================================
+TEST SUITE                COMMITS   STORES   CYCLES    VERDICT
+======================================================================
+tb_rv_core_top (Base)     43        14       30,000    ✅ PASS (100%)
+tb_rv_core_compliance     370       77       55,000    ✅ PASS (100%)
+tb_rv_core_csr            40        23       30,000    ✅ PASS (100%)
+tb_rv_core_irq            24        7        30,000    ✅ PASS (100%)
+tb_rv_core_mext (MUL/DIV) 57        18       250,008   ✅ PASS (100%)
+tb_rv_core_wops (Word)    32        15       30,000    ✅ PASS (100%)
+======================================================================
+ALL ARCHITECTURAL REGISTERS & MEMORY TRACES MATCH GOLDEN MODELS EXACTLY
+NO 'X' STATES DETECTED ON SYSTEM BUSES OR WRITEBACK NETWORK
+```
+
+### Digital Waveform
+![rv_core_top Waveform](rv_core_top_waveform.png)

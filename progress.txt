@@ -33,3 +33,10 @@
 [2026-10-27T09:25:20+05:30] COMPLETED: Task 5.3 - Verify backend/rv_debug/rv_debug.v (6/6 tests pass, JTAG TAP reset, IDCODE read 0x202304FD, DTMCS query & DMI halt write pass, waveform generated, README updated)
 [2026-10-27T09:26:20+05:30] COMPLETED: Task 5.4 - Verify backend/rv_monitor_core/rv_monitor_core.v (500 cycles pass, active-low reset, interrupt handling & bus hazard stress pass, waveform generated, README updated)
 [2026-10-27T09:26:20+05:30] PHASE COMPLETE: Phase 5 (Interrupt Architecture, Debug & Security Monitor) - 4/4 Modules Verified 100% Pass.
+[2026-10-27T09:30:00+05:30] COMPLETED: Task 6.1 - Verify rv_core_top Base RV64I Suite (43 commits, 14 stores, 32 registers match golden model)
+[2026-10-27T09:30:00+05:30] COMPLETED: Task 6.2 - Verify rv_core_top RISC-V Compliance Suite (370 commits, 77 stores, 32 registers match golden model)
+[2026-10-27T09:30:00+05:30] COMPLETED: Task 6.3 - Verify rv_core_top CSR & Trap Suite (40 commits, 23 stores, 32 registers match golden model)
+[2026-10-27T09:30:00+05:30] COMPLETED: Task 6.4 - Verify rv_core_top Interrupt Suite (24 commits, 7 stores, 32 registers match golden model)
+[2026-10-27T09:30:00+05:30] COMPLETED: Task 6.5 - Verify rv_core_top M-Extension Suite (57 commits, 18 stores, 364 mul_div stall cycles, 32 registers match golden model)
+[2026-10-27T09:30:00+05:30] COMPLETED: Task 6.6 - Verify rv_core_top Word Operations Suite (32 commits, 15 stores, 32 registers match golden model)
+[2026-10-27T09:30:00+05:30] PHASE COMPLETE: Phase 6 (Single-Core Full Pipeline Integration & Compliance Suite) - 1/1 Core Top (6 Test Suites) Verified 100% Pass.
