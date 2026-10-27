@@ -152,3 +152,46 @@ graph LR
     ROUTER --> s_ar
     ROUTER --> s_r_ready
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_axi4_crossbar.v`) exercises the multi-master / multi-slave transaction routing and response demultiplexing mechanisms:
+1. **TEST 1: Reset State**: Confirms all master and slave valid flags (`m_bvalid`, `m_rvalid`, `s_arvalid`) remain deasserted upon reset release.
+2. **TEST 2: Address Read (AR) Routing**: Master issues read transaction targeting DDR address (`0x8000_0000`); validates that the address decoder steers the transaction to slave port 0 with correct address propagation.
+3. **TEST 3: Read Data (R) Demultiplexing**: Slave 0 returns read data (`0xDEADBEEF12345678`); verifies that the R-channel FIFO routes the response back to the originating master port.
+4. **TEST 4: Write Address & Data (AW + W) Routing**: Master presents write address and data for DDR; verifies concurrent assertion and routing of `s_awvalid` and `s_wvalid` to slave 0.
+5. **TEST 5: Write Response (B) Routing**: Slave 0 returns write response acknowledgment; validates that `b_own` queue steers `m_bvalid` back to master.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_axi4_crossbar.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [96000]           m_bvalid=0 after reset
+PASS [96000]           m_rvalid=0 after reset
+PASS [96000]          s_arvalid=0 after reset
+
+--- TEST 2: AR channel M→S routing ---
+PASS [106000] s_arvalid=1 (AR routed M→S)
+PASS [106000] s_araddr=0x80000000 (correct)
+
+--- TEST 3: R channel S→M routing ---
+PASS [116000] m_rvalid=1 (R routed S→M)
+PASS [116000] m_rdata correct (slave-0 data)
+
+--- TEST 4: AW+W channels M→S routing ---
+PASS [175000]          s_awvalid=1 (AW routed)
+PASS [175000]            s_wvalid=1 (W routed)
+
+--- TEST 5: B channel S→M routing ---
+PASS [186000]      m_bvalid=1 (B routed S→M)
+
+==============================
+AXI4_CROSSBAR VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![AXI4 Crossbar Waveform](axi4_crossbar_waveform.png)
+

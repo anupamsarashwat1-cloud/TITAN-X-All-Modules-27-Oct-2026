@@ -129,3 +129,42 @@ graph LR
     BRIDGE --> pwdata
     BRIDGE --> pstrb
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The APB Bridge is thoroughly verified through both directed (`tb_apb_bridge.v`) and protocol-level BFM verification (`tb_unit_apb_bridge.v`):
+1. **AXI Write to APB Sequence**: Validates decoupled address and data handshakes, APB setup and access states, write data/strobe integrity, and write acknowledgment (`s_bvalid`).
+2. **AXI Read from APB Sequence**: Tests read address capture, single-cycle access dispatch, and valid read data forwarding (`s_rvalid`, `s_rdata`).
+3. **Wait-State Tolerance**: APB slave stalls (`pready == 0`) verify that the bridge holds transaction states without de-asserting or corrupting bus signals.
+4. **Error Propagation**: Slave errors (`pslverr == 1`) are mapped to AXI `SLVERR` (`2'b10`) on both read and write response channels.
+5. **Simultaneous AW/AR Contention**: Exercises the deadlock-avoidance sequencer when write and read channels present valid requests concurrently, ensuring write precedence without dropping read requests.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_unit_apb_bridge.vcd opened for output.
+[tb_unit_apb_bridge.u_axi.axi_read] note: RRESP=10 @785000
+[tb_unit_apb_bridge.u_axi.axi_write] note: BRESP=10 @885000
+------------------------------------------------
+APB_BRIDGE: 14 checks, 0 errors
+REGRESS_RESULT: PASS
+
+--- tb_apb_bridge directed run ---
+--- TEST 1: AXI Write → APB Write ---
+PASS [135000]       APB pwrite=1 for write txn
+PASS [135000]                  APB paddr=0x100
+PASS [155000] Write: s_bvalid=1 (response received)
+
+--- TEST 2: AXI Read → APB Read ---
+PASS [235000]        APB pwrite=0 for read txn
+PASS [235000]                  APB paddr=0x200
+PASS [255000]         Read: s_rdata=0xDEADCAFE
+
+==============================
+APB_BRIDGE VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![APB Bridge Waveform](apb_bridge_waveform.png)
+

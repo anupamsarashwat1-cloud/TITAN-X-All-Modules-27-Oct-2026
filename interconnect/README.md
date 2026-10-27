@@ -138,3 +138,59 @@ graph LR
     SHIM --> m_w["m_wvalid, m_wdata, m_wstrb, m_wlast"]
     SHIM --> m_b_ready["m_bready"]
 ```
+
+## Verification & Testbench Details
+
+### Verification Strategy
+The `axi4_burst_to_lite` shim is verified via directed tests simulating a full burst master against a strict single-beat slave in `tb_axi4_burst_to_lite.v`:
+1. **Read Burst Decomposition (T1)**: Sends an 8-beat AXI4 INCR read burst (`len=7`), verifies that downstream sees exactly 8 single-beat AR transactions (`len=0`) and that RLAST is asserted exclusively on the final forwarded beat.
+2. **Single-Beat Passthrough (T2)**: Sends a native single-beat read (`len=0`) and confirms zero latency stall overhead.
+3. **Write Burst Decomposition (T3)**: Issues an 8-beat write burst with mixed byte strobe masks, verifies all 8 beats are collected, correctly decoupled across independent downstream AW/W channels, and aggregated into a single upstream `B` response.
+4. **Back-to-Back Burst Re-arm (T4)**: Verifies back-to-back 8-beat read bursts without lost handshakes, reaching a cumulative 25 AR transactions.
+5. **SLVERR Error Propagation (T5)**: Injects slave errors on read and write channels, confirming that `RRESP=SLVERR` and `BRESP=SLVERR` are accurately reflected upstream.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_axi4_burst_to_lite.vcd opened for output.
+
+--- T1: read burst decomposition ---
+PASS [356000] T1 beat data
+PASS [356000] T1 beat data
+PASS [356000] T1 beat data
+PASS [356000] T1 beat data
+PASS [356000] T1 beat data
+PASS [356000] T1 beat data
+PASS [356000] T1 beat data
+PASS [356000] T1 beat data
+PASS [356000] T1 downstream saw exactly 8 ARs
+
+--- T2: len=0 passthrough ---
+PASS [416000] T2 single-beat data
+
+--- T3: write burst decomposition ---
+PASS [776000] T3 vmem word
+PASS [776000] T3 vmem word
+PASS [776000] T3 vmem word
+PASS [776000] T3 vmem word
+PASS [776000] T3 vmem word
+PASS [776000] T3 vmem word
+PASS [776000] T3 vmem word
+PASS [776000] T3 vmem word
+PASS [776000] T3 downstream saw exactly 8 AWs
+
+--- T4: back-to-back bursts ---
+PASS [1316000] T4 second burst last beat
+PASS [1316000] T4 cumulative AR count 25
+
+--- T5: SLVERR propagation ---
+PASS [1586000] T5 read RRESP=SLVERR propagated on beat
+PASS [1946000] T5 write BRESP=SLVERR propagated
+
+==============================
+AXI4_BURST_TO_LITE VERDICT: ✅ PASS — all checks green
+REGRESS_RESULT: PASS
+==============================
+```
+
+### Digital Waveform
+![axi4_burst_to_lite Waveform](axi4_burst_to_lite_waveform.png)

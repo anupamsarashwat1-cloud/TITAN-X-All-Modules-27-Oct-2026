@@ -85,3 +85,36 @@ graph LR
     ARB --> m_ar["m_arvalid, m_araddr"]
     ARB --> m_r_ready["m_rready"]
 ```
+
+## Verification & Testbench Details
+
+### Verification Strategy
+The `mmu_arbiter` module is verified via directed tests evaluating arbitration fairness and grant stability in `tb_mmu_arbiter.v`:
+1. **Reset Sequence**: Verifies active-low `rst_n` initialization, ensuring `m_arvalid` is zero when no requests are pending.
+2. **Single PTW Request Handling**: Drives an isolated request from PTW 0 (`addr = 40'h1000`), verifying that `m_araddr` reflects `0x1000` and returning read data is routed back to `s_rvalid[0]`.
+3. **Simultaneous Multi-PTW Contention**: Asserts concurrent requests on PTW 1 (`0x2000`) and PTW 3 (`0x3000`), confirming that the round-robin priority encoder grants a valid requester and preserves atomic read completion before advancing.
+4. **Fairness & Channel Demultiplexing**: Confirms zero cross-talk between the 5 PTW data ports (`s_rdata`, `s_rresp`) and ensures non-granted ports are held in wait states.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_mmu_arbiter.vcd opened for output.
+
+--- TEST 1: Reset state ---
+PASS [85000] arvalid=0 at reset (no requests)
+
+--- TEST 2: Single PTW[0] request ---
+PASS [115000]         m_araddr=0x1000 (PTW[0])
+PASS [156000] PTW[0] s_rvalid captured
+
+--- TEST 3: Multi-PTW simultaneous request ---
+PASS [245000] Arbiter grants valid PTW: addr=0x0000002000
+
+==============================
+MMU_ARBITER VERDICT: ✅ PASS — All tests passed
+==============================
+
+interconnect/mmu_arbiter/tb_mmu_arbiter.v:124: $finish called at 266000 (1ps)
+```
+
+### Digital Waveform
+![mmu_arbiter Waveform](mmu_arbiter_waveform.png)

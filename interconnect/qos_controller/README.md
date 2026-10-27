@@ -82,3 +82,57 @@ graph LR
     LOGIC --> arqos
     LOGIC --> awqos
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_qos_controller.v`) verifies the dynamic QoS allocation, bandwidth monitoring, window expiration, and throttling recovery across the following tests:
+1. **TEST 1: Reset Behavior**: Verify `m_arqos` and `m_awqos` default to 0 during reset.
+2. **TEST 2: Normal Under-Limit Transactions**: Confirm master 0 receives boost QoS (`0xF`) when bandwidth count (5) is under limit (10).
+3. **TEST 3: Over-Limit Throttling**: Confirm master 1 is throttled to base QoS (`0x1`) when bandwidth count (12) exceeds limit (10).
+4. **TEST 4: Idle Master Behavior**: Confirm idle master 2 receives boost QoS.
+5. **TEST 5: QoS Recovery**: Confirm master 1 recovers to boost QoS in the next window after traffic ceases.
+6. **TEST 6: Boundary Condition**: Verify 10 transactions (exactly at limit) maintains boost QoS.
+7. **TEST 7: Boundary Violation**: Verify 11 transactions (1 above limit) immediately triggers throttling.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_qos_controller.vcd opened for output.
+
+--- TEST 1: QoS outputs = 0 after reset ---
+PASS [54000]            m_arqos=0 after reset = 0
+PASS [54000]            m_awqos=0 after reset = 0
+PASS [54000]            m_arqos=0 after reset = 0
+PASS [54000]            m_awqos=0 after reset = 0
+PASS [54000]            m_arqos=0 after reset = 0
+PASS [54000]            m_awqos=0 after reset = 0
+PASS [54000]            m_arqos=0 after reset = 0
+PASS [54000]            m_awqos=0 after reset = 0
+
+--- TEST 2: Under limit → boost QoS ---
+PASS [328000] boost_qos=F (5 trans < limit 10) = 15
+PASS [328000]         Master 0 awqos=F (boost) = 15
+
+--- TEST 3: Over limit → base QoS ---
+PASS [652000] 1 throttled base_qos=1 (12 > 10) = 1
+
+--- TEST 4: Idle master → boost QoS ---
+PASS [882000]  2 idle → boost_qos=F (0 < 10) = 15
+
+--- TEST 5: QoS recovers (3 trans in window after throttle) ---
+PASS [1141000] aster 1 recovered to boost_qos=F = 15
+
+--- TEST 6: Exactly at limit (10) → boost (not > 10) ---
+PASS [1451000] trans → still boost (10 !> 10) = 15
+
+--- TEST 7: One over limit (11) → throttle ---
+PASS [1768000] 11 trans → throttled (11 > 10) = 1
+
+==============================
+QoS VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![QoS Controller Waveform](qos_controller_waveform.png)
+

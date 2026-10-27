@@ -158,7 +158,8 @@ module tb_axi4_burst_to_lite();
             end
             if (b_pend && m_bready) begin
                 // DUT is ready for B this cycle
-                b_pend <= 1'b0;
+                b_pend    <= 1'b0;
+                m_awready <= 1'b1;
             end
         end
     end
@@ -321,8 +322,8 @@ module tb_axi4_burst_to_lite();
         do_read_burst(BASE + 8*8, 8'd7);
         check64(got_beats[7], 64'hC000_0000_0000_0000 + 15*64'h0101,
                 "T4 second burst last beat");
-        if (ds_ar_cnt == 18)
-            $display("PASS [%0t] T4 cumulative AR count 18", $time);
+        if (ds_ar_cnt == 25)
+            $display("PASS [%0t] T4 cumulative AR count 25", $time);
         else
             fail("T4 AR count wrong");
 
@@ -336,7 +337,7 @@ module tb_axi4_burst_to_lite();
             fail("T5 read RRESP not SLVERR");
         // write side
         do_write_burst(ERR_ADDR & (~64'h3F), 8'd7,
-                       {512{1'h5A}}, {64{8'hFF}}, br);
+                       {64{8'h5A}}, {64{8'hFF}}, br);
         if (br === 2'b10)
             $display("PASS [%0t] T5 write BRESP=SLVERR propagated", $time);
         else

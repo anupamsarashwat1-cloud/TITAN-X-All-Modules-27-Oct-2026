@@ -103,3 +103,53 @@ graph LR
     BRIDGE --> pwrite
     BRIDGE --> pwdata
 ```
+
+## Verification & Test Results
+
+### Test Strategy
+The testbench (`tb_ahb_to_apb.v`) verifies AHB3-Lite to APB4 protocol conversion against a responsive APB slave register model:
+1. **TEST 1: AHB Response Status**: Verify `hresp` is continuously tied to 0 (OKAY).
+2. **TEST 2: AHB Single Write**: Drive AHB non-sequential write to address `0x10` with data `0xCAFEBABE`; check APB setup and access phase, verifying register write.
+3. **TEST 3: Distinct Address Write**: Drive AHB write to `0x1C` with data `0xDEADBEEF`; verify APB memory bank update.
+4. **TEST 4: AHB Single Read**: Read address `0x10` via AHB; verify read data `0xCAFEBABE` matches APB register contents.
+5. **TEST 5: Back-to-Back Sequential Writes**: Execute back-to-back writes to `0x00`, `0x04`, `0x08` and verify all registers update without loss or stall deadlock.
+6. **TEST 6: Sequential Reads**: Read back addresses `0x00`, `0x04`, `0x08` in sequence; ensure `hrdata` accurately captures peripheral read words.
+7. **TEST 7: AHB IDLE Transfers**: Verify that `htrans == IDLE` does not assert `psel` or cause spurious APB transactions.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_ahb_to_apb.vcd opened for output.
+
+--- TEST 1: hresp = OKAY ---
+PASS [54000]                     hresp = OKAY
+
+--- TEST 2: AHB write → APB forwarding ---
+PASS [97000] 4] = 0xCAFE_BABE after AHB write
+
+--- TEST 3: AHB write addr 0x1C ---
+PASS [140000] 7] = 0xDEAD_BEEF after AHB write
+
+--- TEST 4: AHB read ← APB ---
+PASS [184000]  hrdata = 0xCAFE_BABE (AHB read)
+
+--- TEST 5: Back-to-back writes ---
+PASS [313000]                     apb_mem[0]=1
+PASS [313000]                     apb_mem[1]=2
+PASS [313000]                     apb_mem[2]=3
+
+--- TEST 6: Sequential reads ---
+PASS [356000]                    ahb_read[0]=1
+PASS [400000]                    ahb_read[1]=2
+PASS [443000]                    ahb_read[2]=3
+
+--- TEST 7: IDLE → no APB activity ---
+PASS [515000]           psel=0 during AHB IDLE
+
+==============================
+AHB-to-APB VERDICT: ✅ PASS — All tests passed
+==============================
+```
+
+### Digital Waveform
+![AHB-to-APB Waveform](ahb_to_apb_waveform.png)
+

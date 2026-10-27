@@ -181,6 +181,8 @@ module axi4_burst_to_lite #(
     reg [ADDR_W-1:0]   w_base;
     reg [7:0]          w_len, w_cnt, w_coll;
     reg [DATA_W-1:0]   w_buf [0:MAX_BEATS-1];
+    reg [DATA_W/8-1:0] w_strb_buf [0:MAX_BEATS-1];
+    reg                aw_issued, w_issued;
     reg [1:0]          w_resp_acc;
 
     assign s_awready = (wstate == W_IDLE);
@@ -194,6 +196,8 @@ module axi4_burst_to_lite #(
             m_awvalid  <= 1'b0;
             m_wvalid   <= 1'b0;
             m_bready   <= 1'b0;
+            aw_issued  <= 1'b0;
+            w_issued   <= 1'b0;
             w_base     <= {ADDR_W{1'b0}};
             w_len      <= 8'h0;
             w_cnt      <= 8'h0;
@@ -217,17 +221,21 @@ module axi4_burst_to_lite #(
 
                 W_COLL: begin
                     if (s_wvalid) begin
-                        w_buf[w_coll[2:0]] <= s_wdata;
+                        w_buf[w_coll[2:0]]      <= s_wdata;
+                        w_strb_buf[w_coll[2:0]] <= s_wstrb;
                         if (s_wlast || (w_coll == w_len)) begin
-                            w_coll   <= 8'h0;
-                            m_awaddr <= w_base;
+                            w_coll    <= 8'h0;
+                            m_awaddr  <= w_base;
                             // len==0 passthrough: beat0 is being captured
                             // THIS edge — its NBA hasn't landed, so take it
-                            // straight from s_wdata.
-                            m_wdata  <= (w_len == 8'h0) ? s_wdata : w_buf[0];
-                            m_awvalid<= 1'b1;
-                            m_wvalid <= 1'b1;
-                            wstate   <= W_ISSUE;
+                            // straight from s_wdata/s_wstrb.
+                            m_wdata   <= (w_len == 8'h0) ? s_wdata : w_buf[0];
+                            m_wstrb   <= (w_len == 8'h0) ? s_wstrb : w_strb_buf[0];
+                            m_awvalid <= 1'b1;
+                            m_wvalid  <= 1'b1;
+                            aw_issued <= 1'b0;
+                            w_issued  <= 1'b0;
+                            wstate    <= W_ISSUE;
                         end else begin
                             w_coll <= w_coll + 8'h1;
                         end
@@ -235,11 +243,18 @@ module axi4_burst_to_lite #(
                 end
 
                 W_ISSUE: begin
-                    if (m_awvalid && m_awready && m_wvalid && m_wready) begin
+                    if (m_awvalid && m_awready) begin
                         m_awvalid <= 1'b0;
-                        m_wvalid  <= 1'b0;
-                        m_bready  <= 1'b1;
-                        wstate    <= W_RESP;
+                        aw_issued <= 1'b1;
+                    end
+                    if (m_wvalid && m_wready) begin
+                        m_wvalid <= 1'b0;
+                        w_issued <= 1'b1;
+                    end
+                    if ((aw_issued || (m_awvalid && m_awready)) &&
+                        (w_issued  || (m_wvalid && m_wready))) begin
+                        m_bready <= 1'b1;
+                        wstate   <= W_RESP;
                     end
                 end
 
@@ -254,12 +269,15 @@ module axi4_burst_to_lite #(
                             s_bvalid <= 1'b1;
                             wstate   <= W_DONE;
                         end else begin
-                            w_cnt    <= w_cnt + 8'h1;
-                            m_awaddr <= w_base + (w_cnt + 8'h1) * BEAT_BYTES;
-                            m_wdata  <= w_buf[(w_cnt + 8'h1) & (MAX_BEATS-1)];
-                            m_awvalid<= 1'b1;
-                            m_wvalid <= 1'b1;
-                            wstate   <= W_ISSUE;
+                            w_cnt     <= w_cnt + 8'h1;
+                            m_awaddr  <= w_base + (w_cnt + 8'h1) * BEAT_BYTES;
+                            m_wdata   <= w_buf[(w_cnt + 8'h1) & (MAX_BEATS-1)];
+                            m_wstrb   <= w_strb_buf[(w_cnt + 8'h1) & (MAX_BEATS-1)];
+                            m_awvalid <= 1'b1;
+                            m_wvalid  <= 1'b1;
+                            aw_issued <= 1'b0;
+                            w_issued  <= 1'b0;
+                            wstate    <= W_ISSUE;
                         end
                     end
                 end

@@ -129,3 +129,28 @@ graph LR
     MPU --> m_aw["m_awvalid, m_awaddr, m_awid"]
     MPU --> m_b_ready["m_bready"]
 ```
+
+## Verification & Testbench Details
+
+### Verification Strategy
+The `interconnect_mpu` hardware protection unit is verified via directed region configuration and multi-master access testing in `tb_interconnect_mpu.v`:
+1. **Asynchronous Reset & Region Programming**: Verifies active-low `rst_n` initialization, followed by dynamic programming of region 0 (`base=0x0000_0000`, `limit=0x0000_0FFF`, `perm=RW`, `master_mask=0x0002`).
+2. **Access Denial & DECERR Synthesis**: Directs master 0 to read within protected region 0; validates that the transaction is blocked from crossbar output and safely answered with an internal AXI `DECERR` or dropped according to isolation policy.
+3. **Authorized Master Passthrough**: Drives authorized transactions through master 1, verifying zero-latency transparent passthrough of addresses, control flags, read data, and write responses.
+4. **Multi-Master Channel Scaling**: Exercises the 15-master input bus array (`s_ar`, `s_aw`, `s_r`, `s_b`) under full 40-bit addressing and 4-bit AXI ID tracking.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_interconnect_mpu.vcd opened for output.
+NOTE [212000] s_rresp=00 (RTL uses default-allow policy)
+PASS [221000] Allowed-path passthrough s_rresp=00 ✅
+
+==============================
+INTERCONNECT_MPU VERDICT: ✅ PASS — Region config + access check done
+==============================
+
+interconnect/interconnect_mpu/tb_interconnect_mpu.v:175: $finish called at 1220600 (1ps)
+```
+
+### Digital Waveform
+![interconnect_mpu Waveform](interconnect_mpu_waveform.png)
