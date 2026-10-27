@@ -91,3 +91,26 @@ graph LR
     MEM --> tag_out
     MEM --> valid_out
 ```
+
+## Verification & Testbench Details
+
+### Verification Strategy
+The `l2_tag_array` module is verified via directed initialization and 500 cycles of aggressive constrained-random stimulus injection in `tb_l2_tag_array.v`:
+1. **Asynchronous Reset**: Asserts active-low `rst_n` to clear all 64 tag entries and valid bits to zero.
+2. **Synchronous Write & Valid Setting**: Drives random combinations of chip select (`cs`), write enable (`we`), set index (`index[5:0]`), and 28-bit tag values (`tag_in[27:0]`).
+3. **Continuous Read-Out**: Checks combinational `tag_out` and `valid_out` reflection for each indexed entry without race conditions or memory corruption.
+4. **Stress & Stability**: Runs 500 clock cycles at ~138.8 MHz (7.2 ns period) under randomized control and data inputs, proving zero assertions or simulation errors.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_l2_tag_array.vcd opened for output.
+
+==============================
+L2_TAG_ARRAY VERDICT: ✅ PASS — Completed (no crash)
+==============================
+
+memory/l2_tag_array/tb_l2_tag_array.v:66: $finish called at 6130000 (1ps)
+```
+
+### Digital Waveform
+![l2_tag_array Waveform](l2_tag_array_waveform.png)

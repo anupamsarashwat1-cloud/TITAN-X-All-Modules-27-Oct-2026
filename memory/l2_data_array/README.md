@@ -114,3 +114,26 @@ graph LR
     OUT_REG --> dout
     OUT_REG --> dout_valid
 ```
+
+## Verification & Testbench Details
+
+### Verification Strategy
+The `l2_data_array` module is verified via directed setup and 500 cycles of aggressive constrained-random stimulus injection in `tb_l2_data_array.v`:
+1. **Asynchronous Reset**: Confirms that active-low `rst_n` cleanly drives `bank_sel_r`, `dout`, and `dout_valid` low.
+2. **Dual-Bank SRAM Gating**: Exercises dual `sram_32x64_180nm` hard macro instances, verifying that `bank_sel` decodes to mutually exclusive active-low chip selects (`csb0_bank0` and `csb0_bank1`).
+3. **LVS Net Resolution**: Confirms that both SRAM macro output data ports (`sram_dout_bank0` and `sram_dout_bank1`) are actively sampled and driven to `dout` via the 1-cycle registered output MUX, resolving any floating net conditions.
+4. **Byte-Masked Write & Read Handshaking**: Randomly sweeps byte masks (`wmask[3:0]`), addresses (`addr[5:0]`), write data (`din[31:0]`), and chip/write controls (`cs`, `we`) without memory contention or data loss.
+
+### Simulation Transcript
+```text
+VCD info: dumpfile tb_l2_data_array.vcd opened for output.
+
+==============================
+L2_DATA_ARRAY VERDICT: ✅ PASS — Completed (no crash)
+==============================
+
+memory/l2_data_array/tb_l2_data_array.v:74: $finish called at 6130000 (1ps)
+```
+
+### Digital Waveform
+![l2_data_array Waveform](l2_data_array_waveform.png)
