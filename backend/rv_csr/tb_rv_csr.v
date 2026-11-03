@@ -83,8 +83,8 @@ module tb_rv_csr();
         // ---- reset state ----
         raddr = 12'h300; #1; chk64(rdata, 64'h0, "reset mstatus");
         raddr = 12'h301; #1;
-        // RV64IMC identity: MXL=2 lives in [63:62]; low 32 carry I|M|C
-        chk64(rdata, (64'd2 << 62) | (64'd1 << 12) | (64'd1 << 8) | (64'd1 << 2),
+        // RV64IM identity: MXL=2 lives in [63:62]; low 32 carry I|M
+        chk64(rdata, (64'd2 << 62) | (64'd1 << 12) | (64'd1 << 8),
               "reset misa");
         raddr = 12'hF14; #1; chk64(rdata, 64'h0, "reset mhartid");
         raddr = 12'h305; #1; chk64(rdata, 64'h0, "reset mtvec");
@@ -146,7 +146,7 @@ module tb_rv_csr();
         raddr = 12'h300; #1;
         chk64(rdata[3], 1'b1, "post-mret MIE=old MPIE");
         chk64(rdata[7], 1'b1, "post-mret MPIE=1");
-        chk64(rdata[12:11], 2'b00, "post-mret MPP=U");
+        chk64(rdata[12:11], 2'b11, "post-mret MPP=M (M-mode only invariant)");
 
         // now enabled pending raises irq_pending (MTIE & mip_timer)
         #1; chk64(irq_pend, 1'b1, "irq pends when enabled");

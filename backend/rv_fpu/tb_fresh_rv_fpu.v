@@ -362,6 +362,52 @@ module tb_fresh_rv_fpu;
             $display("PASS [T8]: FADD DP 1.0d + 2.0d = 3.0d verified");
         end
 
+        // Test 9: FMIN.S & FMAX.S (single precision with NaN-boxing)
+        // 2.0f = 0x4000_0000, 3.0f = 0x4040_0000
+        test_cnt = test_cnt + 1;
+        @(posedge clk); #1;
+        valid_in = 1;
+        fop = `FOP_FMINMAX;
+        fmt = `FMT_S;
+        rm  = 3'b000; // FMIN
+        fp_src1 = 64'hFFFF_FFFF_4000_0000; // 2.0f
+        fp_src2 = 64'hFFFF_FFFF_4040_0000; // 3.0f
+        @(posedge clk); #1;
+        valid_in = 0;
+        wait_cycles = 0;
+        while (!fpu_done && wait_cycles < 10) begin
+            @(posedge clk); #1;
+            wait_cycles = wait_cycles + 1;
+        end
+        if (fp_result !== 64'hFFFF_FFFF_4000_0000) begin
+            $display("ERROR [T9a]: FMIN.S failed: expected FFFFFFFF40000000, got %h", fp_result);
+            err_cnt = err_cnt + 1;
+        end else begin
+            $display("PASS [T9a]: FMIN.S verified: min(2.0f, 3.0f) = 2.0f with NaN-boxing");
+        end
+
+        test_cnt = test_cnt + 1;
+        @(posedge clk); #1;
+        valid_in = 1;
+        fop = `FOP_FMINMAX;
+        fmt = `FMT_S;
+        rm  = 3'b001; // FMAX
+        fp_src1 = 64'hFFFF_FFFF_4000_0000; // 2.0f
+        fp_src2 = 64'hFFFF_FFFF_4040_0000; // 3.0f
+        @(posedge clk); #1;
+        valid_in = 0;
+        wait_cycles = 0;
+        while (!fpu_done && wait_cycles < 10) begin
+            @(posedge clk); #1;
+            wait_cycles = wait_cycles + 1;
+        end
+        if (fp_result !== 64'hFFFF_FFFF_4040_0000) begin
+            $display("ERROR [T9b]: FMAX.S failed: expected FFFFFFFF40400000, got %h", fp_result);
+            err_cnt = err_cnt + 1;
+        end else begin
+            $display("PASS [T9b]: FMAX.S verified: max(2.0f, 3.0f) = 3.0f with NaN-boxing");
+        end
+
         #20;
 
         $display("=== VERIFICATION SUMMARY ===");

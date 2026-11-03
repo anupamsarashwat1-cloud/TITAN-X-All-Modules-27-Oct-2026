@@ -79,6 +79,10 @@ module titan_x_top (
     assign plic_sources[28]      = plic_irq[28]; // USB
     assign plic_sources[185:29]  = 157'h0;
 
+    wire        psel_plic;
+    wire [31:0] prdata_plic;
+    wire        pready_plic;
+
     plic #(
         .NUM_SOURCES(186),
         .NUM_TARGETS(10)
@@ -86,13 +90,13 @@ module titan_x_top (
         .clk(clk),
         .rst_n(rst_n),
         .interrupt_sources(plic_sources),
-        .psel(1'b0),
-        .penable(1'b0),
-        .pwrite(1'b0),
-        .paddr(24'h0),
-        .pwdata(32'h0),
-        .prdata(),
-        .pready(),
+        .psel(psel_plic),
+        .penable(penable),
+        .pwrite(pwrite),
+        .paddr(paddr[23:0]),
+        .pwdata(pwdata),
+        .prdata(prdata_plic),
+        .pready(pready_plic),
         .irq_targets(plic_targets)
     );
     
@@ -379,7 +383,7 @@ module titan_x_top (
         .s_rvalid(axs_rvalid[1]),   .s_rready(axs_rready[1]),   .s_rdata(axs_rdata[1*64 +: 64]), .s_rresp(axs_rresp[1*2 +: 2]),
         .s_rlast(axs_rlast[1]),
         .haddr(haddr), .hwrite(hwrite), .htrans(htrans), .hsize(hsize), .hburst(hburst),
-        .hwdata(hwdata), .hrdata({32'h0, hrdata}), .hready(hready), .hresp(hresp)
+        .hwdata(hwdata), .hrdata(hrdata), .hready(hready), .hresp(hresp)
     );
     assign axs_rid[1*4 +: 4] = 4'h0;
     
@@ -414,6 +418,7 @@ module titan_x_top (
     wire psel_boot  = psel && (paddr[31:12] == 20'h400A0 || paddr[31:12] == 20'h20030);
     wire psel_can0  = psel && (paddr[31:12] == 20'h400B0 || paddr[31:12] == 20'h30000);
     wire psel_can1  = psel && (paddr[31:12] == 20'h400C0 || paddr[31:12] == 20'h30001);
+    assign psel_plic = psel && (paddr[31:24] == 8'h0C || paddr[31:20] == 12'h40D);
 
     wire [31:0] prdata_uart0, prdata_uart1, prdata_uart2, prdata_uart3, prdata_uart4;
     wire [31:0] prdata_rtc, prdata_gem, prdata_usb, prdata_mipi, prdata_isp, prdata_hdmi;
@@ -435,7 +440,8 @@ module titan_x_top (
                         psel_envm  ? {32'h0, prdata_envm} :
                         psel_boot  ? {32'h0, prdata_boot} :
                         psel_can0  ? {32'h0, prdata_can0} :
-                        psel_can1  ? {32'h0, prdata_can1} : 64'h0;
+                        psel_can1  ? {32'h0, prdata_can1} :
+                        psel_plic  ? {32'h0, prdata_plic} : 64'h0;
 
     // -------------------------------------------------------
     // DMA Peripherals (Masters 10, 11, 12)
@@ -459,7 +465,7 @@ module titan_x_top (
         .m_arvalid(axm_arvalid[11]), .m_arready(axm_arready[11]), .m_araddr(axm_araddr[11*40 +: 40]), .m_arid(axm_arid[11*4 +: 4]),
         .m_rvalid(axm_rvalid[11]),   .m_rready(axm_rready[11]),   .m_rdata(axm_rdata[11*64 +: 64]),   .m_rresp(axm_rresp[11*2 +: 2]), .m_rlast(axm_rlast[11]), .m_rid(axm_rid[11*4 +: 4]),
         .pipe_tx_data(), .pipe_tx_datak(), .pipe_tx_rate(), .pipe_tx_elecidle(), .pipe_tx_compliance(),
-        .pipe_rx_data(32'h0), .pipe_rx_datak(4'h0), .pipe_rx_polarity(), .pipe_power_down(), .pipe_rx_valid(1'b0), .pipe_rx_elecidle(1'b1), .pipe_rx_status(3'h0), .pipe_phy_status(1'b0)
+        .pipe_rx_data(64'h0), .pipe_rx_datak(8'h0), .pipe_rx_polarity(), .pipe_power_down(), .pipe_rx_valid(4'b0), .pipe_rx_elecidle(4'b1111), .pipe_rx_status(12'h0), .pipe_phy_status(4'b0)
     );
     assign axm_rid[10*4 +: 4] = 4'h0;
 
@@ -478,12 +484,12 @@ module titan_x_top (
     // Security Block
     // -------------------------------------------------------
     wire trng_seed_valid;
-    wire [127:0] trng_seed;
+    wire [255:0] trng_seed;
 
     assign trng_seed_valid = 1'b0;
-    assign trng_seed = 128'h0;
+    assign trng_seed = 256'h0;
 
-    wire [31:0] envm_addr;
+    wire [16:0] envm_addr;
     wire        envm_req;
     wire [31:0] envm_rdata;
     wire        envm_valid;

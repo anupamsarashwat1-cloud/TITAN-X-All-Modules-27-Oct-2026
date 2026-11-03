@@ -454,9 +454,27 @@ module rv_fpu (
                  );
     wire dp_le = dp_lt || dp_eq;
 
-    // FMIN/FMAX
-    wire [31:0] sp_min = sp_lt ? s3_fp_src1[31:0] : s3_fp_src2[31:0];
-    wire [63:0] dp_min = dp_lt ? s3_fp_src1 : s3_fp_src2;
+    // FMIN/FMAX (RISC-V spec: if one operand is NaN, return the other; if both, canonical NaN)
+    wire [31:0] sp_fmin = (sp_nan1_s3 && sp_nan2_s3) ? 32'h7FC0_0000 :
+                          sp_nan1_s3 ? s3_fp_src2[31:0] :
+                          sp_nan2_s3 ? s3_fp_src1[31:0] :
+                          sp_lt ? s3_fp_src1[31:0] : s3_fp_src2[31:0];
+    wire [31:0] sp_fmax = (sp_nan1_s3 && sp_nan2_s3) ? 32'h7FC0_0000 :
+                          sp_nan1_s3 ? s3_fp_src2[31:0] :
+                          sp_nan2_s3 ? s3_fp_src1[31:0] :
+                          sp_lt ? s3_fp_src2[31:0] : s3_fp_src1[31:0];
+
+    wire [63:0] dp_fmin = (dp_nan1_s3 && dp_nan2_s3) ? 64'h7FF8_0000_0000_0000 :
+                          dp_nan1_s3 ? s3_fp_src2 :
+                          dp_nan2_s3 ? s3_fp_src1 :
+                          dp_lt ? s3_fp_src1 : s3_fp_src2;
+    wire [63:0] dp_fmax = (dp_nan1_s3 && dp_nan2_s3) ? 64'h7FF8_0000_0000_0000 :
+                          dp_nan1_s3 ? s3_fp_src2 :
+                          dp_nan2_s3 ? s3_fp_src1 :
+                          dp_lt ? s3_fp_src2 : s3_fp_src1;
+
+    wire [31:0] sp_minmax = s3_rm[0] ? sp_fmax : sp_fmin;
+    wire [63:0] dp_minmax = s3_rm[0] ? dp_fmax : dp_fmin;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -498,8 +516,8 @@ module rv_fpu (
                         end
                         `FOP_FMINMAX: begin
                             fp_result <= (s3_fmt == `FMT_S) ?
-                                          {32'h0, {31'h0, sp_min}} :
-                                          {63'h0, dp_min};
+                                          {32'hFFFF_FFFF, sp_minmax} :
+                                          dp_minmax;
                         end
                         `FOP_FMVXW: begin
                             // FMV.X.W: move float bits to integer register (sign-extend SP)

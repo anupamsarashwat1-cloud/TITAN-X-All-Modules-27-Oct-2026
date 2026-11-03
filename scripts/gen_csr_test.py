@@ -135,7 +135,7 @@ words = main + H
 # ------------------------------------------------------------------ golden
 IMPL = {0x300, 0x301, 0x304, 0x305, 0x340, 0x341, 0x342, 0x343,
         0xF14, 0xB00, 0xB02, 0xC00, 0xC02}
-MISA_VAL = (2 << 62) | (1 << 12) | (1 << 8) | (1 << 2)
+MISA_VAL = (2 << 62) | (1 << 12) | (1 << 8)
 
 
 class Golden:
@@ -189,7 +189,7 @@ class Golden:
         mie = (st >> 7) & 1                               # MPIE -> MIE
         st = (st & ~(1 << 3)) | (mie << 3)
         st |= (1 << 7)                                    # MPIE <- 1
-        st &= ~(3 << 11)                                  # MPP <- U
+        st |= (3 << 11)                                   # M-mode only invariant: MPP remains M-mode
         self.wr(0x300, st)
         return self.rd(0x341)                             # handler bumped it
 

@@ -110,7 +110,7 @@ exp[11] = 1                     # handler entries
 exp[12] = 1                     # witness: committed exactly once
 exp[13] = (1 << 63) // 3        # divu quotient of (1<<63)/3
 exp[14] = 0                     # mie after handler's csrrci
-exp[15] = 0x88                  # mstatus after mret restore
+exp[15] = 0x1888                  # mstatus after mret restore (M-mode MPP=3 invariant)
 exp[16] = (1 << 63) % 3         # remu remainder
 exp[19] = HBASE
 exp[20] = DBASE

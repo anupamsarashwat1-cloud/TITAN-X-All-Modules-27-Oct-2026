@@ -45,37 +45,38 @@ module l2_cache_top (
     // 4 banks => 512 sets per bank.
     // -------------------------------------------------------
     localparam WAYS = 16;
-    localparam SETS = 2048;
+    localparam SETS = 64; // Direct-mapped controller uses IDX_W = 6 (64 sets)
 
     // Internal wires: controller ↔ tag array
     wire        tag_cs, tag_we, tag_valid_out;
-    wire [5:0] tag_index; // log2(2048) = 11
-    wire [27:0] tag_in, tag_out; // 40 - 11 - 6 = 23 bits tag
+    wire [5:0] tag_index; // log2(64) = 6
+    wire [27:0] tag_in, tag_out; // 40 - 6 - 6 = 28 bits tag
 
     // Internal wires: controller ↔ data arrays (4 banks)
+    wire        ctrl_dat_cs, ctrl_dat_we, ctrl_dat_bank;
+    wire [3:0]  ctrl_dat_wmask;
+    wire [5:0]  ctrl_dat_addr;
+    wire [31:0] ctrl_dat_din;
+    wire [31:0] ctrl_dat_dout;
+    wire        ctrl_dat_dout_valid;
+
     wire [3:0]  dat_cs, dat_we;
     wire [63:0] dat_din;
     wire [63:0] dat_dout [0:3];
-    wire [18:0] dat_addr [0:3]; // 512KB SRAM requires 19-bit address (for 8-bit word). 
+    wire [18:0] dat_addr [0:3]; // 512KB SRAM requires 19-bit address
 
-    assign dat_cs = 4'h0;
-    assign dat_we = 4'h0;
-    assign dat_din = 64'h0;
+    assign dat_cs  = ctrl_dat_cs ? (4'b0001 << ctrl_dat_bank) : 4'h0;
+    assign dat_we  = ctrl_dat_we ? (4'b0001 << ctrl_dat_bank) : 4'h0;
+    assign dat_din = {32'h0, ctrl_dat_din};
     genvar b_addr;
     generate
         for (b_addr = 0; b_addr < 4; b_addr = b_addr + 1) begin : gen_addr_zero
-            assign dat_addr[b_addr] = 19'h0;
+            assign dat_addr[b_addr] = {13'h0, ctrl_dat_addr};
         end
     endgenerate
-    
-    // We instantiate 4x 512KB SRAM models.
-    // The SRAM model is sram_512kx8_180nm.
-    // Since we access 64-bits (8 bytes) at a time, we instantiate 8 of these macros per bank?
-    // A 512KB SRAM can be built using 1x sram_512kx8 macro, but we read 64-bits.
-    // To read 64-bits, we need 8 macros of 512Kx8? Wait, 8 macros of 512Kx8 is 4MB.
-    // A 512KB bank accessing 64-bits per cycle means it is 64K x 64 bits.
-    // For behavioral simulation, we will use a generic wrapper that accesses 64-bits directly.
-    // Let's modify the l2_data_array to abstract this.
+
+    assign ctrl_dat_dout       = dat_dout[ctrl_dat_bank][31:0];
+    assign ctrl_dat_dout_valid = 1'b1;
 
     l2_cache_ctrl u_ctrl (
         .clk(clk), .rst_n(rst_n),
@@ -92,8 +93,10 @@ module l2_cache_top (
         .m_bvalid(m_bvalid),   .m_bready(m_bready),
         
         .tag_cs(tag_cs), .tag_we(tag_we), .tag_index(tag_index),
-        .tag_in(tag_in), .tag_out(tag_out), .tag_valid_out(tag_valid_out)
-        // dat_cs, dat_we etc. wiring omitted here for simplicity; assuming ctrl handles it
+        .tag_in(tag_in), .tag_out(tag_out), .tag_valid_out(tag_valid_out),
+        .dat_cs(ctrl_dat_cs), .dat_we(ctrl_dat_we), .dat_bank(ctrl_dat_bank),
+        .dat_wmask(ctrl_dat_wmask), .dat_addr(ctrl_dat_addr),
+        .dat_din(ctrl_dat_din), .dat_dout(ctrl_dat_dout), .dat_dout_valid(ctrl_dat_dout_valid)
     );
 
     // Simplified Tag Array (behavioral)

@@ -1,20 +1,26 @@
-# SMVDU TITAN-X SoC — Complete Master System Architecture, Design, Verification & Firmware Repository
+# SMVDU TITAN-X SoC — Remediated & Qualified Release Candidate
 
-> **Architecture:** Heterogeneous Quad-Core RV64GC + 1× Monitor RV64IMAC • Sv39 MMU • 15M×9S AXI4 Crossbar • 2MB Shared L2 Cache • DDR4 Controller • PCIe Gen2 • GbE • USB 2.0 OTG • HDMI 1.4 • MIPI CSI-2 • Hardware Cryptographic Engine • Secure Boot Gate  
-> **Process Target:** SCL 180 nm Bulk CMOS • **Clock Targets:** 100 MHz Core / 400 MHz DDR PHY / 25 MHz APB  
-> **Repository:** [`anupamsarashwat1-cloud/TITAN-X-All-Modules-27-Oct-2026-PART-B`](https://github.com/anupamsarashwat1-cloud/TITAN-X-All-Modules-27-Oct-2026-PART-B) • **Status:** Complete, Self-Contained, Verified RTL
+> [!IMPORTANT]
+> **GATE H QUALIFICATION STATEMENT:**  
+> **RTL verification/release candidate; physical-design sign-off not established.**  
+> This release candidate embodies complete, source-grounded functional qualification, bounded model checking formal proofs, architectural fault mutation sensitivity qualification, and generic logic synthesis across the RTL design. Physical-design sign-off (commercial PDK place-and-route, CTS, timing closure across PVT corners, DRC, and LVS) is not established.
 
-This repository is the **complete, unified, and self-contained workspace** for the SMVDU TITAN-X System-on-Chip (SoC). It integrates:
-* **All 71 Pure Verilog Design Modules** (`.v`) organized into logical subsystem hierarchies.
-* **Complete Testbench Suite** (`tb_*.v`) for all 63 sub-modules, 6 integration testbenches, and top-level integration.
-* **GTKWave Visual Debug Configs** (`tb_*.gtkw`) for instant waveform inspection across every module.
+> **Architecture:** In-Order 5-Stage Single-Issue RV64IM Core (Machine-Mode Invariant `MPP=2'b11`) • Modular Sv39 MMU & RV64F/D FPU Coprocessors • 15M×9S AXI4 Crossbar • 2MB Shared L2 Cache • DDR4 Controller • PCIe Gen2 • GbE • USB 2.0 OTG • HDMI 1.4 • MIPI CSI-2 • Hardware Cryptographic Root of Trust  
+> **Repository:** [`anupamsarashwat1-cloud/TITAN-X-2026-11-03`](https://github.com/anupamsarashwat1-cloud/TITAN-X-2026-11-03) • **Release Date:** 2026-11-03  
+> **Qualification Verdict:** **100.0% PASS** (109/109 Regression TBs • 4/4 Formal Proofs • 6/6 Mutants Killed • Yosys 0.33 Synthesized)  
+
+This repository contains the **fully remediated, verified, and qualified RTL release candidate** for the SMVDU TITAN-X System-on-Chip (SoC). It integrates:
+* **All 71 Canonical Verilog Design Modules** (`.v`) organized into logical subsystem hierarchies.
+* **Complete Regression Suite (109 Testbenches)** (`tb_*.v`) achieving 100% pass rate with zero unknown states (0 SUSPECT_PASS_XDATA).
+* **Formal Verification Proofs**: 4 bounded model checking proofs verified safe using Yosys 0.33 and Z3 SMT-BMC.
+* **Mutation Qualification Suite**: 6 representative architectural faults injected across control and data paths, achieving 100% test sensitivity.
+* **Synthesis Accounting**: Truthful generic cell netlist statistics (98,379 generic cells in `rv_core_top`) reconciling legacy physical projections.
 * **Bus Functional Models (BFMs)** in `bfm/` for DDR4, AXI memory, PCIe PIPE, GMII, MIPI D-PHY, and ULPI.
 * **System Architecture & Verification Packages** (`includes/`): `isa_pkg.vh`, `params.vh`, `isa_constants.vh`, `tb_bfms.vh`, `tb_macros.vh`, and standard cell stubs.
 * **Firmware & Boot ROM Payloads** (`firmware/` and `top/axi_rom/`): `firmware.hex`, `boot.mem`, C source (`main.c`), startup assembly (`start.S`), linker scripts (`link.ld`), and compiled binaries.
-* **Instruction Memory Test Vectors & Golden Traces** (`backend/rv_core_top/*.hex`, `*.mem`): 30 verification files covering RV64I, Compliance, CSR, IRQ, M-extension, and Word Operations.
-* **Automated Regression Suite** (`scripts/run_regress.py`, `scripts/waves.py`, etc.).
-* **Per-Module Documentation**: Each module directory includes an individual `README.md` with full port tables, functional descriptions, hierarchical block diagrams, and signal-level Mermaid diagrams.
-* **Verification Guides**: [`VERIFICATION_GUIDE.md`](VERIFICATION_GUIDE.md) and [`MANUAL_VERIFICATION_GUIDE.md`](MANUAL_VERIFICATION_GUIDE.md) detailing bottom-up verification commands.
+* **Golden Instruction Memory Vectors** (`backend/rv_core_top/*.hex`, `*.mem`): 30 verification files covering RV64I, Compliance, CSR, IRQ, M-extension, and Word Operations.
+* **Comprehensive Qualification Evidence** in [`docs/qualification/`](docs/qualification/): baseline audits, toolchain manifests, master findings ledger, formal reports, mutation reports, and synthesis reports.
+* **Architecture Specification**: Complete microarchitecture details in [`docs/architecture/ARCHITECTURE_HANDBOOK.md`](docs/architecture/ARCHITECTURE_HANDBOOK.md).
 
 ---
 
@@ -712,41 +718,42 @@ The SoC backbone is centered on a high-throughput, round-robin arbitrated **15-M
 
 ## 4. CPU Core Microarchitecture: 5-Stage In-Order Pipeline
 
-The application processing cluster contains **4 high-performance RISC-V RV64GC cores** (`backend/rv_core_top/rv_core_top.v`) and **1 isolated RV64IMAC monitor core** (`backend/rv_monitor_core/rv_monitor_core.v`).
+The processor core (`backend/rv_core_top/rv_core_top.v`) implements an in-order, single-issue 5-stage RISC-V **RV64IM** pipeline operating exclusively in **Machine-mode** (`mstatus.MPP = 2'b11` invariant) with direct physical memory addressing. FPU and Sv39 MMU functions are provided as verified standalone coprocessor IP blocks.
 
 ```mermaid
 graph LR
     subgraph IF["1. FETCH (rv_fetch)"]
-        PC["PC Register<br/>Reset: 0x1000_0000"]
-        BPU["rv_bpu<br/>2K BHT, 12-bit GHR<br/>8-entry RAS"]
-        ICACHE["rv_icache<br/>32KB 8-Way VIPT<br/>SECDED ECC"]
-        PC --> BPU & ICACHE
+        PC["PC Register<br/>Boot: 0x8000_0000"]
+        ALIGN_IF["32-bit Aligner<br/>pc[1:0] == 2'b00"]
+        BPU["rv_bpu Interface<br/>Direct / Branch Mux"]
+        PC --> ALIGN_IF & BPU
     end
 
     subgraph ID["2. DECODE (rv_decode)"]
-        DEC["Instruction Decoder<br/>RV64IMAFDC + Zicsr"]
-        RF["rv_regfile<br/>32 × 64-bit GPRs<br/>2 Read, 1 Write"]
+        DEC["Instruction Decoder<br/>RV64IM Base + Multiply/Divide"]
+        RF["rv_regfile<br/>31 × 64-bit GPRs (x0=0)<br/>Write-First Bypass"]
         IMM["Immediate Generator<br/>I, S, B, U, J, CSR"]
         DEC --> RF & IMM
     end
 
     subgraph EX["3. EXECUTE (rv_execute)"]
         ALU["64-bit Integer ALU<br/>ADD/SUB/Shift/Bitwise"]
-        MEXT["Radix-4 Multiplier<br/>64-cycle Restoring Divider"]
-        FPU["rv_fpu<br/>IEEE 754 Single/Double<br/>FMADD, FSQRT, FCVT"]
-        CSR["rv_csr<br/>M/S/U Privilege CSRs<br/>Trap/Exception Routing"]
-        BR["Branch Comparator<br/>BEQ/BNE/BLT/BGE"]
+        MEXT["64-bit M-Extension<br/>Hardware Multiplier/Divider"]
+        CSR["rv_csr<br/>Machine-Mode Privileged CSRs<br/>mstatus.MPP=2'b11 Invariant"]
+        BR["Branch Comparator<br/>BEQ/BNE/BLT/BGE/BLTU/BGEU"]
     end
 
     subgraph MEM["4. MEMORY (rv_mem)"]
-        DCACHE["rv_dcache<br/>32KB 8-Way SA<br/>Write-Back, PLRU"]
         ALIGN["Sign/Zero Extension<br/>LB, LH, LW, LD, LBU..."]
-        DCACHE --> ALIGN
+        ST_STEER["Store Byte Mask Steering<br/>SB, SH, SW, SD"]
+        LR_SC["Atomic Reservation<br/>LR.D / SC.D Tracking"]
+        ALIGN --> ST_STEER --> LR_SC
     end
 
     subgraph WB["5. WRITEBACK (rv_writeback)"]
-        MUX["Result Mux<br/>ALU / MEM / CSR / FPU"]
-        MUX -->|"Commit rd"| RF
+        RETIRE["Retirement & Commit<br/>minstret Pulse Generation"]
+        WB_MUX["Result Multiplexer<br/>ALU / Memory / CSR / Link"]
+        RETIRE --> WB_MUX
     end
 
     IF -->|"fe_pc, fe_instr"| ID
@@ -761,6 +768,7 @@ graph LR
     classDef stage fill:#1e3a8a,stroke:#3b82f6,color:#fff;
     class IF,ID,EX,MEM,WB stage;
 ```
+
 
 ### 4.1 Pipeline Dataflow & Hazard Management
 
@@ -1399,4 +1407,17 @@ All 10 findings discovered during the Phase 7 architectural audit were repaired 
 - **DEF-06 (MEDIUM PLIC Routing):** Instantiated 186-source / 10-target PLIC routing peripheral interrupts to `irq_m_ext` on all 5 cores.
 - **DEF-07 & DEF-08 (CSR Compliance):** Preserved Machine-mode invariant (`mstatus.MPP = 2'b11`) on MRET and removed unsupported RVC bit from MISA.
 
-For full sign-off telemetry and formal mathematical proofs, see [`verification/signoff_report.md`](verification/signoff_report.md).
+For complete qualification telemetry, formal mathematical proofs, and architectural sensitivity reports:
+- [Master Findings Ledger](docs/qualification/MASTER_FINDINGS_LEDGER.md)
+- [Bounded Model Checking Formal Verification Report](docs/qualification/FORMAL_VERIFICATION_REPORT.md)
+- [Mutation Testing & Sensitivity Qualification Report](docs/qualification/MUTATION_TESTING_REPORT.md)
+- [Synthesis & Gate Count Qualification Report](docs/qualification/SYNTHESIS_REPORT.md)
+- [Requirements Traceability Matrix](docs/qualification/REQUIREMENTS_TRACEABILITY_MATRIX.csv)
+- [Toolchain Manifest](docs/qualification/TOOLCHAIN_MANIFEST.md)
+
+---
+
+> [!IMPORTANT]
+> **GATE H QUALIFICATION STATEMENT:**  
+> **RTL verification/release candidate; physical-design sign-off not established.**
+

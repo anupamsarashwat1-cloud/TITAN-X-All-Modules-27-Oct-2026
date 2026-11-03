@@ -133,14 +133,14 @@ module tb_axi4_crossbar();
         @(negedge clk);
         // L2 cache slave (decode_slave returns 3 for addr[39:28]==12'h000)
         // Use DDR address 0x8000_0000 → decode returns slave 0
-        m_arvalid=1; m_araddr=40'h0000_8000_0000; m_arid=4'hA;
+        m_arvalid=1; m_araddr=40'h00_8000_0000; m_arid=4'hA;
         @(posedge clk); #1;
         wc=0;
         while (!saw_s_arvalid && wc < 10) begin @(posedge clk); wc=wc+1; end
         m_arvalid=0;
         if (saw_s_arvalid) begin
             $display("PASS [%0t] s_arvalid=1 (AR routed M→S)", $time);
-            if (s_araddr[AW-1:0] == 40'h0000_8000_0000)
+            if (s_araddr[AW-1:0] == 40'h00_8000_0000)
                 $display("PASS [%0t] s_araddr=0x80000000 (correct)", $time);
             else begin
                 $display("FAIL [%0t] s_araddr=0x%010X exp=0x80000000", $time, s_araddr[AW-1:0]);
@@ -157,7 +157,7 @@ module tb_axi4_crossbar();
         $display("\n--- TEST 3: R channel S→M routing ---");
         saw_m_rvalid = 0;
         m_arvalid = 1;  // keep valid so s_ar_gnt holds
-        m_araddr = 40'h0000_8000_0000;  // DDR address so tgt_ar=0
+        m_araddr = 40'h00_8000_0000;  // DDR address so tgt_ar=0
         @(negedge clk);
         s_rdata = 0;
         s_rdata[DW-1:0] = 64'hDEAD_BEEF_1234_5678;  // slave 0 data
@@ -184,7 +184,7 @@ module tb_axi4_crossbar();
         $display("\n--- TEST 4: AW+W channels M→S routing ---");
         saw_s_awvalid=0; saw_s_wvalid=0;
         @(negedge clk);
-        m_awvalid=1; m_awaddr=40'h0000_8000_0000; m_awid=4'hB;
+        m_awvalid=1; m_awaddr=40'h00_8000_0000; m_awid=4'hB;
         m_wvalid=1; m_wdata=64'hCAFE_BABE_0000_0001; m_wstrb=8'hFF; m_wlast=1;
         @(posedge clk); #1;
         wc=0;
@@ -204,7 +204,7 @@ module tb_axi4_crossbar();
         @(posedge clk); #1;
         wc=0;
         while (!saw_m_bvalid && wc < 10) begin @(posedge clk); wc=wc+1; end
-        s_bvalid=0;      check(saw_m_bvalid, 1'b1, "m_bvalid=1 (B routed S→M)");
+        s_bvalid=0;      check(saw_m_bvalid, 1'b1, "m_bvalid=1 (B routed S->M)");
 
         $display("\n==============================");
         if (error_count == 0)

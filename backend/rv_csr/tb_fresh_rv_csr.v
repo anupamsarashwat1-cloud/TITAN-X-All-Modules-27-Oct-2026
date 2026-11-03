@@ -52,7 +52,7 @@ module tb_fresh_rv_csr;
 
     always #5 clk = ~clk;
 
-    localparam [63:0] EXPECTED_MISA = (64'd2 << 62) | (64'd1 << 12) | (64'd1 << 8) | (64'd1 << 2);
+    localparam [63:0] EXPECTED_MISA = (64'd2 << 62) | (64'd1 << 12) | (64'd1 << 8);
 
     initial begin
         $dumpfile("verification_waves/rv_csr.vcd");
@@ -185,7 +185,7 @@ module tb_fresh_rv_csr;
         #1;
         csr_raddr = 12'h300;
         #1;
-        if (csr_rdata[3] !== 1'b1 || csr_rdata[7] !== 1'b1 || csr_rdata[12:11] !== 2'b00) begin
+        if (csr_rdata[3] !== 1'b1 || csr_rdata[7] !== 1'b1 || csr_rdata[12:11] !== 2'b11) begin
             $display("ERROR [T4]: mstatus mret restoration failed: MIE=%b MPIE=%b MPP=%b",
                      csr_rdata[3], csr_rdata[7], csr_rdata[12:11]);
             err_cnt = err_cnt + 1;
