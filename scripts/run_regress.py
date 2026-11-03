@@ -3,10 +3,9 @@
 
 Compiles every canonical tb_*.v against the verified SoC RTL tree, runs it,
 and judges the result. A test PASSES only when the sim reports success through
-standard markers AND exits cleanly within the timeout without genuine unknown
-values.
+standard markers AND exits cleanly (code 0) without genuine unknown values.
 
-Usage: python3 scripts/run_regress.py [--only NAME_FILTER] [--timeout 60] [-j N]
+Usage: python3 scripts/run_regress.py [--only NAME_FILTER] [--timeout 60] [-j N] [--self-test]
 """
 import argparse, concurrent.futures as cf, json, re, subprocess, sys, tempfile
 from pathlib import Path
@@ -60,6 +59,38 @@ def tb_files():
     return sorted(tb_by_stem.values())
 
 
+def judge_verdict(returncode: int, log: str) -> str:
+    """Strictly evaluate testbench verdict: non-zero returncode ALWAYS overrides PASS."""
+    if returncode != 0:
+        return "CRASHED"
+    if "[TESTBENCH FAILED]" in log or "SIGN-OFF: FAILED" in log or "FATAL" in log:
+        return "FAIL"
+
+    m = RESULT_RE.search(log)
+    if m:
+        verdict = m.group(1).upper()
+    elif (vm := VERDICT_RE.search(log)):
+        verdict = vm.group(1).upper()
+    elif (
+        "[ALL TESTS PASSED]" in log
+        or "ALL TESTS PASSED" in log
+        or "POWER-AWARE VERIFICATION PASSED" in log
+        or "SIGN-OFF: SUCCESS" in log
+        or ("Total Failed: 0" in log and "[TESTBENCH FAILED]" not in log)
+        or ("Total Errors: 0" in log and "ERROR" not in log)
+    ):
+        verdict = "PASS"
+    else:
+        verdict = "NO_VERDICT"
+
+    if verdict == "PASS":
+        # Check for genuine unknown states
+        clean_log = re.sub(r"0x[0-9a-fA-F_]+", "", log)
+        if XPAT_RE.search(clean_log):
+            verdict = "SUSPECT_PASS_XDATA"
+    return verdict
+
+
 def run_one(tb_path: Path, rtl, timeout: int):
     name = tb_path.stem
     tb_dir = str(tb_path.parent)
@@ -85,30 +116,7 @@ def run_one(tb_path: Path, rtl, timeout: int):
                 timeout=timeout, cwd=str(REPO)
             )
             log = r.stdout + r.stderr
-            m = RESULT_RE.search(log)
-            if m:
-                verdict = m.group(1).upper()
-            elif (vm := VERDICT_RE.search(log)):
-                verdict = vm.group(1).upper()
-            elif (
-                "[ALL TESTS PASSED]" in log
-                or "ALL TESTS PASSED" in log
-                or "POWER-AWARE VERIFICATION PASSED" in log
-                or "SIGN-OFF: SUCCESS" in log
-                or ("Total Failed: 0" in log and "[TESTBENCH FAILED]" not in log)
-                or ("Total Errors: 0" in log and "ERROR" not in log)
-            ):
-                verdict = "PASS"
-            elif "[TESTBENCH FAILED]" in log or "SIGN-OFF: FAILED" in log or "FATAL" in log:
-                verdict = "FAIL"
-            else:
-                verdict = "NO_VERDICT" if r.returncode == 0 else "CRASHED"
-
-            if verdict == "PASS":
-                # Check for genuine unknown states
-                clean_log = re.sub(r"0x[0-9a-fA-F_]+", "", log)
-                if XPAT_RE.search(clean_log):
-                    verdict = "SUSPECT_PASS_XDATA"
+            verdict = judge_verdict(r.returncode, log)
             tail = [l for l in log.strip().splitlines() if l.strip()][-4:]
             return dict(name=name, path=str(tb_path), verdict=verdict, tail=tail)
     except subprocess.TimeoutExpired:
@@ -118,13 +126,45 @@ def run_one(tb_path: Path, rtl, timeout: int):
                     tail=[str(e)[:120]])
 
 
+def run_self_tests() -> int:
+    print("=" * 70)
+    print("REGRESSION RUNNER INTEGRITY SELF-TESTS (FIND-REG-01)")
+    print("=" * 70)
+    cases = [
+        (1, "REGRESS_RESULT: PASS\nALL TESTS PASSED\nSegmentation fault (core dumped)", "CRASHED", "PASS overridden by abnormal nonzero exit"),
+        (0, "REGRESS_RESULT: PASS", "PASS", "Standard REGRESS_RESULT marker"),
+        (0, "VERDICT: ✅ PASS — All tests passed", "PASS", "Standard VERDICT PASS marker"),
+        (0, "ALL TESTS PASSED\nTotal Errors: 0", "PASS", "Scorecard ALL TESTS PASSED"),
+        (0, "REGRESS_RESULT: FAIL\n[TESTBENCH FAILED]", "FAIL", "Explicit FAIL marker"),
+        (0, "REGRESS_RESULT: PASS\nwire value: 4'b01x0", "SUSPECT_PASS_XDATA", "Genuine Verilog X-state detection"),
+        (0, "REGRESS_RESULT: PASS\nLoading 0x8000_0000 from imem.hex", "PASS", "Hex formatting & .hex extension safe from X match"),
+        (0, "Random simulation completed with no markers", "NO_VERDICT", "Absence of pass criteria yields NO_VERDICT")
+    ]
+    all_ok = True
+    for rc, log, exp, desc in cases:
+        got = judge_verdict(rc, log)
+        ok = (got == exp)
+        mark = "✓" if ok else "✗"
+        print(f" {mark} [{desc}]: got={got}, exp={exp}")
+        if not ok:
+            all_ok = False
+    print("=" * 70)
+    verdict_str = "ALL SELF-TESTS PASSED" if all_ok else "SELF-TESTS FAILED"
+    print(f"Result: {verdict_str}")
+    return 0 if all_ok else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="")
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("-j", "--jobs", type=int, default=8)
     ap.add_argument("--json", default="")
+    ap.add_argument("--self-test", action="store_true", help="Execute runner verification self-tests")
     args = ap.parse_args()
+
+    if args.self_test:
+        return run_self_tests()
 
     rtl = rtl_files()
     all_tbs = tb_files()
