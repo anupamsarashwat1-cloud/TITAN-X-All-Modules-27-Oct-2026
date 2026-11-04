@@ -18,15 +18,24 @@ module tb_rv_mem();
     wire        dmem_wvalid;  reg dmem_wready;
     wire [63:0] dmem_wdata;   wire [7:0] dmem_wstrb;
     reg         dmem_bvalid;  wire dmem_bready;
+    reg  [1:0]  dmem_bresp;
     wire        dmem_arvalid; reg dmem_arready;
     wire [39:0] dmem_araddr;
     reg         dmem_rvalid;  wire dmem_rready;
     reg [63:0]  dmem_rdata;   reg [1:0] dmem_rresp;
+    reg [63:0]  pc_in;
 
     wire [63:0] result;
     wire [4:0]  rd_out;
     wire        valid_out;
     wire [63:0] fwd_mem_data; wire [4:0] fwd_mem_rd; wire fwd_mem_valid;
+
+    // Fault reporting
+    wire        mem_fault;
+    wire [63:0] mem_fault_pc;
+    wire [63:0] mem_fault_cause;
+    wire [63:0] mem_fault_tval;
+    wire        mem_stall;
 
     integer error_count;
     reg got_valid_out;
@@ -55,8 +64,12 @@ module tb_rv_mem();
         .dmem_araddr(dmem_araddr),
         .dmem_rvalid(dmem_rvalid), .dmem_rready(dmem_rready),
         .dmem_rdata(dmem_rdata), .dmem_rresp(dmem_rresp),
+        .pc_in(pc_in), .dmem_bresp(dmem_bresp),
         .result(result), .rd_out(rd_out), .valid_out(valid_out),
-        .fwd_mem_data(fwd_mem_data), .fwd_mem_rd(fwd_mem_rd), .fwd_mem_valid(fwd_mem_valid)
+        .fwd_mem_data(fwd_mem_data), .fwd_mem_rd(fwd_mem_rd), .fwd_mem_valid(fwd_mem_valid),
+        .mem_fault(mem_fault), .mem_fault_pc(mem_fault_pc),
+        .mem_fault_cause(mem_fault_cause), .mem_fault_tval(mem_fault_tval),
+        .mem_stall(mem_stall)
     );
 
     initial clk = 0;
@@ -66,7 +79,7 @@ module tb_rv_mem();
         input [63:0] got; input [63:0] exp; input [255:0] msg;
         begin
             if (got !== exp) begin
-                $display("FAIL [%0t] %s: got=0x%016X exp=0x%016X", $time, msg, got, exp);
+                $display("FAIL [%0t] %s: mstate=0 got=0x%016X exp=0x%016X", $time, msg, got, exp);
                 error_count = error_count + 1;
             end else $display("PASS [%0t] %s", $time, msg);
         end
@@ -80,8 +93,8 @@ module tb_rv_mem();
         error_count = 0; got_valid_out = 0; captured_result = 0;
         alu_result=0; rs2_data=0; rd_in=0; funct3=0; opcode=7'h13; // ADDI
         mem_read=0; mem_write=0; reg_write=0; valid_in=0; flush=0;
-        dmem_awready=1; dmem_wready=1; dmem_bvalid=0;
-        dmem_arready=1; dmem_rvalid=0; dmem_rdata=0; dmem_rresp=0;
+        dmem_awready=1; dmem_wready=1; dmem_bvalid=0; dmem_bresp=2'b00;
+        dmem_arready=1; dmem_rvalid=0; dmem_rdata=0; dmem_rresp=0; pc_in=64'h0;
         rst_n=0; repeat(6) @(posedge clk); rst_n=1; repeat(3) @(posedge clk);
 
         // TEST 1: Reset state
@@ -113,7 +126,7 @@ module tb_rv_mem();
         // TEST 3: AXI4 Store Word (SW): opcode=0x23, funct3=010 (SW)
         $display("\n--- TEST 3: AXI4 Store (mem_write) ---");
         @(posedge clk); #1;
-        alu_result=40'h0000_0001_0000; // store address
+        alu_result=64'h0000_0001_0000; // store address
         rs2_data=64'hDEAD_BEEF_CAFE_0000; rd_in=5'h00;
         opcode=7'h23; funct3=3'b010; // SW
         mem_read=0; mem_write=1; reg_write=0; valid_in=1;
@@ -122,7 +135,7 @@ module tb_rv_mem();
         wc=0;
         while (!dmem_awvalid && wc < 5) begin @(posedge clk); wc=wc+1; end
         if (dmem_awvalid) begin
-            check(dmem_awaddr, 40'h0000_0001_0000, "dmem_awaddr correct");
+            check(dmem_awaddr, 40'h00_0001_0000, "dmem_awaddr correct");
             $display("PASS [%0t] dmem_awvalid=1 (AXI write addr)", $time);
         end else begin
             $display("FAIL [%0t] dmem_awvalid never", $time); error_count=error_count+1;
@@ -136,14 +149,14 @@ module tb_rv_mem();
         $display("\n--- TEST 4: AXI4 Load (mem_read) ---");
         got_valid_out = 0;
         @(posedge clk); #1;
-        alu_result=40'h0000_0002_0000; rd_in=5'h08;
+        alu_result=64'h0000_0002_0000; rd_in=5'h08;
         opcode=7'h03; funct3=3'b010; // LW
         mem_read=1; mem_write=0; reg_write=1; valid_in=1;
         @(posedge clk); #1; valid_in=0; mem_read=0;
         wc=0;
         while (!dmem_arvalid && wc < 5) begin @(posedge clk); wc=wc+1; end
         if (dmem_arvalid) begin
-            check(dmem_araddr, 40'h0000_0002_0000, "dmem_araddr correct");
+            check(dmem_araddr, 40'h00_0002_0000, "dmem_araddr correct");
             $display("PASS [%0t] dmem_arvalid=1 (AXI read addr)", $time);
         end else begin
             $display("FAIL [%0t] dmem_arvalid never", $time); error_count=error_count+1;
@@ -158,6 +171,46 @@ module tb_rv_mem();
             $display("FAIL [%0t] valid_out never after load", $time);
             error_count = error_count + 1;
         end
+
+        // TEST 5: AXI4 Store Fault (SLVERR = 2'b10)
+        $display("\n--- TEST 5: AXI4 Store Fault ---");
+        @(posedge clk); #1;
+        alu_result=64'h0000_0003_0000; rs2_data=64'h1122_3344; rd_in=5'h00;
+        pc_in=64'h8000_1000;
+        opcode=7'h23; funct3=3'b010;
+        mem_read=0; mem_write=1; reg_write=0; valid_in=1;
+        @(posedge clk); #1; valid_in=0; mem_write=0;
+        wc=0;
+        while (!dmem_awvalid && wc < 5) begin @(posedge clk); wc=wc+1; end
+        @(posedge clk); #1; dmem_bvalid=1; dmem_bresp=2'b10; // SLVERR
+        @(posedge clk); #1;
+        check(mem_fault, 1'b1, "mem_fault asserted on store SLVERR");
+        check(mem_fault_cause, 64'd7, "mem_fault_cause=7 for store access fault");
+        check(mem_fault_pc, 64'h8000_1000, "mem_fault_pc holds store PC");
+        check(mem_fault_tval, 64'h0000_0003_0000, "mem_fault_tval holds store address");
+        dmem_bvalid=0; dmem_bresp=2'b00;
+        @(posedge clk); #1;
+        check(mem_fault, 1'b0, "mem_fault deasserted after 1 cycle");
+
+        // TEST 6: AXI4 Load Fault (DECERR = 2'b11)
+        $display("\n--- TEST 6: AXI4 Load Fault ---");
+        @(posedge clk); #1;
+        alu_result=64'h0000_0004_0000; rd_in=5'h05;
+        pc_in=64'h8000_2000;
+        opcode=7'h03; funct3=3'b011; // LD
+        mem_read=1; mem_write=0; reg_write=1; valid_in=1;
+        @(posedge clk); #1; valid_in=0; mem_read=0;
+        wc=0;
+        while (!dmem_arvalid && wc < 5) begin @(posedge clk); wc=wc+1; end
+        @(posedge clk); #1; dmem_rvalid=1; dmem_rresp=2'b11; // DECERR
+        @(posedge clk); #1;
+        check(mem_fault, 1'b1, "mem_fault asserted on load DECERR");
+        check(mem_fault_cause, 64'd5, "mem_fault_cause=5 for load access fault");
+        check(mem_fault_pc, 64'h8000_2000, "mem_fault_pc holds load PC");
+        check(mem_fault_tval, 64'h0000_0004_0000, "mem_fault_tval holds load address");
+        dmem_rvalid=0; dmem_rresp=2'b00;
+        @(posedge clk); #1;
+        check(mem_fault, 1'b0, "mem_fault deasserted after 1 cycle");
 
         $display("\n==============================");
         if (error_count == 0)

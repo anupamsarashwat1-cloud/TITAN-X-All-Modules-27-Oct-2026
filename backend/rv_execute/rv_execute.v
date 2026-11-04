@@ -39,6 +39,16 @@ module rv_execute #(
     input  wire        is_ecall,
     input  wire        is_ebreak,
     input  wire        is_mret,
+    // Exception inputs from decode, fetch, and memory
+    input  wire        illegal_in,
+    input  wire [31:0] instr_in,
+    input  wire        fe_fault_in,
+    input  wire [63:0] fe_fault_cause_in,
+    input  wire [63:0] fe_fault_tval_in,
+    input  wire        mem_fault_in,
+    input  wire [63:0] mem_fault_cause_in,
+    input  wire [63:0] mem_fault_tval_in,
+    input  wire [63:0] mem_fault_pc_in,
     // machine interrupt pending lines (CLINT/PLIC glue arrives later;
     // passed straight into the CSR file's mip inputs)
     input  wire        irq_m_ext,
@@ -57,6 +67,7 @@ module rv_execute #(
     input  wire        fpu_valid,
     input  wire        fpu_done,
     // To MEM stage
+    output reg  [63:0] pc_out,
     output reg  [63:0] alu_result,
     output reg  [63:0] rs2_out,
     output reg  [4:0]  rd_out,
@@ -73,6 +84,13 @@ module rv_execute #(
     // Branch resolution (back to fetch)
     output reg         branch_taken,
     output reg  [63:0] branch_target,
+    // Trap / Exception signals
+    output reg         trap_taken,
+    output wire [63:0] trap_pc_out,
+    output wire [63:0] trap_cause_out,
+    output wire [63:0] trap_tval_out,
+    output wire [63:0] mtvec_out,
+    output wire [63:0] mepc_out,
     // LR/SC reservation (exported to memory stage)
     output reg  [63:0] lr_addr,
     output reg         lr_valid
@@ -376,13 +394,6 @@ module rv_execute #(
     wire sys_illegal  = sys_present && !is_csr && !is_ecall &&
                         !is_ebreak && !is_mret;
 
-    wire ex_exit      = valid_in && !stall && !flush &&
-                        !mul_div_stall && !mx_fin;
-    wire csr_commit   = ex_exit && is_csr;
-    wire mret_commit  = ex_exit && is_mret;
-    wire trap_commit  = ex_exit && (is_ecall || is_ebreak || sys_illegal ||
-                                    csr_illegal || irq_take);
-
     wire [11:0] csr_a = imm[11:0];
     wire        csr_rmw = (csr_op == 2'b10) || (csr_op == 2'b11);
     // CSRRS/CSRRC with rs1=x0 read only — spec forbids side effects there.
@@ -397,30 +408,118 @@ module rv_execute #(
                     (csr_a == 12'hC02);
     wire csr_illegal = sys_present && is_csr && !csr_impl;
 
-    wire        csr_we_w = csr_commit && !csr_illegal &&
-                           !(csr_rmw && (rs1_addr == 5'h0));
+    wire clean_illegal_in   = (illegal_in === 1'b1);
+    wire clean_fe_fault_in  = (fe_fault_in === 1'b1);
+    wire clean_mem_fault_in = (mem_fault_in === 1'b1);
+
+    wire is_illegal = valid_in && (clean_illegal_in || sys_illegal || csr_illegal);
+
+    // Misaligned target calculation for branches & jumps
+    wire [63:0] jump_branch_target = jalr ? ((src1 + imm) & ~64'd1) : (pc_in + imm);
+    reg branch_cond;
+    always @(*) begin
+        case (funct3)
+            3'b000: branch_cond = (src1 == src2_reg);
+            3'b001: branch_cond = (src1 != src2_reg);
+            3'b100: branch_cond = ($signed(src1) < $signed(src2_reg));
+            3'b101: branch_cond = ($signed(src1) >= $signed(src2_reg));
+            3'b110: branch_cond = (src1 < src2_reg);
+            3'b111: branch_cond = (src1 >= src2_reg);
+            default: branch_cond = 1'b0;
+        endcase
+    end
+    wire branch_misaligned = valid_in && ((branch && branch_cond) || jal || jalr) &&
+                            (jump_branch_target[1:0] != 2'b00);
+
+    // Misaligned load / store address calculation
+    wire is_load = valid_in && mem_read;
+    wire is_store = valid_in && mem_write;
+    wire load_misaligned = is_load && (
+        (funct3[1:0] == 2'b01 && alu_res_comb[0] != 1'b0) ||   // LH/LHU halfword
+        (funct3[1:0] == 2'b10 && alu_res_comb[1:0] != 2'b00) || // LW/LWU word
+        (funct3[1:0] == 2'b11 && alu_res_comb[2:0] != 3'b000)   // LD doubleword
+    );
+    wire store_misaligned = is_store && (
+        (funct3[1:0] == 2'b01 && alu_res_comb[0] != 1'b0) ||   // SH halfword
+        (funct3[1:0] == 2'b10 && alu_res_comb[1:0] != 2'b00) || // SW word
+        (funct3[1:0] == 2'b11 && alu_res_comb[2:0] != 3'b000)   // SD doubleword
+    );
+
+    wire ex_exit      = valid_in && !stall && !flush &&
+                        !mul_div_stall && !mx_fin;
+    wire csr_commit   = ex_exit && is_csr;
+    wire mret_commit  = ex_exit && is_mret;
+
+    wire trap_req_c = (valid_in && !stall && !flush && !mul_div_stall && !mx_fin &&
+                      (is_ecall || is_ebreak || is_illegal || branch_misaligned ||
+                       load_misaligned || store_misaligned || clean_fe_fault_in)) ||
+                      clean_mem_fault_in;
+
+    wire csr_we_w = csr_commit && !csr_illegal &&
+                    !(csr_rmw && (rs1_addr == 5'h0));
     wire [63:0] csr_wd   = (csr_op == 2'b01) ? src1 :
                            (csr_op == 2'b10) ? (csr_old | src1) :
                                                (csr_old & ~src1);
 
     // Interrupt selection (Step 5.6). irq_pend already folds in mie enable
-    // and mstatus.MIE inside rv_csr. Priority external > software > timer
-    // is our documented choice (spec leaves M-mode priority open). Causes
-    // carry the interrupt bit (63) per privileged spec.
+    // and mstatus.MIE inside rv_csr. Priority external > software > timer.
     wire irq_sel_ext   = irq_pend && irq_m_ext;
     wire irq_sel_soft  = irq_pend && !irq_m_ext && irq_m_soft;
     wire irq_sel_timer = irq_pend && !irq_m_ext && !irq_m_soft &&
                          irq_m_timer;
 
+    wire mret_req_c = valid_in && !stall && !flush &&
+                      !mul_div_stall && !mx_fin && is_mret;
+
+    wire irq_take   = ex_exit &&
+                      (irq_sel_ext || irq_sel_soft || irq_sel_timer) &&
+                      !mret_req_c && !trap_req_c;
+
+    wire trap_commit  = (ex_exit && (is_ecall || is_ebreak || is_illegal ||
+                                    branch_misaligned || load_misaligned ||
+                                    store_misaligned || clean_fe_fault_in || irq_take)) ||
+                        clean_mem_fault_in;
+
+    wire [63:0] trap_pc_w = clean_mem_fault_in ? mem_fault_pc_in : pc_in;
+
     reg [63:0] trap_cause_w;
+    reg [63:0] trap_tval_w;
     always @(*) begin
-        if (irq_sel_ext)    trap_cause_w = (64'd1 << 63) | 64'd11;
-        else if (irq_sel_soft) trap_cause_w = (64'd1 << 63) | 64'd3;
-        else if (irq_sel_timer) trap_cause_w = (64'd1 << 63) | 64'd7;
-        else if (sys_illegal || csr_illegal)
-                            trap_cause_w = 64'd2;    // illegal instruction
-        else if (is_ebreak) trap_cause_w = 64'd3;    // breakpoint
-        else                trap_cause_w = 64'd11;   // ecall from M-mode
+        trap_tval_w = 64'h0;
+        if (clean_mem_fault_in) begin
+            trap_cause_w = mem_fault_cause_in;
+            trap_tval_w  = mem_fault_tval_in;
+        end else if (irq_sel_ext) begin
+            trap_cause_w = (64'd1 << 63) | 64'd11;
+        end else if (irq_sel_soft) begin
+            trap_cause_w = (64'd1 << 63) | 64'd3;
+        end else if (irq_sel_timer) begin
+            trap_cause_w = (64'd1 << 63) | 64'd7;
+        end else if (clean_fe_fault_in) begin
+            trap_cause_w = fe_fault_cause_in;
+            trap_tval_w  = fe_fault_tval_in;
+        end else if (branch_misaligned) begin
+            trap_cause_w = 64'd0;    // Instruction address misaligned
+            trap_tval_w  = jump_branch_target;
+        end else if (is_illegal) begin
+            trap_cause_w = 64'd2;    // Illegal instruction
+            trap_tval_w  = {32'h0, instr_in};
+        end else if (is_ebreak) begin
+            trap_cause_w = 64'd3;    // Breakpoint
+            trap_tval_w  = pc_in;
+        end else if (load_misaligned) begin
+            trap_cause_w = 64'd4;    // Load address misaligned
+            trap_tval_w  = alu_res_comb;
+        end else if (store_misaligned) begin
+            trap_cause_w = 64'd6;    // Store address misaligned
+            trap_tval_w  = alu_res_comb;
+        end else if (is_ecall) begin
+            trap_cause_w = 64'd11;   // ECALL from M-mode
+            trap_tval_w  = 64'h0;
+        end else begin
+            trap_cause_w = 64'd0;
+            trap_tval_w  = 64'h0;
+        end
     end
 
     wire [63:0] csr_old, mtvec_q, mepc_q;
@@ -436,8 +535,9 @@ module rv_execute #(
         .csr_waddr    (csr_a),
         .csr_wdata    (csr_wd),
         .trap_we      (trap_commit),
-        .trap_pc      (pc_in),
+        .trap_pc      (trap_pc_w),
         .trap_cause   (trap_cause_w),
+        .trap_tval    (trap_tval_w),
         .mret_we      (mret_commit),
         .mip_m_ext    (irq_m_ext),
         .mip_m_timer  (irq_m_timer),
@@ -445,7 +545,8 @@ module rv_execute #(
         .retire_pulse (ex_exit),
         .mtvec_out    (mtvec_q),
         .mepc_out     (mepc_q),
-        .irq_pending  (irq_pend)          // consumed below (Step 5.6)
+        .mtval_out    (),
+        .irq_pending  (irq_pend)
     );
 
     // -------------------------------------------------------
@@ -469,49 +570,21 @@ module rv_execute #(
     // -------------------------------------------------------
     // Branch Decision (combinational)
     // -------------------------------------------------------
-    wire trap_req_c = valid_in && !stall && !flush &&
-                      !mul_div_stall && !mx_fin &&
-                      (is_ecall || is_ebreak || sys_illegal || csr_illegal);
-    wire mret_req_c = valid_in && !stall && !flush &&
-                      !mul_div_stall && !mx_fin && is_mret;
-    // Preemption point: the beat leaving EX is redirected to mtvec instead
-    // of retiring. Never preempted-beat: an mret (else a pending IRQ would
-    // trap straight out of the restore) or an exception beat (exception
-    // wins per spec ordering). Everything else — ALU, CSR, loads, stores,
-    // even the beat after a multicycle op — is fair game; the killed beat
-    // re-executes from its own PC after the handler's mret.
-    wire irq_take   = ex_exit &&
-                      (irq_sel_ext || irq_sel_soft || irq_sel_timer) &&
-                      !mret_req_c && !trap_req_c;
-
     reg branch_comb;
     always @(*) begin
         branch_comb = 1'b0;
         if (branch) begin
-            case (funct3)
-                3'b000: branch_comb = (src1 == src2_reg);
-                3'b001: branch_comb = (src1 != src2_reg);
-                3'b100: branch_comb = ($signed(src1) < $signed(src2_reg));
-                3'b101: branch_comb = ($signed(src1) >= $signed(src2_reg));
-                3'b110: branch_comb = (src1 < src2_reg);
-                3'b111: branch_comb = (src1 >= src2_reg);
-                default: branch_comb = 1'b0;
-            endcase
+            branch_comb = branch_cond;
         end else if (jal || jalr || trap_req_c || mret_req_c ||
-                     irq_take) begin
-            // Traps, mret, and IRQ preemption reuse the branch redirect
-            // machinery: PC goes to mtvec/mepc, fetch+decode flush exactly
-            // like a taken jump.
+                     irq_take || clean_mem_fault_in) begin
             branch_comb = 1'b1;
         end
     end
 
     wire [63:0] branch_tgt =
-        jalr       ? ((src1 + imm) & ~64'd1) :
-        irq_take   ? mtvec_q :
-        trap_req_c ? mtvec_q :
-        mret_req_c ? mepc_q  :
-                     (pc_in + imm);
+        (trap_req_c || irq_take || clean_mem_fault_in) ? mtvec_q :
+        mret_req_c                                     ? mepc_q  :
+        jump_branch_target;
 
     // -------------------------------------------------------
     // Result Mux: Integer / M-ext / FPU
@@ -540,6 +613,17 @@ module rv_execute #(
     BUFX4 u_buf_flush_ex2 ( .A(flush), .Y(flush_ex_2) );
     BUFX4 u_buf_flush_ex3 ( .A(flush), .Y(flush_ex_3) );
     BUFX4 u_buf_flush_ex4 ( .A(flush), .Y(flush_ex_4) );
+
+    // Block 0: pc_out
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            pc_out <= 64'h0;
+        end else if (flush_ex_1) begin
+            pc_out <= 64'h0;
+        end else if (!stall && !mul_div_stall && !mx_fin) begin
+            pc_out <= pc_in;
+        end
+    end
 
     // Block 1: alu_result
     always @(posedge clk or negedge rst_n) begin
@@ -589,6 +673,7 @@ module rv_execute #(
             amo_funct5_out<= 5'h0;
             valid_out     <= 1'b0;
             branch_taken  <= 1'b0;
+            trap_taken    <= 1'b0;
         end else if (flush_ex_4) begin
             rd_out        <= 5'h0;
             funct3_out    <= 3'h0;
@@ -600,6 +685,7 @@ module rv_execute #(
             amo_funct5_out<= 5'h0;
             valid_out     <= 1'b0;
             branch_taken  <= 1'b0;
+            trap_taken    <= 1'b0;
         end else if (!stall && !mul_div_stall && !mx_fin) begin
             rd_out        <= rd_in;
             funct3_out    <= funct3;
@@ -607,14 +693,15 @@ module rv_execute #(
             // An interrupted or trapping beat commits NOTHING — including
             // no bus side effects: a preempted store must not reach the
             // interconnect (it re-executes after the handler returns).
-            mem_read_out  <= mem_read && !irq_take && !trap_req_c;
-            mem_write_out <= mem_write && !irq_take && !trap_req_c;
-            reg_write_out <= reg_write && !trap_req_c && !irq_take &&
+            mem_read_out  <= mem_read && !irq_take && !trap_req_c && !clean_mem_fault_in;
+            mem_write_out <= mem_write && !irq_take && !trap_req_c && !clean_mem_fault_in;
+            reg_write_out <= reg_write && !trap_req_c && !irq_take && !clean_mem_fault_in &&
                              (!is_fp_op || fpu_done);
             is_amo_out    <= is_amo;
             amo_funct5_out<= amo_funct5;
-            valid_out     <= valid_in;
+            valid_out     <= valid_in && !trap_req_c && !clean_fe_fault_in && !clean_mem_fault_in;
             branch_taken  <= branch_comb && valid_in;
+            trap_taken    <= trap_commit;
         end else if (mx_done) begin
             // M-ext delivery: replay the CAPTURED instruction's control
             // fields — decode is frozen presenting this same op, so the
@@ -630,7 +717,14 @@ module rv_execute #(
             amo_funct5_out<= 5'h0;
             valid_out     <= mx_v_q;
             branch_taken  <= 1'b0;
+            trap_taken    <= 1'b0;
         end
     end
+
+    assign trap_pc_out    = trap_pc_w;
+    assign trap_cause_out = trap_cause_w;
+    assign trap_tval_out  = trap_tval_w;
+    assign mtvec_out      = mtvec_q;
+    assign mepc_out       = mepc_q;
 
 endmodule

@@ -32,6 +32,8 @@ module rv_mem (
     output reg         dmem_rready,
     input  wire [63:0] dmem_rdata,
     input  wire [1:0]  dmem_rresp,
+    input  wire [63:0] pc_in,
+    input  wire [1:0]  dmem_bresp,
     // To writeback
     output reg  [63:0] result,
     output reg  [4:0]  rd_out,
@@ -41,6 +43,11 @@ module rv_mem (
     output wire [63:0] fwd_mem_data,
     output wire [4:0]  fwd_mem_rd,
     output wire        fwd_mem_valid,
+    // Fault reporting to core exception unit
+    output reg         mem_fault,
+    output reg  [63:0] mem_fault_pc,
+    output reg  [63:0] mem_fault_cause,
+    output reg  [63:0] mem_fault_tval,
     // Stall request
     output wire        mem_stall
 );
@@ -51,6 +58,12 @@ module rv_mem (
     reg [1:0] mstate;
     reg [63:0] load_data;
     reg        mem_active;
+    reg [63:0] pc_q;
+    reg [39:0] store_addr_q;
+
+    wire [1:0]  clean_bresp = (dmem_bresp === 2'bzz || dmem_bresp === 2'bxx) ? 2'b00 : dmem_bresp;
+    wire [1:0]  clean_rresp = (dmem_rresp === 2'bzz || dmem_rresp === 2'bxx) ? 2'b00 : dmem_rresp;
+    wire [63:0] clean_pc_in = (pc_in === 64'bx || pc_in === 64'bz) ? 64'h0 : pc_in;
 
     assign mem_stall  = mem_active && (mstate != MS_DONE);
     assign fwd_mem_data  = result;
@@ -91,70 +104,74 @@ module rv_mem (
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            dmem_awvalid  <= 1'b0;  dmem_awaddr  <= 40'h0;
-            dmem_wvalid   <= 1'b0;  dmem_wdata   <= 64'h0;  dmem_wstrb <= 8'h0;
-            dmem_bready   <= 1'b0;
-            dmem_arvalid  <= 1'b0;  dmem_araddr  <= 40'h0;
-            dmem_rready   <= 1'b0;
-            result        <= 64'h0;
-            rd_out        <= 5'h0;
-            reg_write_out <= 1'b0;
-            valid_out     <= 1'b0;
-            load_data     <= 64'h0;
-            mem_active    <= 1'b0;
-            mstate        <= MS_IDLE;
+            dmem_awvalid    <= 1'b0;  dmem_awaddr  <= 40'h0;
+            dmem_wvalid     <= 1'b0;  dmem_wdata   <= 64'h0;  dmem_wstrb <= 8'h0;
+            dmem_bready     <= 1'b0;
+            dmem_arvalid    <= 1'b0;  dmem_araddr  <= 40'h0;
+            dmem_rready     <= 1'b0;
+            result          <= 64'h0;
+            rd_out          <= 5'h0;
+            reg_write_out   <= 1'b0;
+            valid_out       <= 1'b0;
+            load_data       <= 64'h0;
+            mem_active      <= 1'b0;
+            mstate          <= MS_IDLE;
+            pc_q            <= 64'h0;
+            store_addr_q    <= 40'h0;
+            mem_fault       <= 1'b0;
+            mem_fault_pc    <= 64'h0;
+            mem_fault_cause <= 64'h0;
+            mem_fault_tval  <= 64'h0;
         end else if (flush) begin
-            dmem_awvalid  <= 1'b0;  dmem_awaddr  <= 40'h0;
-            dmem_wvalid   <= 1'b0;  dmem_wdata   <= 64'h0;  dmem_wstrb <= 8'h0;
-            dmem_bready   <= 1'b0;
-            dmem_arvalid  <= 1'b0;  dmem_araddr  <= 40'h0;
-            dmem_rready   <= 1'b0;
-            result        <= 64'h0;
-            rd_out        <= 5'h0;
-            reg_write_out <= 1'b0;
-            valid_out     <= 1'b0;
-            load_data     <= 64'h0;
-            mem_active    <= 1'b0;
-            mstate        <= MS_IDLE;
+            dmem_awvalid    <= 1'b0;  dmem_awaddr  <= 40'h0;
+            dmem_wvalid     <= 1'b0;  dmem_wdata   <= 64'h0;  dmem_wstrb <= 8'h0;
+            dmem_bready     <= 1'b0;
+            dmem_arvalid    <= 1'b0;  dmem_araddr  <= 40'h0;
+            dmem_rready     <= 1'b0;
+            result          <= 64'h0;
+            rd_out          <= 5'h0;
+            reg_write_out   <= 1'b0;
+            valid_out       <= 1'b0;
+            load_data       <= 64'h0;
+            mem_active      <= 1'b0;
+            mstate          <= MS_IDLE;
+            pc_q            <= 64'h0;
+            store_addr_q    <= 40'h0;
+            mem_fault       <= 1'b0;
+            mem_fault_pc    <= 64'h0;
+            mem_fault_cause <= 64'h0;
+            mem_fault_tval  <= 64'h0;
         end else begin
             case (mstate)
                 MS_IDLE: begin
+                    mem_fault <= 1'b0;
                     if (valid_in && mem_write) begin
-                        dmem_awvalid <= 1'b1;
-                        dmem_awaddr  <= alu_result[39:0];
-                        dmem_wvalid  <= 1'b1;
-                        // Data rides the SAME lane as its strobe: the slave
-                        // merges window byte j from bus lane j. Shifting the
-                        // strobe without the data wrote the wrong slice of
-                        // rs2 into the addressed lane.
-                        dmem_wdata   <= rs2_data
-                                        << {alu_result[2:0], 3'b000};
-                        // Strobes ride the byte lane selected by address
-                        // bits [2:0]. Lane-0-always made every non-offset-0
-                        // sub-word store land up to 7 bytes early (an sb@+14
-                        // rewrote byte 0 of the window instead).
-                        dmem_wstrb   <= wstrb_from_f3(funct3)
-                                        << alu_result[2:0];
-                        dmem_bready  <= 1'b1;
-                        mem_active   <= 1'b1;
-                        mstate       <= MS_DATA;
+                        dmem_awvalid  <= 1'b1;
+                        dmem_awaddr   <= alu_result[39:0];
+                        store_addr_q  <= alu_result[39:0];
+                        pc_q          <= clean_pc_in;
+                        dmem_wvalid   <= 1'b1;
+                        dmem_wdata    <= rs2_data
+                                         << {alu_result[2:0], 3'b000};
+                        dmem_wstrb    <= wstrb_from_f3(funct3)
+                                         << alu_result[2:0];
+                        dmem_bready   <= 1'b1;
+                        mem_active    <= 1'b1;
+                        mstate        <= MS_DATA;
                         rd_out        <= rd_in;
                         reg_write_out <= reg_write;
                         result        <= alu_result;
-                        // Nothing retires while the transaction flies:
-                        // holding the previous completer's valid here made
-                        // WB latch a ghost {rd, stale result} pair one
-                        // cycle before the real writeback.
-                        valid_out    <= 1'b0;
+                        valid_out     <= 1'b0;
                     end else if (valid_in && mem_read) begin
-                        dmem_arvalid <= 1'b1;
-                        dmem_araddr  <= alu_result[39:0];
-                        dmem_rready  <= 1'b1;
-                        mem_active   <= 1'b1;
-                        mstate       <= MS_DATA;
+                        dmem_arvalid  <= 1'b1;
+                        dmem_araddr   <= alu_result[39:0];
+                        pc_q          <= clean_pc_in;
+                        dmem_rready   <= 1'b1;
+                        mem_active    <= 1'b1;
+                        mstate        <= MS_DATA;
                         rd_out        <= rd_in;
                         reg_write_out <= reg_write;
-                        valid_out    <= 1'b0;   // same ghost-write guard
+                        valid_out     <= 1'b0;
                     end else begin
                         result        <= alu_result;
                         rd_out        <= rd_in;
@@ -168,23 +185,40 @@ module rv_mem (
                     if (dmem_wready)  dmem_wvalid  <= 1'b0;
                     if (dmem_arready) dmem_arvalid <= 1'b0;
                     if (dmem_bvalid) begin
-                        dmem_bready  <= 1'b0;
-                        valid_out    <= 1'b1;
-                        mem_active   <= 1'b0;
-                        mstate       <= MS_IDLE;
+                        dmem_bready <= 1'b0;
+                        mem_active  <= 1'b0;
+                        mstate      <= MS_IDLE;
+                        if (clean_bresp[1] == 1'b1 || clean_bresp[0] == 1'b1) begin
+                            mem_fault       <= 1'b1;
+                            mem_fault_pc    <= pc_q;
+                            mem_fault_cause <= 64'd7;
+                            mem_fault_tval  <= {24'h0, store_addr_q};
+                            valid_out       <= 1'b0;
+                            reg_write_out   <= 1'b0;
+                        end else begin
+                            valid_out       <= 1'b1;
+                            mem_fault       <= 1'b0;
+                        end
                     end
                     if (dmem_rvalid) begin
-                        load_data    <= dmem_rdata;
-                        // Mirror of the store-side lane shift: the slave
-                        // returns the whole doubleword, so the addressed
-                        // lane sits at bits [8*araddr[2:0] +: size].
-                        result       <= extend_load(
-                            dmem_rdata >> {dmem_araddr[2:0], 3'b000},
-                            funct3);
-                        dmem_rready  <= 1'b0;
-                        valid_out    <= 1'b1;
-                        mem_active   <= 1'b0;
-                        mstate       <= MS_IDLE;
+                        dmem_rready <= 1'b0;
+                        mem_active  <= 1'b0;
+                        mstate      <= MS_IDLE;
+                        if (clean_rresp[1] == 1'b1 || clean_rresp[0] == 1'b1) begin
+                            mem_fault       <= 1'b1;
+                            mem_fault_pc    <= pc_q;
+                            mem_fault_cause <= 64'd5;
+                            mem_fault_tval  <= {24'h0, dmem_araddr};
+                            valid_out       <= 1'b0;
+                            reg_write_out   <= 1'b0;
+                        end else begin
+                            load_data    <= dmem_rdata;
+                            result       <= extend_load(
+                                dmem_rdata >> {dmem_araddr[2:0], 3'b000},
+                                funct3);
+                            valid_out    <= 1'b1;
+                            mem_fault    <= 1'b0;
+                        end
                     end
                 end
                 default: mstate <= MS_IDLE;

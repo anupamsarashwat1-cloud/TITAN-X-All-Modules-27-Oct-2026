@@ -1,8 +1,8 @@
 # Current Project State: SMVDU TITAN-X Master Engineering Remediation
 
 **Current Milestone:** M7 — Master Engineering Remediation, Integration & Qualification  
-**Current Phase:** Phase 14 — Architectural Discovery, Hardware Hierarchy & Machine-Readable Connectivity Matrix  
-**Status:** In Planning / Gate 1 Discovery  
+**Current Phase:** Phase 16 — Top-Level L1/L2 Cache Hierarchy & Memory Bus Integration  
+**Status:** In Progress / Core Verified (110/110 TBs 100% Pass)  
 
 ## Historical Completed Milestones (Unit-Level Baseline)
 - [x] Phase 1: Foundation & Common Standard Cell Modules (6/6 Modules Verified 100% Pass)
@@ -20,8 +20,8 @@
 - [x] Phase 13: Full SoC Integration, Firmware Bring-Up & End-to-End System Boot (Baseline Verified)
 
 ## Active Remediation & Qualification Phases (Milestone M7)
-- [ ] Phase 14: Architectural Discovery, Hardware Hierarchy & Machine-Readable Connectivity Matrix
-- [ ] Phase 15: Processor Core Execution, Exception Handling & Privileged Architecture
+- [x] Phase 14: Architectural Discovery, Hardware Hierarchy & Machine-Readable Connectivity Matrix
+- [x] Phase 15: Processor Core Execution, Exception Handling & Privileged Architecture
 - [ ] Phase 16: Top-Level L1/L2 Cache Hierarchy & Memory Bus Integration
 - [ ] Phase 17: Multicore Snooping, Coherence Protocol & Shared-Memory Integration
 - [ ] Phase 18: Cryptographic Root of Trust, Secure Boot Chain & Key Management

@@ -825,6 +825,17 @@
     ]
   },
   {
+    "name": "tb_rv_core_exception",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_exception.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_EXCEPTION VERDICT: \u2705 PASS \u2014 All privileged exception contracts verified",
+      "REGRESS_RESULT: PASS",
+      "========================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_exception.v:377: $finish called at 36111600 (1ps)"
+    ]
+  },
+  {
     "name": "tb_rv_core_irq",
     "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v",
     "verdict": "PASS",
@@ -876,7 +887,7 @@
       "RV_CSR VERDICT: \u2705 PASS \u2014 CSR file matches spec contract",
       "REGRESS_RESULT: PASS",
       "==============================",
-      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/tb_rv_csr.v:194: $finish called at 331000 (1ps)"
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/tb_rv_csr.v:200: $finish called at 331000 (1ps)"
     ]
   },
   {
@@ -909,7 +920,7 @@
       "==============================",
       "RV_DECODE VERDICT: \u2705 PASS \u2014 All tests passed",
       "==============================",
-      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/tb_rv_decode.v:150: $finish called at 156000 (1ps)"
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/tb_rv_decode.v:163: $finish called at 176000 (1ps)"
     ]
   },
   {
@@ -964,7 +975,7 @@
       "==============================",
       "RV_MEM VERDICT: \u2705 PASS \u2014 All tests passed",
       "==============================",
-      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/tb_rv_mem.v:168: $finish called at 286000 (1ps)"
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/tb_rv_mem.v:221: $finish called at 386000 (1ps)"
     ]
   },
   {
