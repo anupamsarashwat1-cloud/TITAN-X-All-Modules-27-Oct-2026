@@ -56,16 +56,75 @@ module tb_integ_security_chain;
     wire        envm_req;
     wire [16:0] envm_addr;
     reg         envm_valid;
-    wire [31:0] envm_rdata =
-        (envm_addr == 17'd0) ? 32'h5449_544E : // Magic 'TITN'
-        (envm_addr == 17'd1) ? 32'h0000_0004 : // Length = 4 words
-        (envm_addr == 17'd2) ? 32'h0868_7AC0 : // Golden digest
-        (envm_addr == 17'd3) ? 32'hCAFE_F00D : // Auth Public Key ID
-        (envm_addr == 17'd4) ? 32'hDEAD_BEEF : // Payload word 0
-        (envm_addr == 17'd5) ? 32'h1234_5678 : // Payload word 1
-        (envm_addr == 17'd6) ? 32'hCAFE_BABE : // Payload word 2
-        (envm_addr == 17'd7) ? 32'h0000_0000 : // Payload word 3
-                               32'h0000_0000;
+    reg [31:0] envm_image [0:58];
+    initial begin
+        envm_image[ 0] = 32'h5449544E; // Magic: "TITN"
+        envm_image[ 1] = 32'h00000010; // Length: 16 payload words
+        envm_image[ 2] = 32'hCAFEF00D; // Authorized Root Public Key ID
+        // Expected 256-bit SHA-256 Digest
+        envm_image[ 3] = 32'h47FC49DF;
+        envm_image[ 4] = 32'hC7A5A9F5;
+        envm_image[ 5] = 32'h63CB70B5;
+        envm_image[ 6] = 32'h621E4D55;
+        envm_image[ 7] = 32'h1DEF80B1;
+        envm_image[ 8] = 32'h65B0438A;
+        envm_image[ 9] = 32'h6E3DB762;
+        envm_image[10] = 32'h6560B2D1;
+        // Root Public Key Qx (256-bit)
+        envm_image[11] = 32'h26F4FA43;
+        envm_image[12] = 32'h1A2BEB66;
+        envm_image[13] = 32'h46D953CA;
+        envm_image[14] = 32'h332BC722;
+        envm_image[15] = 32'h911D9B05;
+        envm_image[16] = 32'hE5D92476;
+        envm_image[17] = 32'h06330B61;
+        envm_image[18] = 32'hE6703F52;
+        // Root Public Key Qy (256-bit)
+        envm_image[19] = 32'h9E9689C9;
+        envm_image[20] = 32'h49B37A0B;
+        envm_image[21] = 32'h342F6CAC;
+        envm_image[22] = 32'h9B4E5440;
+        envm_image[23] = 32'hA727CEE4;
+        envm_image[24] = 32'h055285CD;
+        envm_image[25] = 32'hA6216084;
+        envm_image[26] = 32'h643D6E4F;
+        // Signature r (256-bit)
+        envm_image[27] = 32'hE3077595;
+        envm_image[28] = 32'hEB490AA5;
+        envm_image[29] = 32'h401DA7B8;
+        envm_image[30] = 32'h8B62216E;
+        envm_image[31] = 32'h12268AD2;
+        envm_image[32] = 32'hBF84F2C2;
+        envm_image[33] = 32'h46ABAA46;
+        envm_image[34] = 32'hBB725C5E;
+        // Signature s (256-bit)
+        envm_image[35] = 32'h78D3D87A;
+        envm_image[36] = 32'hE71E31D6;
+        envm_image[37] = 32'h5812414C;
+        envm_image[38] = 32'h7E90196A;
+        envm_image[39] = 32'h16DBBD28;
+        envm_image[40] = 32'hEC6DF9FD;
+        envm_image[41] = 32'hBA6D21BC;
+        envm_image[42] = 32'h1F31B431;
+        // Signed 16-word payload
+        envm_image[43] = 32'h10000000;
+        envm_image[44] = 32'h10000004;
+        envm_image[45] = 32'h10000008;
+        envm_image[46] = 32'h1000000C;
+        envm_image[47] = 32'h10000010;
+        envm_image[48] = 32'h10000014;
+        envm_image[49] = 32'h10000018;
+        envm_image[50] = 32'h1000001C;
+        envm_image[51] = 32'h10000020;
+        envm_image[52] = 32'h10000024;
+        envm_image[53] = 32'h10000028;
+        envm_image[54] = 32'h1000002C;
+        envm_image[55] = 32'h10000030;
+        envm_image[56] = 32'h10000034;
+        envm_image[57] = 32'h10000038;
+        envm_image[58] = 32'h1000003C;
+    end
+    wire [31:0] envm_rdata = (envm_addr < 17'd59) ? envm_image[envm_addr] : 32'h0;
 
     secure_boot u_boot (
         .clk(clk), .rst_n(rst_n),
