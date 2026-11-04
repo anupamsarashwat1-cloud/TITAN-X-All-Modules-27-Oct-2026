@@ -145,6 +145,7 @@ class Golden:
         self.regs = [0] * 32
         self.csr = {a: 0 for a in IMPL}
         self.csr[0x301] = MISA_VAL
+        self.csr[0x300] = 3 << 11                       # MPP=3 invariant at reset (M-mode only)
         self.mtvec = BASE + 4 * HANDLER_WORD
         self.mem = {}
         self.commits = 0
@@ -161,8 +162,8 @@ class Golden:
 
     def wr(self, a, v):
         if a == 0x300:
-            mask = (1 << 3) | (1 << 7) | (3 << 11)
-            self.csr[a] = (self.csr[a] & ~mask) | (v & mask)
+            mask = (1 << 3) | (1 << 7)
+            self.csr[a] = (self.csr[a] & ~mask) | (v & mask) | (3 << 11)
         elif a == 0x304:
             self.csr[a] = v & ((1 << 3) | (1 << 7) | (1 << 11))
         elif a == 0x305:

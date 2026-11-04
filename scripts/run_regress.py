@@ -94,20 +94,41 @@ def judge_verdict(returncode: int, log: str) -> str:
 def run_one(tb_path: Path, rtl, timeout: int):
     name = tb_path.stem
     tb_dir = str(tb_path.parent)
+    log_dir = REPO / "artifacts" / "qualification" / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f"{name}.log"
+    compile_cmd = [
+        "iverilog", "-g2012",
+        "-s", name,
+        "-I", str(REPO / "includes"),
+        "-I", str(REPO / "common"),
+        "-I", tb_dir,
+        "-o"
+    ]
     try:
         with tempfile.TemporaryDirectory() as td:
             vvp = Path(td) / f"{name}.vvp"
+            compile_cmd.extend([str(vvp), *rtl, str(tb_path)])
             c = subprocess.run(
-                ["iverilog", "-g2012",
-                 "-I", str(REPO / "includes"),
-                 "-I", str(REPO / "common"),
-                 "-I", tb_dir,
-                 "-o", str(vvp), *rtl, str(tb_path)],
+                compile_cmd,
                 capture_output=True, text=True, errors="replace",
                 timeout=180, cwd=str(REPO)
             )
             if c.returncode != 0:
                 tail = (c.stderr or c.stdout).strip().splitlines()[-4:]
+                log_content = (
+                    f"================================================================================\n"
+                    f"Testbench: {name}\n"
+                    f"Path: {tb_path}\n"
+                    f"Verdict: COMPILE_FAIL\n"
+                    f"Compile Return Code: {c.returncode}\n"
+                    f"Compile Command: {' '.join(compile_cmd)}\n"
+                    f"================================================================================\n"
+                    f"--- Compilation Stderr/Stdout ---\n"
+                    f"{c.stdout}\n{c.stderr}\n"
+                    f"================================================================================\n"
+                )
+                log_file.write_text(log_content)
                 return dict(name=name, path=str(tb_path), verdict="COMPILE_FAIL", tail=tail)
 
             r = subprocess.run(
@@ -118,10 +139,27 @@ def run_one(tb_path: Path, rtl, timeout: int):
             log = r.stdout + r.stderr
             verdict = judge_verdict(r.returncode, log)
             tail = [l for l in log.strip().splitlines() if l.strip()][-4:]
+            log_content = (
+                f"================================================================================\n"
+                f"Testbench: {name}\n"
+                f"Path: {tb_path}\n"
+                f"Verdict: {verdict}\n"
+                f"Compile Return Code: {c.returncode}\n"
+                f"Simulation Return Code: {r.returncode}\n"
+                f"Compile Command: {' '.join(compile_cmd)}\n"
+                f"Sim Command: vvp {vvp}\n"
+                f"================================================================================\n"
+                f"--- Simulation Output ---\n"
+                f"{log}\n"
+                f"================================================================================\n"
+            )
+            log_file.write_text(log_content)
             return dict(name=name, path=str(tb_path), verdict=verdict, tail=tail)
     except subprocess.TimeoutExpired:
+        log_file.write_text(f"Verdict: TIMEOUT\nPath: {tb_path}\nTimeout={timeout}s\n")
         return dict(name=name, path=str(tb_path), verdict="TIMEOUT", tail=[])
     except Exception as e:
+        log_file.write_text(f"Verdict: RUNNER_ERROR\nError: {e}\n")
         return dict(name=name, path=str(tb_path), verdict=f"RUNNER_ERROR:{type(e).__name__}",
                     tail=[str(e)[:120]])
 
@@ -132,11 +170,15 @@ def run_self_tests() -> int:
     print("=" * 70)
     cases = [
         (1, "REGRESS_RESULT: PASS\nALL TESTS PASSED\nSegmentation fault (core dumped)", "CRASHED", "PASS overridden by abnormal nonzero exit"),
+        (139, "REGRESS_RESULT: PASS\nALL TESTS PASSED", "CRASHED", "SIGSEGV (139) exit overrides PASS"),
         (0, "REGRESS_RESULT: PASS", "PASS", "Standard REGRESS_RESULT marker"),
         (0, "VERDICT: ✅ PASS — All tests passed", "PASS", "Standard VERDICT PASS marker"),
         (0, "ALL TESTS PASSED\nTotal Errors: 0", "PASS", "Scorecard ALL TESTS PASSED"),
         (0, "REGRESS_RESULT: FAIL\n[TESTBENCH FAILED]", "FAIL", "Explicit FAIL marker"),
+        (0, "REGRESS_RESULT: PASS\n[TESTBENCH FAILED]", "FAIL", "FAIL string overrides PASS marker"),
+        (0, "REGRESS_RESULT: PASS\nFATAL: Memory timeout", "FAIL", "FATAL string overrides PASS marker"),
         (0, "REGRESS_RESULT: PASS\nwire value: 4'b01x0", "SUSPECT_PASS_XDATA", "Genuine Verilog X-state detection"),
+        (0, "REGRESS_RESULT: PASS\ngot= xxxx", "SUSPECT_PASS_XDATA", "Uninitialized got=x detection"),
         (0, "REGRESS_RESULT: PASS\nLoading 0x8000_0000 from imem.hex", "PASS", "Hex formatting & .hex extension safe from X match"),
         (0, "Random simulation completed with no markers", "NO_VERDICT", "Absence of pass criteria yields NO_VERDICT")
     ]
@@ -160,7 +202,7 @@ def main():
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("-j", "--jobs", type=int, default=8)
     ap.add_argument("--json", default="")
-    ap.add_argument("--self-test", action="store_true", help="Execute runner verification self-tests")
+    ap.add_argument("--self-test", "--adversarial", dest="self_test", action="store_true", help="Execute runner verification self-tests")
     args = ap.parse_args()
 
     if args.self_test:

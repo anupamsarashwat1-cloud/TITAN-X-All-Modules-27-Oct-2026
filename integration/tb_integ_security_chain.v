@@ -54,13 +54,24 @@ module tb_integ_security_chain;
     // ---------------- secure_boot ----------------
     wire        boot_pass, boot_fail;
     wire        envm_req;
+    wire [16:0] envm_addr;
     reg         envm_valid;
+    wire [31:0] envm_rdata =
+        (envm_addr == 17'd0) ? 32'h5449_544E : // Magic 'TITN'
+        (envm_addr == 17'd1) ? 32'h0000_0004 : // Length = 4 words
+        (envm_addr == 17'd2) ? 32'h0868_7AC0 : // Golden digest
+        (envm_addr == 17'd3) ? 32'hCAFE_F00D : // Auth Public Key ID
+        (envm_addr == 17'd4) ? 32'hDEAD_BEEF : // Payload word 0
+        (envm_addr == 17'd5) ? 32'h1234_5678 : // Payload word 1
+        (envm_addr == 17'd6) ? 32'hCAFE_BABE : // Payload word 2
+        (envm_addr == 17'd7) ? 32'h0000_0000 : // Payload word 3
+                               32'h0000_0000;
 
     secure_boot u_boot (
         .clk(clk), .rst_n(rst_n),
         .paddr(paddr), .psel(psel_boot), .penable(penable), .pwrite(pwrite),
         .pwdata(pwdata), .prdata(prdata_boot), .pready(), .pslverr(),
-        .envm_addr(), .envm_req(envm_req), .envm_rdata(32'h0),
+        .envm_addr(envm_addr), .envm_req(envm_req), .envm_rdata(envm_rdata),
         .envm_valid(envm_valid),
         .boot_pass(boot_pass), .boot_fail(boot_fail)
     );

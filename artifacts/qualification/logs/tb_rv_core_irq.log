@@ -1,0 +1,74 @@
+================================================================================
+Testbench: tb_rv_core_irq
+Path: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v
+Verdict: PASS
+Compile Return Code: 0
+Simulation Return Code: 0
+Compile Command: iverilog -g2012 -s tb_rv_core_irq -I /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/includes -I /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common -I /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top -o /tmp/tmp5qpv_4y0/tb_rv_core_irq.vvp /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/includes/stdcell_stubs.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/BUFX4/buf_macros.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/cdc_sync/cdc_sync.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_sync/fifo_sync.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_async/fifo_async.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/reset_sync/reset_sync.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_bpu/rv_bpu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_fetch/rv_fetch.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/rv_decode.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_icache/rv_icache.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_regfile/rv_regfile.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_execute/rv_execute.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu/rv_fpu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/rv_csr.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/rv_mem.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_writeback/rv_writeback.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_tlb/rv_tlb.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_ptw/rv_ptw.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_pmp/rv_pmp.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu/rv_mmu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_dcache/rv_dcache.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/clint/clint.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/plic/plic.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_debug/rv_debug.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/rv_monitor_core.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/rv_core_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_32x64_180nm/sram_32x64_180nm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_512kx8_180nm/sram_512kx8_180nm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_tag_array/l2_tag_array.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_data_array/l2_data_array.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_snoop_filter/l2_snoop_filter.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_ctrl/l2_cache_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top/l2_cache_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_scheduler/ddr_scheduler.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_phy_if/ddr_phy_if.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_ctrl_top/ddr_ctrl_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_burst_to_lite.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/interconnect_mpu/mpu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/mmu_arbiter/mmu_arbiter.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/qos_controller/qos_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/ahb_to_apb/ahb_to_apb.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/apb_bridge/apb_bridge.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_to_ahb/axi4_to_ahb.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_crossbar/axi4_crossbar.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gpio_ctrl/gpio_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/rtc/rtc.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/watchdog_timer/watchdog_timer.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/uart_16550/uart_16550.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/spi_master/spi_master.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/i2c_master/i2c_master.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/can_controller/can_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/trng/trng.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/drbg/drbg.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/sha256_engine/sha256_engine.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/aes_engine/aes_engine.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/ecdsa_engine/ecdsa_engine.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/envm_ctrl/envm_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/secure_boot.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_sgmii_pcs/gem_sgmii_pcs.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_ethernet/gem_ethernet.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_pipe_if/pcie_pipe_if.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_top/pcie_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/usb_otg/usb_otg.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/mmc_controller/mmc_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/qspi_controller/qspi_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/mipi_csi2_rx/mipi_csi2_rx.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/isp_pipeline/isp_pipeline.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/vdma/vdma.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/hdmi_ctrl/hdmi_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/axi_rom/axi_rom.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/titan_x_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/axi_memory_model.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/ddr4_sdram_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/gmii_frame_gen.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/mipi_csi2_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/pcie_rootport_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/ulpi_phy_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v
+Sim Command: vvp /tmp/tmp5qpv_4y0/tb_rv_core_irq.vvp
+================================================================================
+--- Simulation Output ---
+VCD info: dumpfile tb_rv_core_irq.vcd opened for output.
+WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v:308: $readmemh(backend/rv_core_top/tb_irq_imem.hex): Not enough words in the file for the requested range [0:4095].
+WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v:310: $readmemh(backend/rv_core_top/tb_irq_expected_maddr.mem): Not enough words in the file for the requested range [0:63].
+WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v:311: $readmemh(backend/rv_core_top/tb_irq_expected_mval.mem): Not enough words in the file for the requested range [0:63].
+TRACE [97000] WB x20 <= 0x0000000000000001
+TRACE [119000] WB x20 <= 0x0000000080000000
+TRACE [140000] WB x19 <= 0x0000000000000020
+TRACE [162000] WB x19 <= 0x0000000000020000
+TRACE [184000] WB x19 <= 0x0000000000020100
+TRACE [227000] WB x21 <= 0x0000000000000055
+TRACE [248000] WB x30 <= 0x0000000000000000
+TRACE [270000] WB x7 <= 0x0000000000000080
+TRACE [292000] WB x5 <= 0x0000000000000000
+TRACE [313000] WB x6 <= 0x0000000000001800
+TRACE [335000] WB x1 <= 0x0000000000000001
+TRACE [414000] WB x25 <= 0x8000000000000007
+TRACE [436000] WB x26 <= 0x0000000000020030
+TRACE [457000] WB x11 <= 0x0000000000000001
+TRACE [515000] WB x1 <= 0x8000000000000000
+TRACE [536000] WB x2 <= 0x0000000000000003
+TRACE [1026000] WB x13 <= 0x2aaaaaaaaaaaaaaa
+TRACE [1033000] WB x13 <= 0x2aaaaaaaaaaaaaaa
+TRACE [1516000] WB x16 <= 0x0000000000000002
+TRACE [1523000] WB x16 <= 0x0000000000000002
+TRACE [1537000] WB x12 <= 0x0000000000000001
+TRACE [1559000] WB x14 <= 0x0000000000000000
+TRACE [1580000] WB x15 <= 0x0000000000001888
+TRACE [1602000] WB x22 <= 0x0000000000000008
+TRACE [1616000] ST addr=0x0080000000 data=0x0000000000000001 strb=11111111
+TRACE [1631000] B  bvalid=1 bready=1
+TRACE [1660000] ST addr=0x0080000008 data=0x0000000000000001 strb=11111111
+TRACE [1674000] B  bvalid=1 bready=1
+TRACE [1703000] ST addr=0x0080000010 data=0x2aaaaaaaaaaaaaaa strb=11111111
+TRACE [1717000] B  bvalid=1 bready=1
+TRACE [1746000] ST addr=0x0080000018 data=0x0000000000000000 strb=11111111
+TRACE [1760000] B  bvalid=1 bready=1
+TRACE [1789000] ST addr=0x0080000020 data=0x0000000000001888 strb=11111111
+TRACE [1804000] B  bvalid=1 bready=1
+TRACE [1832000] ST addr=0x0080000028 data=0x8000000000000007 strb=11111111
+TRACE [1847000] B  bvalid=1 bready=1
+TRACE [1876000] ST addr=0x0080000030 data=0x0000000000000008 strb=11111111
+TRACE [1890000] B  bvalid=1 bready=1
+INFO [36047000] cycle 5000 commits=24 stores=7
+INFO [72047000] cycle 10000 commits=24 stores=7
+INFO [108047000] cycle 15000 commits=24 stores=7
+INFO [144047000] cycle 20000 commits=24 stores=7
+INFO [180047000] cycle 25000 commits=24 stores=7
+
+--- Verification ---
+INFO: rf commits=24 (expect >=17), stores=7 (expect >=7)
+PASS: rf commit count
+PASS: store beat count
+PASS: all 32 architectural registers match golden model
+PASS: all 7 checked memory words match golden model
+PASS: no X on result/writeback buses
+
+==============================
+RV_CORE_IRQ VERDICT: ✅ PASS — program retired correctly
+REGRESS_RESULT: PASS
+==============================
+
+/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v:416: $finish called at 216097200 (1ps)
+
+================================================================================

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
-// SMVDU-TITAN-X SoC — Secure Boot Directed Self-Checking Testbench
-// Tests: APB read/write register access, boot_pass/boot_fail behavior,
-//        eNVM address generation, basic state machine transitions
+// SMVDU-TITAN-X SoC — Secure Boot Comprehensive Verification Testbench
+// Independent Reproduction of Root-of-Trust Authenticity & Negative Fault Rejection
+
 `timescale 1ns/1ps
 
 module tb_secure_boot();
@@ -20,8 +20,8 @@ module tb_secure_boot();
     // Boot status
     wire        boot_pass, boot_fail;
 
-    integer error_count;
-    integer wc;
+    integer errors = 0;
+    integer step_cnt = 0;
 
     secure_boot uut (
         .clk(clk), .rst_n(rst_n),
@@ -36,122 +36,207 @@ module tb_secure_boot();
     initial clk = 0;
     always #5 clk = ~clk;
 
-    task check;
-        input [63:0] got; input [63:0] exp; input [255:0] msg;
-        begin
-            if (got !== exp) begin
-                $display("FAIL [%0t] %s: got=%0d exp=%0d", $time, msg, got, exp);
-                error_count = error_count + 1;
-            end else $display("PASS [%0t] %s", $time, msg);
-        end
-    endtask
-
-    // APB 2-cycle write: setup → enable
-    task apb_write;
-        input [31:0] addr, data;
+    // Helper: APB 2-cycle read
+    task apb_read(output [31:0] data, input [31:0] addr);
         begin
             @(posedge clk); #1;
-            paddr=addr; pwdata=data; psel=1; pwrite=1; penable=0;
+            paddr = addr; psel = 1; pwrite = 0; penable = 0;
             @(posedge clk); #1;
-            penable=1;
-            @(posedge clk); #1;
-            while (!pready) @(posedge clk);
-            psel=0; penable=0; pwrite=0;
-        end
-    endtask
-
-    // APB 2-cycle read
-    task apb_read;
-        output [31:0] data;
-        input [31:0] addr;
-        begin
-            @(posedge clk); #1;
-            paddr=addr; psel=1; pwrite=0; penable=0;
-            @(posedge clk); #1;
-            penable=1;
+            penable = 1;
             @(posedge clk); #1;
             while (!pready) @(posedge clk);
             data = prdata;
-            psel=0; penable=0;
+            psel = 0; penable = 0;
         end
     endtask
 
-    reg [31:0] rd;
+    // Helper: Reset DUT
+    task reset_dut();
+        begin
+            rst_n = 0;
+            paddr = 0; psel = 0; penable = 0; pwrite = 0; pwdata = 0;
+            envm_rdata = 0; envm_enable_valid = 1;
+            repeat(4) @(posedge clk);
+            #1 rst_n = 1;
+            @(posedge clk);
+        end
+    endtask
+
+    // Simulated eNVM Memory Block (Combinational response aligned with titan_x_top)
+    reg [31:0] envm_mem [0:63];
+    reg        envm_enable_valid;
+
+    always @(*) begin
+        if (envm_req && rst_n && envm_enable_valid) begin
+            envm_rdata = envm_mem[envm_addr];
+            envm_valid = 1'b1;
+        end else begin
+            envm_rdata = 32'h0;
+            envm_valid = 1'b0;
+        end
+    end
+
+    reg [31:0] status_val;
 
     initial begin
         $dumpfile("tb_secure_boot.vcd");
         $dumpvars(0, tb_secure_boot);
-        error_count = 0;
-        paddr=0; psel=0; penable=0; pwrite=0; pwdata=0;
-        envm_rdata=0; envm_valid=0;
-        rst_n=0; repeat(6) @(posedge clk); rst_n=1; repeat(3) @(posedge clk);
+        errors = 0;
 
-        // TEST 1: After reset, boot_pass and boot_fail should be deasserted
-        $display("\n--- TEST 1: Reset state ---");
-        @(posedge clk); #1;
-        check(boot_pass, 1'b0, "boot_pass=0 after reset");
-        check(boot_fail, 1'b0, "boot_fail=0 after reset");
+        $display("==================================================================");
+        $display("TITAN X SECURE BOOT INDEPENDENT RE-AUDIT & REPRODUCTION SUITE");
+        $display("==================================================================");
 
-        // TEST 2: eNVM request — module should start reading eNVM
-        $display("\n--- TEST 2: eNVM request after reset ---");
-        wc = 0;
-        while (!envm_req && wc < 20) begin @(posedge clk); wc=wc+1; end
-        if (envm_req)
-            $display("PASS [%0t] envm_req=1 (boot sequence started)", $time);
-        else begin
-            $display("FAIL [%0t] envm_req never asserted (boot stalled)", $time);
-            error_count=error_count+1;
+        // ---------------------------------------------------------------
+        // TEST 1: POSITIVE TEST — Authentic Signed Firmware Image
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 1: Positive Test (Authentic Signed Firmware) ---");
+        envm_mem[0] = 32'h5449544E; // Magic: "TITN"
+        envm_mem[1] = 32'd4;        // Length: 4 payload words
+        envm_mem[2] = 32'h08687AC0; // Expected Rolling Hash for payload
+        envm_mem[3] = 32'hCAFE_F00D; // Authorized Root Public Key ID
+        envm_mem[4] = 32'hDEAD_BEEF; // Payload 0
+        envm_mem[5] = 32'h1234_5678; // Payload 1
+        envm_mem[6] = 32'hCAFE_BABE; // Payload 2
+        envm_mem[7] = 32'h0000_0000; // Payload 3
+
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
         end
 
-        // TEST 3: APB status register read (offset 0x00)
-        $display("\n--- TEST 3: APB read STATUS register ---");
-        apb_read(rd, 32'h0000_0000);
-        $display("PASS [%0t] APB read STATUS=0x%08X (no crash)", $time, rd);
-
-        // TEST 4: APB write to CTRL register (offset 0x04)
-        $display("\n--- TEST 4: APB write CTRL register ---");
-        apb_write(32'h0000_0004, 32'h0000_0001);
-        $display("PASS [%0t] APB write CTRL accepted", $time);
-
-        // TEST 5: Feed eNVM data — simulate valid boot image
-        // In a real secure boot, after reading eNVM, hash is computed
-        // We just supply valid data and check no crash
-        $display("\n--- TEST 5: Feed eNVM data ---");
-        wc = 0;
-        while (wc < 10) begin
-            if (envm_req) begin
-                @(posedge clk); #1;
-                envm_rdata = 32'hDEAD_BEEF ^ wc;
-                envm_valid = 1;
-                @(posedge clk); #1;
-                envm_valid = 0;
-            end else @(posedge clk);
-            wc=wc+1;
-        end
-        $display("PASS [%0t] eNVM data feeding complete (no crash)", $time);
-
-        // TEST 6: Check that boot outcome is determined (either pass or fail)
-        $display("\n--- TEST 6: Boot outcome check ---");
-        wc = 0;
-        while (!boot_pass && !boot_fail && wc < 100) begin
-            @(posedge clk); wc=wc+1;
-        end
-        if (boot_pass || boot_fail) begin
-            $display("PASS [%0t] Boot outcome determined: pass=%b fail=%b",
-                     $time, boot_pass, boot_fail);
-            check(boot_pass ^ boot_fail, 1'b1, "Exactly one of boot_pass/fail asserted");
+        if (boot_pass && !boot_fail) begin
+            $display("PASS [Scenario 1]: Authentic image verified successfully (boot_pass=1, boot_fail=0)");
         end else begin
-            // Boot may take longer (hash computation) — still mark as acceptable
-            $display("PASS [%0t] Boot still in progress (hash computation ongoing)", $time);
+            $display("FAIL [Scenario 1]: Expected boot_pass=1, got boot_pass=%b, boot_fail=%b", boot_pass, boot_fail);
+            errors = errors + 1;
         end
 
-        $display("\n==============================");
-        if (error_count == 0)
-            $display("SECURE_BOOT VERDICT: ✅ PASS — All tests passed");
-        else
-            $display("SECURE_BOOT VERDICT: ❌ FAIL — %0d errors detected", error_count);
-        $display("==============================\n");
+        // Check APB telemetry
+        apb_read(status_val, 32'h00);
+        if (status_val[2:0] == 3'd4) begin
+            $display("PASS [Scenario 1 APB]: Status register reports SUCCESS state (3'd4)");
+        end else begin
+            $display("FAIL [Scenario 1 APB]: Expected status 3'd4, got %h", status_val);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 2: NEGATIVE TEST — Modified/Tampered Firmware Image
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 2: Negative Test (Modified Firmware Payload) ---");
+        // Tamper payload word 6 (bit flip 0xCAFEBABE -> 0xCAFEBABA)
+        envm_mem[6] = 32'hCAFE_BABA;
+
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_fail && !boot_pass) begin
+            $display("PASS [Scenario 2]: Tampered firmware rejected (boot_fail=1, processor locked in reset)");
+        end else begin
+            $display("FAIL [Scenario 2]: Security vulnerability! Tampered firmware produced boot_pass=%b", boot_pass);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 3: NEGATIVE TEST — Bad Magic / Constant eNVM Zeroes
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 3: Negative Test (Zero-Valued / Corrupted eNVM) ---");
+        envm_mem[0] = 32'h0000_0000; // All zeroes (e.g. unprogrammed eNVM)
+        envm_mem[1] = 32'h0000_0000;
+        envm_mem[2] = 32'h0000_0000;
+        envm_mem[3] = 32'h0000_0000;
+
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_fail && !boot_pass) begin
+            $display("PASS [Scenario 3]: Zero-valued eNVM rejected (boot_fail=1, core reset held safely)");
+        end else begin
+            $display("FAIL [Scenario 3]: Zero-valued eNVM improperly released reset: boot_pass=%b", boot_pass);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 4: NEGATIVE TEST — Unauthorized Public Key ID
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 4: Negative Test (Unauthorized Public Key ID) ---");
+        envm_mem[0] = 32'h5449544E; // Valid magic
+        envm_mem[1] = 32'd4;
+        envm_mem[2] = 32'h08687AC0; // Valid hash
+        envm_mem[3] = 32'hDEAD_BEEF; // Rogue / unauthorized public key!
+        envm_mem[4] = 32'hDEAD_BEEF;
+        envm_mem[5] = 32'h1234_5678;
+        envm_mem[6] = 32'hCAFE_BABE;
+        envm_mem[7] = 32'h0000_0000;
+
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_fail && !boot_pass) begin
+            $display("PASS [Scenario 4]: Unauthorized public key rejected (boot_fail=1)");
+        end else begin
+            $display("FAIL [Scenario 4]: Unauthorized key bypassed verification: boot_pass=%b", boot_pass);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 5: NEGATIVE TEST — Memory Timeout / Offline Storage
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 5: Negative Test (eNVM Memory Hang / Timeout) ---");
+        reset_dut();
+        // Force valid off to simulate unresponsive eNVM
+        envm_valid = 1'b0;
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 300) begin
+            @(posedge clk);
+            envm_valid = 1'b0; // suppress response
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_fail && !boot_pass) begin
+            $display("PASS [Scenario 5]: Memory timeout handled safely (boot_fail=1, processor locked in reset)");
+        end else begin
+            $display("FAIL [Scenario 5]: Timeout did not halt boot: boot_pass=%b, boot_fail=%b", boot_pass, boot_fail);
+            errors = errors + 1;
+        end
+
+        // Final Scorecard
+        $display("\n==================================================================");
+        if (errors == 0) begin
+            $display("SECURE_BOOT VERDICT: ✅ PASS — All 5 security scenarios verified");
+            $display("REGRESS_RESULT: PASS");
+        end else begin
+            $display("SECURE_BOOT VERDICT: ❌ FAIL — %0d security test failures", errors);
+            $display("REGRESS_RESULT: FAIL");
+        end
+        $display("==================================================================\n");
         $finish;
     end
-    initial begin #5_000_000; $display("WATCHDOG TIMEOUT"); $finish; end
+
+    initial begin
+        #10_000_000;
+        $display("WATCHDOG TIMEOUT in tb_secure_boot");
+        $finish;
+    end
+
 endmodule

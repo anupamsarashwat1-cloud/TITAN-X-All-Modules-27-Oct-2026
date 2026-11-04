@@ -81,7 +81,7 @@ module tb_rv_csr();
         @(negedge clk);
 
         // ---- reset state ----
-        raddr = 12'h300; #1; chk64(rdata, 64'h0, "reset mstatus");
+        raddr = 12'h300; #1; chk64(rdata, 64'h0000_0000_0000_1800, "reset mstatus (MPP=3 invariant)");
         raddr = 12'h301; #1;
         // RV64IM identity: MXL=2 lives in [63:62]; low 32 carry I|M
         chk64(rdata, (64'd2 << 62) | (64'd1 << 12) | (64'd1 << 8),
@@ -94,6 +94,11 @@ module tb_rv_csr();
         wr(12'h340, 64'hDEAD_BEEF_1234_5678);
         raddr = 12'h340; #1; chk64(rdata, 64'hDEAD_BEEF_1234_5678, "mscratch rw");
 
+        // ---- WARL: write zero to mstatus preserves MPP=3 ----
+        wr(12'h300, 64'h0);
+        raddr = 12'h300; #1;
+        chk64(rdata, 64'h0000_0000_0000_1800, "mstatus write 0 preserves MPP=3 invariant");
+
         // ---- WARL: mtvec mode bits cleared ----
         wr(12'h305, 64'h0000_0000_0000_1043);          // base 0x1040 | vectored mode 3
         raddr = 12'h305; #1;
@@ -105,7 +110,7 @@ module tb_rv_csr();
         raddr = 12'h341; #1;
         chk64(rdata, 64'h0000_0000_0002_00FC, "mepc[1:0] cleared");
 
-        // ---- WARL: mstatus mask (try writing UNSUPPORTED high bit) ----
+        // ---- WARL: mstatus mask (try writing UNSUPPORTED high bit and zero MPP) ----
         wr(12'h300, 64'hFFFF_FFFF_FFFF_FF88);          // MIE|MPIE set, MPP=11, junk elsewhere
         raddr = 12'h300; #1;
         chk64(rdata, (64'd1 << 3) | (64'd1 << 7) | (64'd3 << 11),

@@ -104,7 +104,7 @@ module rv_csr #(
     // -------------------------------------------------------
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            mstatus_q  <= 64'h0;
+            mstatus_q  <= 64'h0000_0000_0000_1800; // M-mode only invariant: MPP hardwired to 2'b11
             misa_q     <= MISA_RV64IM;
             mie_q      <= 64'h0;
             mtvec_q    <= 64'h0;
@@ -132,8 +132,11 @@ module rv_csr #(
                 mstatus_q[12:11] <= 2'b11;            // M-mode only invariant: MPP remains M-mode
             end else if (csr_we) begin
                 case (csr_waddr)
-                    12'h300: mstatus_q  <= (mstatus_q  & ~MSTATUS_WR_MASK)
-                                           | (csr_wdata & MSTATUS_WR_MASK);
+                    12'h300: begin
+                        mstatus_q[3]     <= csr_wdata[3];     // MIE writable
+                        mstatus_q[7]     <= csr_wdata[7];     // MPIE writable
+                        mstatus_q[12:11] <= 2'b11;            // WARL: MPP is hardwired to 2'b11 in M-mode only
+                    end
                     12'h301: misa_q     <= misa_q;     // WARL: unchanged
                     12'h304: mie_q      <= csr_wdata & MIE_WR_MASK;
                     12'h305: mtvec_q    <= {csr_wdata[63:2], 2'b00};

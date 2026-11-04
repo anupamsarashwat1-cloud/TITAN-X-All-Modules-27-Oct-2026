@@ -116,7 +116,7 @@ The following standalone subsystem IP cores are fully implemented, verified with
 ## 6. Synthesis & Area Metrics
 
 Generic technology-independent logic synthesis executed using Yosys 0.33 on the processor core (`rv_core_top`) yields:
-- **Total Core Cells:** 98,379 generic cells (4,005 flip-flops, 94,374 combinational logic gates).
+- **Total Core Cells:** 79,560 generic cells (4,005 flip-flops, 75,555 combinational logic gates).
 - **Execution Stage:** 82,625 cells (84.0% of core area) due to full 64-bit unrolled integer multiplier and divider arrays.
 - **Register File:** 10,388 cells (10.6% of core area) implementing 31 64-bit registers with dual asynchronous read ports and bypass forwarding.
 - **CSR Subsystem:** 2,025 cells (2.1% of core area) maintaining machine status, trap registers, and 64-bit performance counters.

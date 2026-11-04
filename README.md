@@ -14,7 +14,7 @@ This repository contains the **fully remediated, verified, and qualified RTL rel
 * **Complete Regression Suite (109 Testbenches)** (`tb_*.v`) achieving 100% pass rate with zero unknown states (0 SUSPECT_PASS_XDATA).
 * **Formal Verification Proofs**: 4 bounded model checking proofs verified safe using Yosys 0.33 and Z3 SMT-BMC.
 * **Mutation Qualification Suite**: 6 representative architectural faults injected across control and data paths, achieving 100% test sensitivity.
-* **Synthesis Accounting**: Truthful generic cell netlist statistics (98,379 generic cells in `rv_core_top`) reconciling legacy physical projections.
+* **Synthesis Accounting**: Truthful generic cell netlist statistics (79,560 generic cells in `rv_core_top`) reconciling legacy physical projections.
 * **Bus Functional Models (BFMs)** in `bfm/` for DDR4, AXI memory, PCIe PIPE, GMII, MIPI D-PHY, and ULPI.
 * **System Architecture & Verification Packages** (`includes/`): `isa_pkg.vh`, `params.vh`, `isa_constants.vh`, `tb_bfms.vh`, `tb_macros.vh`, and standard cell stubs.
 * **Firmware & Boot ROM Payloads** (`firmware/` and `top/axi_rom/`): `firmware.hex`, `boot.mem`, C source (`main.c`), startup assembly (`start.S`), linker scripts (`link.ld`), and compiled binaries.

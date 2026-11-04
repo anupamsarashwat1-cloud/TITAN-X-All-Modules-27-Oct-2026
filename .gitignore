@@ -2,6 +2,7 @@
 *.vvp
 *.vcd
 *.log
+!artifacts/qualification/logs/*.log
 a.out
 sim_build/
 

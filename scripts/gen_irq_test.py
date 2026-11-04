@@ -105,7 +105,7 @@ exp = [0] * 32
 exp[1] = 1 << 63
 exp[2] = 3
 exp[5] = 0                      # old mie at csrrsi
-exp[6] = 0                      # old mstatus at csrrsi
+exp[6] = 0x1800                  # old mstatus at csrrsi (MPP=3 invariant at reset)
 exp[11] = 1                     # handler entries
 exp[12] = 1                     # witness: committed exactly once
 exp[13] = (1 << 63) // 3        # divu quotient of (1<<63)/3

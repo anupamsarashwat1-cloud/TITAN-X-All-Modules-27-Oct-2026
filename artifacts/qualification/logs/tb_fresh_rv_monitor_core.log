@@ -1,0 +1,63 @@
+================================================================================
+Testbench: tb_fresh_rv_monitor_core
+Path: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/tb_fresh_rv_monitor_core.v
+Verdict: PASS
+Compile Return Code: 0
+Simulation Return Code: 0
+Compile Command: iverilog -g2012 -s tb_fresh_rv_monitor_core -I /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/includes -I /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common -I /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core -o /tmp/tmpp4glqxb2/tb_fresh_rv_monitor_core.vvp /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/includes/stdcell_stubs.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/BUFX4/buf_macros.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/cdc_sync/cdc_sync.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_sync/fifo_sync.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_async/fifo_async.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/reset_sync/reset_sync.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_bpu/rv_bpu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_fetch/rv_fetch.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/rv_decode.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_icache/rv_icache.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_regfile/rv_regfile.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_execute/rv_execute.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu/rv_fpu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/rv_csr.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/rv_mem.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_writeback/rv_writeback.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_tlb/rv_tlb.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_ptw/rv_ptw.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_pmp/rv_pmp.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu/rv_mmu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_dcache/rv_dcache.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/clint/clint.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/plic/plic.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_debug/rv_debug.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/rv_monitor_core.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/rv_core_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_32x64_180nm/sram_32x64_180nm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_512kx8_180nm/sram_512kx8_180nm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_tag_array/l2_tag_array.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_data_array/l2_data_array.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_snoop_filter/l2_snoop_filter.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_ctrl/l2_cache_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top/l2_cache_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_scheduler/ddr_scheduler.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_phy_if/ddr_phy_if.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_ctrl_top/ddr_ctrl_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_burst_to_lite.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/interconnect_mpu/mpu.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/mmu_arbiter/mmu_arbiter.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/qos_controller/qos_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/ahb_to_apb/ahb_to_apb.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/apb_bridge/apb_bridge.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_to_ahb/axi4_to_ahb.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_crossbar/axi4_crossbar.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gpio_ctrl/gpio_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/rtc/rtc.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/watchdog_timer/watchdog_timer.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/uart_16550/uart_16550.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/spi_master/spi_master.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/i2c_master/i2c_master.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/can_controller/can_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/trng/trng.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/drbg/drbg.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/sha256_engine/sha256_engine.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/aes_engine/aes_engine.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/ecdsa_engine/ecdsa_engine.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/envm_ctrl/envm_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/secure_boot.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_sgmii_pcs/gem_sgmii_pcs.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_ethernet/gem_ethernet.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_pipe_if/pcie_pipe_if.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_top/pcie_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/usb_otg/usb_otg.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/mmc_controller/mmc_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/qspi_controller/qspi_controller.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/mipi_csi2_rx/mipi_csi2_rx.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/isp_pipeline/isp_pipeline.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/vdma/vdma.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/hdmi_ctrl/hdmi_ctrl.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/axi_rom/axi_rom.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/titan_x_top.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/axi_memory_model.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/ddr4_sdram_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/gmii_frame_gen.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/mipi_csi2_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/pcie_rootport_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/bfm/ulpi_phy_bfm.v /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/tb_fresh_rv_monitor_core.v
+Sim Command: vvp /tmp/tmpp4glqxb2/tb_fresh_rv_monitor_core.vvp
+================================================================================
+--- Simulation Output ---
+VCD info: dumpfile verification_waves/rv_monitor_core.vcd opened for output.
+[PASS] Test 1.1: Reset PC initialized to RESET_PC (0x1000_0000)
+[PASS] Test 1.2: Fetch PC matches RESET_PC
+[PASS] Test 1.3: imem_araddr reflects RESET_PC
+[PASS] Test 1.4: imem_arvalid asserted out of reset
+[PASS] Test 1.5: hart_halted is 0 at reset
+[PASS] Test 1.6: hart_running is 1 at reset
+[PASS] Test 1.7: dmem write address quiet (awvalid == 0)
+[PASS] Test 1.8: dmem read address quiet (arvalid == 0)
+[PASS] Test 2.1: PC advances by 4 to 0x1000_0004
+[PASS] Test 2.2: imem_araddr tracks PC at 0x1000_0004
+[PASS] Test 2.3: PC advances by 4 to 0x1000_0008
+[PASS] Test 2.4: imem_araddr tracks PC at 0x1000_0008
+[PASS] Test 2.5: PC holds when fe_valid drops
+[PASS] Test 3.1: dmem_awvalid asserts on Store instruction
+[PASS] Test 3.2: dmem_awaddr matches store address 0x10
+[PASS] Test 3.3: dmem_awsize indicates 8-byte transfer (3'b011)
+[PASS] Test 3.4: dmem_wvalid asserts on Store instruction
+[PASS] Test 3.5: dmem_wstrb indicates full byte mask 0xFF
+[PASS] Test 3.6: dmem_wlast is asserted
+[PASS] Test 4.1: dmem_arvalid asserts on Load instruction
+[PASS] Test 4.2: dmem_araddr matches load address 0x20
+[PASS] Test 4.3: dmem_arsize indicates 8-byte transfer (3'b011)
+[PASS] Test 5.1: dmem_awvalid asserted before handshake
+[PASS] est 5.2: Pipeline stall asserted due to unacknowledged mem write
+[PASS] Test 5.3: imem_arvalid deasserts during pipeline stall
+[PASS] 4: dmem_awvalid remains stably asserted during multi-cycle stall
+[PASS] Test 5.5: dmem_awaddr remains stably held at 0x10
+[PASS] Test 5.6: Pipeline stall clears after handshake completes
+[PASS] Test 6.1: branch_taken asserts in execute stage
+[PASS] Test 6.2: flush_fe asserts on branch redirect
+[PASS] Test 6.3: flush_de asserts on branch redirect
+[PASS] Test 6.4: PC redirected to target address
+[PASS] Test 7.1: hart_halted asserts immediately on halt_req
+[PASS] Test 7.2: hart_running deasserts on halt_req
+[PASS] Test 7.3: Pipeline stall asserted during debug halt
+[PASS] Test 7.4: imem_arvalid deasserts during debug halt
+[PASS] Test 7.5: PC remains frozen during halt state
+[PASS] Test 7.6: hart_halted clears on resume
+[PASS] Test 7.7: hart_running reasserts on resume
+[PASS] Test 7.8: Pipeline stall clears on resume
+[PASS] Test 8.1: Interrupt lines assert cleanly without fault
+[PASS] Test 8.2: Interrupt lines deassert cleanly
+
+=======================================================
+ rv_monitor_core Verification Scorecard
+ Total Passed: 42
+ Total Failed: 0
+=======================================================
+[ALL TESTS PASSED] rv_monitor_core 100% verified.
+/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/tb_fresh_rv_monitor_core.v:358: $finish called at 356000 (1ps)
+
+================================================================================

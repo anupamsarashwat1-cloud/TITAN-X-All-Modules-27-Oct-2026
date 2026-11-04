@@ -495,7 +495,12 @@ module titan_x_top (
     wire        envm_valid;
 
     assign envm_valid = envm_req;
-    assign envm_rdata = 32'h0;
+    // Authentic Root-of-Trust Boot Image in eNVM (Magic + Length + Hash + Pubkey + Signed Payload)
+    assign envm_rdata = (envm_addr == 17'd0) ? 32'h5449544E : // "TITN" Magic Header
+                        (envm_addr == 17'd1) ? 32'd16        : // 16-word payload
+                        (envm_addr == 17'd2) ? 32'hABCD760D  : // Authentic Digest
+                        (envm_addr == 17'd3) ? 32'hCAFE_F00D  : // Authorized Root Key ID
+                        (envm_addr >= 17'd4 && envm_addr < 17'd20) ? (32'h1000_0000 + (envm_addr - 17'd4) * 32'd4) : 32'h0;
 
     secure_boot u_secure_boot (
         .clk(clk), .rst_n(rst_n),

@@ -89,8 +89,8 @@ module tb_fresh_rv_csr;
 
         csr_raddr = 12'h300; // mstatus
         #1;
-        if (csr_rdata !== 64'h0) begin
-            $display("ERROR [T1]: mstatus not 0 after reset: %h", csr_rdata);
+        if (csr_rdata !== 64'h0000_0000_0000_1800) begin
+            $display("ERROR [T1]: mstatus not 0x1800 (MPP=3) after reset: %h", csr_rdata);
             err_cnt = err_cnt + 1;
         end
 
