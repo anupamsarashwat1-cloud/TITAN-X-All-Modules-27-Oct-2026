@@ -88,7 +88,8 @@ module axi_master_bfm #(
     parameter AW  = 40,
     parameter DW  = 64,
     parameter IDW = 4,
-    parameter GUARD = 200
+    parameter GUARD = 200,
+    parameter MASTER_ID = 0
 ) (
     input  wire          clk,
     input  wire          rst_n,
@@ -130,11 +131,11 @@ module axi_master_bfm #(
     // forwarded-ready logic and corrupted arbitration decisions.
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            m_awvalid <= 1'b0; m_awaddr <= {AW{1'b0}}; m_awid <= {IDW{1'b0}};
+            m_awvalid <= 1'b0; m_awaddr <= {AW{1'b0}}; m_awid <= MASTER_ID[IDW-1:0];
             m_wvalid  <= 1'b0; m_wdata <= {DW{1'b0}};
             m_wstrb   <= {(DW/8){1'b1}}; m_wlast <= 1'b0;
             m_bready  <= 1'b0;
-            m_arvalid <= 1'b0; m_araddr <= {AW{1'b0}}; m_arid <= {IDW{1'b0}};
+            m_arvalid <= 1'b0; m_araddr <= {AW{1'b0}}; m_arid <= MASTER_ID[IDW-1:0];
             m_rready  <= 1'b0;
         end
     end
@@ -144,7 +145,7 @@ module axi_master_bfm #(
         begin
             resp = 2'b00;
             @(posedge clk);
-            m_awvalid <= 1'b1; m_awaddr <= a; m_awid <= {IDW{1'b0}};
+            m_awvalid <= 1'b1; m_awaddr <= a; m_awid <= MASTER_ID[IDW-1:0];
             wg = 0;
             while (!(m_awvalid === 1'b1 && m_awready === 1'b1) && wg < GUARD) begin
                 @(posedge clk); wg = wg + 1;
@@ -187,7 +188,7 @@ module axi_master_bfm #(
         begin
             resp = 2'b00; d = {DW{1'b0}};
             @(posedge clk);
-            m_arvalid <= 1'b1; m_araddr <= a; m_arid <= {IDW{1'b0}}; m_rready <= 1'b1;
+            m_arvalid <= 1'b1; m_araddr <= a; m_arid <= MASTER_ID[IDW-1:0]; m_rready <= 1'b1;
             rg = 0;
             while (!(m_arvalid === 1'b1 && m_arready === 1'b1) && rg < GUARD) begin
                 @(posedge clk); rg = rg + 1;

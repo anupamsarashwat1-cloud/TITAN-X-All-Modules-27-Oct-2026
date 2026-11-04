@@ -58,21 +58,46 @@ module titan_x_top (
     wire [31:0] plic_irq;
     wire [4:0]  timer_irq;
     wire [4:0]  sw_irq;
+    wire [4:0]  rtc_timer_irq;
+    wire [4:0]  clint_msip;
+    wire [4:0]  clint_mtip;
 
-    assign sw_irq = 5'h0;
-    assign plic_irq[4:0] = 5'h0;
-    assign plic_irq[9:5] = 5'h0;
-    assign plic_irq[19:12] = 8'h0;
+    assign sw_irq    = clint_msip;
+    assign timer_irq = clint_mtip | rtc_timer_irq;
+
+    assign plic_irq[4:0]   = 5'h0;
+    assign plic_irq[7:5]   = 3'h0;
+    // plic_irq[8] = TRNG
+    // plic_irq[9] = ECDSA
+    // plic_irq[10] = DRBG
+    // plic_irq[11] = AES
+    // plic_irq[12] = SHA256
+    // plic_irq[13] = GPIO
+    // plic_irq[14] = WDT
+    // plic_irq[15] = SPI
+    // plic_irq[16] = I2C
+    assign plic_irq[19:17] = 3'h0;
+    // plic_irq[24:20] = UART0-4
+    // plic_irq[26:25] = CAN0-1
+    // plic_irq[27] = GEM
+    // plic_irq[28] = USB
     assign plic_irq[31:29] = 3'h0;
 
     // Platform-Level Interrupt Controller (PLIC)
     wire [185:0] plic_sources;
     wire [9:0]   plic_targets;
 
-    assign plic_sources[9:0]     = 10'h0;
+    assign plic_sources[7:0]     = 8'h0;
+    assign plic_sources[8]       = plic_irq[8];  // TRNG
+    assign plic_sources[9]       = plic_irq[9];  // ECDSA
     assign plic_sources[10]      = plic_irq[10]; // DRBG
     assign plic_sources[11]      = plic_irq[11]; // AES
-    assign plic_sources[19:12]   = 8'h0;
+    assign plic_sources[12]      = plic_irq[12]; // SHA256
+    assign plic_sources[13]      = plic_irq[13]; // GPIO
+    assign plic_sources[14]      = plic_irq[14]; // Watchdog Timer
+    assign plic_sources[15]      = plic_irq[15]; // SPI Master
+    assign plic_sources[16]      = plic_irq[16]; // I2C Master
+    assign plic_sources[19:17]   = 3'h0;
     assign plic_sources[24:20]   = plic_irq[24:20]; // UART0-4
     assign plic_sources[26:25]   = plic_irq[26:25]; // CAN0-1
     assign plic_sources[27]      = plic_irq[27]; // GEM
@@ -141,16 +166,85 @@ module titan_x_top (
     wire [(NS*2)-1:0]    axs_rresp;
     wire [(NS*IDW)-1:0]  axs_rid;
 
+    // Post-MPU buses (Crossbar Master inputs)
+    wire [NM-1:0]        xbar_axm_awvalid, xbar_axm_awready;
+    wire [(NM*AW)-1:0]   xbar_axm_awaddr;
+    wire [(NM*IDW)-1:0]  xbar_axm_awid;
+    wire [NM-1:0]        xbar_axm_wvalid, xbar_axm_wready, xbar_axm_wlast;
+    wire [(NM*DW)-1:0]   xbar_axm_wdata;
+    wire [(NM*8)-1:0]    xbar_axm_wstrb;
+    wire [NM-1:0]        xbar_axm_bvalid, xbar_axm_bready;
+    wire [(NM*2)-1:0]    xbar_axm_bresp;
+    wire [(NM*IDW)-1:0]  xbar_axm_bid;
+    wire [NM-1:0]        xbar_axm_arvalid, xbar_axm_arready, xbar_axm_rlast;
+    wire [(NM*AW)-1:0]   xbar_axm_araddr;
+    wire [(NM*IDW)-1:0]  xbar_axm_arid;
+    wire [NM-1:0]        xbar_axm_rvalid, xbar_axm_rready;
+    wire [(NM*DW)-1:0]   xbar_axm_rdata;
+    wire [(NM*2)-1:0]    xbar_axm_rresp;
+    wire [(NM*IDW)-1:0]  xbar_axm_rid;
+
+    wire [(NM*4)-1:0]    qos_aw, qos_ar;
+    wire [31:0]          prdata_qos, prdata_mpu;
+    wire                 psel_mpu, psel_qos;
+
+    // QoS Controller Instantiation
+    qos_controller #(
+        .NM(NM), .IDW(IDW)
+    ) u_qos_controller (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_qos), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_qos), .pready(), .pslverr(),
+        .cfg_base_qos({(NM*4){1'b0}}),
+        .cfg_boost_qos({(NM*4){1'b0}}),
+        .cfg_bw_limit({(NM*16){1'b0}}),
+        .cfg_time_win(16'h0),
+        .m_arvalid(axm_arvalid), .m_arready(axm_arready),
+        .m_awvalid(axm_awvalid), .m_awready(axm_awready),
+        .m_arqos(qos_ar),
+        .m_awqos(qos_aw)
+    );
+
+    // Interconnect Memory Protection Unit (MPU) Instantiation
+    interconnect_mpu #(
+        .NM(NM), .REGIONS(16), .AW(AW), .DW(DW), .IDW(IDW)
+    ) u_interconnect_mpu (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_mpu), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_mpu), .pready(), .pslverr(),
+        .cfg_base_addr({(16*40){1'b0}}),
+        .cfg_limit_addr({(16*40){1'b0}}),
+        .cfg_master_mask({(16*16){1'b0}}),
+        .cfg_perm({(16*2){1'b0}}),
+        .cfg_valid(16'h0),
+        // AR Channel
+        .s_arvalid(axm_arvalid), .s_arready(axm_arready), .s_araddr(axm_araddr), .s_arid(axm_arid),
+        .m_arvalid(xbar_axm_arvalid), .m_arready(xbar_axm_arready), .m_araddr(xbar_axm_araddr), .m_arid(xbar_axm_arid),
+        // R Channel
+        .m_rvalid(xbar_axm_rvalid), .m_rready(xbar_axm_rready), .m_rdata(xbar_axm_rdata), .m_rresp(xbar_axm_rresp), .m_rlast(xbar_axm_rlast), .m_rid(xbar_axm_rid),
+        .s_rvalid(axm_rvalid), .s_rready(axm_rready), .s_rdata(axm_rdata), .s_rresp(axm_rresp), .s_rlast(axm_rlast), .s_rid(axm_rid),
+        // AW Channel
+        .s_awvalid(axm_awvalid), .s_awready(axm_awready), .s_awaddr(axm_awaddr), .s_awid(axm_awid),
+        .m_awvalid(xbar_axm_awvalid), .m_awready(xbar_axm_awready), .m_awaddr(xbar_axm_awaddr), .m_awid(xbar_axm_awid),
+        // W Channel
+        .s_wvalid(axm_wvalid), .s_wready(axm_wready), .s_wdata(axm_wdata), .s_wstrb(axm_wstrb), .s_wlast(axm_wlast),
+        .m_wvalid(xbar_axm_wvalid), .m_wready(xbar_axm_wready), .m_wdata(xbar_axm_wdata), .m_wstrb(xbar_axm_wstrb), .m_wlast(xbar_axm_wlast),
+        // B Channel
+        .m_bvalid(xbar_axm_bvalid), .m_bready(xbar_axm_bready), .m_bresp(xbar_axm_bresp), .m_bid(xbar_axm_bid),
+        .s_bvalid(axm_bvalid), .s_bready(axm_bready), .s_bresp(axm_bresp), .s_bid(axm_bid)
+    );
+
     // Crossbar Instantiation
     axi4_crossbar #(
         .NM(NM), .NS(NS), .AW(AW), .DW(DW), .IDW(IDW)
     ) u_crossbar (
         .clk(clk), .rst_n(core_rst_n),
-        .m_awvalid(axm_awvalid), .m_awready(axm_awready), .m_awaddr(axm_awaddr), .m_awid(axm_awid),
-        .m_wvalid(axm_wvalid), .m_wready(axm_wready), .m_wdata(axm_wdata), .m_wstrb(axm_wstrb), .m_wlast(axm_wlast),
-        .m_bvalid(axm_bvalid), .m_bready(axm_bready), .m_bresp(axm_bresp), .m_bid(axm_bid),
-        .m_arvalid(axm_arvalid), .m_arready(axm_arready), .m_araddr(axm_araddr), .m_arid(axm_arid),
-        .m_rvalid(axm_rvalid), .m_rready(axm_rready), .m_rdata(axm_rdata), .m_rresp(axm_rresp), .m_rlast(axm_rlast), .m_rid(axm_rid),
+        .m_awvalid(xbar_axm_awvalid), .m_awready(xbar_axm_awready), .m_awaddr(xbar_axm_awaddr), .m_awid(xbar_axm_awid),
+        .m_wvalid(xbar_axm_wvalid), .m_wready(xbar_axm_wready), .m_wdata(xbar_axm_wdata), .m_wstrb(xbar_axm_wstrb), .m_wlast(xbar_axm_wlast),
+        .m_bvalid(xbar_axm_bvalid), .m_bready(xbar_axm_bready), .m_bresp(xbar_axm_bresp), .m_bid(xbar_axm_bid),
+        .m_arvalid(xbar_axm_arvalid), .m_arready(xbar_axm_arready), .m_araddr(xbar_axm_araddr), .m_arid(xbar_axm_arid),
+        .m_rvalid(xbar_axm_rvalid), .m_rready(xbar_axm_rready), .m_rdata(xbar_axm_rdata), .m_rresp(xbar_axm_rresp), .m_rlast(xbar_axm_rlast), .m_rid(xbar_axm_rid),
+        .m_awqos(qos_aw), .m_arqos(qos_ar),
         .s_awvalid(axs_awvalid), .s_awready(axs_awready), .s_awaddr(axs_awaddr), .s_awid(axs_awid),
         .s_wvalid(axs_wvalid), .s_wready(axs_wready), .s_wdata(axs_wdata), .s_wstrb(axs_wstrb), .s_wlast(axs_wlast),
         .s_bvalid(axs_bvalid), .s_bready(axs_bready), .s_bresp(axs_bresp), .s_bid(axs_bid),
@@ -243,8 +337,19 @@ module titan_x_top (
     assign axs_bid[2*4 +: 4] = 4'h0;
 
     // -------------------------------------------------------
-    // Cores 0-3 (RV64GC)
+    // Cores 0-3 (RV64GC) with L2 Coherence Snooping
     // -------------------------------------------------------
+    wire [3:0]   l2_snoop_valid;
+    wire [39:0]  l2_snoop_addr;
+    wire [1:0]   l2_snoop_type;
+    wire [3:0]   l2_snoop_ack;
+    wire [3:0]   l2_snoop_data_valid;
+
+    wire [4:0]   dbg_halt_req;
+    wire [4:0]   dbg_resume_req;
+    wire [4:0]   dbg_hart_halted;
+    wire [4:0]   dbg_hart_running;
+
     genvar c;
     generate
         for (c = 0; c < 4; c = c + 1) begin : gen_cores
@@ -285,10 +390,10 @@ module titan_x_top (
                 .dmem_arlen(), .dmem_arsize(), .dmem_arburst(), .dmem_arlock(),
                 .dmem_rvalid(axm_rvalid[c+4]), .dmem_rready(axm_rready[c+4]), .dmem_rdata(axm_rdata[(c+4)*64 +: 64]), 
                 .dmem_rresp(axm_rresp[(c+4)*2 +: 2]), .dmem_rlast(axm_rlast[c+4]),
-                .snoop_valid(1'b0), .snoop_addr(40'h0), .snoop_type(2'b00),
-                .snoop_ack(), .snoop_data_valid(), .snoop_data(),
-                .halt_req(1'b0), .resume_req(1'b0),
-                .hart_halted(), .hart_running()
+                .snoop_valid(l2_snoop_valid[c]), .snoop_addr(l2_snoop_addr), .snoop_type(l2_snoop_type),
+                .snoop_ack(l2_snoop_ack[c]), .snoop_data_valid(l2_snoop_data_valid[c]), .snoop_data(),
+                .halt_req(dbg_halt_req[c]), .resume_req(dbg_resume_req[c]),
+                .hart_halted(dbg_hart_halted[c]), .hart_running(dbg_hart_running[c])
             );
             assign axm_arid[c*4 +: 4] = c[3:0];
             assign axm_awid[(c+4)*4 +: 4] = c[3:0] + 4'd4;
@@ -329,7 +434,40 @@ module titan_x_top (
         .dmem_arlen(), .dmem_arsize(), .dmem_arburst(),
         .dmem_rvalid(axm_rvalid[9]), .dmem_rready(axm_rready[9]), .dmem_rdata(axm_rdata[9*64 +: 64]),
         .dmem_rlast(), .dmem_rresp(axm_rresp[9*2 +: 2]),
-        .halt_req(1'b0), .resume_req(1'b0)
+        .halt_req(dbg_halt_req[4]), .resume_req(dbg_resume_req[4]),
+        .hart_halted(dbg_hart_halted[4]), .hart_running(dbg_hart_running[4])
+    );
+
+    // -------------------------------------------------------
+    // RISC-V Debug Module (JTAG 0.13 DM)
+    // -------------------------------------------------------
+    rv_debug #(
+        .NUM_HARTS(5),
+        .PROGBUF_SIZE(16)
+    ) u_debug (
+        .clk(clk),
+        .rst_n(rst_n),
+        .tck(1'b0),
+        .tms(1'b0),
+        .tdi(1'b0),
+        .tdo(),
+        .halt_req(dbg_halt_req),
+        .resume_req(dbg_resume_req),
+        .hart_halted(dbg_hart_halted),
+        .hart_running(dbg_hart_running),
+        .hart_unavail(5'b0),
+        .reg_sel(),
+        .reg_wr(),
+        .reg_wdata(),
+        .reg_rdata(64'h0),
+        .cmd_exec(),
+        .cmd_done(1'b1),
+        .cmd_err(1'b0),
+        .sb_arvalid(), .sb_arready(1'b0), .sb_araddr(),
+        .sb_rvalid(1'b0), .sb_rready(), .sb_rdata(64'h0), .sb_rresp(2'b0),
+        .sb_awvalid(), .sb_awready(1'b0), .sb_awaddr(),
+        .sb_wvalid(), .sb_wready(1'b0), .sb_wdata(), .sb_wstrb(), .sb_wlast(),
+        .sb_bvalid(1'b0), .sb_bready()
     );
 
     // DDR4 static pin control
@@ -338,27 +476,100 @@ module titan_x_top (
     assign ddr_act_n   = 1'b1;
 
     // -------------------------------------------------------
-    // Memory Subsystem (Slave 0)
+    // Memory Subsystem (Slave 0) — L2 Cache & DDR4 Controller
     // -------------------------------------------------------
-    wire [15:0] l2_dat_cs, l2_dat_we, l2_dat_bank, l2_dat_addr, l2_dat_din, l2_dat_dout;
-    wire l2_dat_dout_valid;
-    
+    wire         l2_m_arvalid, l2_m_arready;
+    wire [39:0]  l2_m_araddr;
+    wire         l2_m_rvalid, l2_m_rready;
+    wire [63:0]  l2_m_rdata;
+    wire [1:0]   l2_m_rresp;
+    wire         l2_m_awvalid, l2_m_awready;
+    wire [39:0]  l2_m_awaddr;
+    wire         l2_m_wvalid, l2_m_wready;
+    wire [63:0]  l2_m_wdata;
+    wire [7:0]   l2_m_wstrb;
+    wire         l2_m_bvalid, l2_m_bready;
+    wire [1:0]   l2_m_bresp;
+
+    // Crossbar Slave 0 ID tracking
+    reg [3:0] l2_s_rid, l2_s_bid;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            l2_s_rid <= 4'h0;
+            l2_s_bid <= 4'h0;
+        end else begin
+            if (axs_arvalid[0] && axs_arready[0])
+                l2_s_rid <= axs_arid[0*4 +: 4];
+            if (axs_awvalid[0] && axs_awready[0])
+                l2_s_bid <= axs_awid[0*4 +: 4];
+        end
+    end
+    assign axs_rlast[0]        = 1'b1;
+    assign axs_rid[0*4 +: 4]   = l2_s_rid;
+    assign axs_bid[0*4 +: 4]   = l2_s_bid;
+
     l2_cache_top u_l2_cache (
-        .clk(clk), .rst_n(rst_n)
+        .clk(clk),
+        .rst_n(rst_n),
+        // Slave face (from crossbar Slave 0)
+        .s_arvalid(axs_arvalid[0]),
+        .s_arready(axs_arready[0]),
+        .s_araddr (axs_araddr[0*40 +: 40]),
+        .s_arid   (axs_arid[0*4 +: 4]),
+        .s_rvalid (axs_rvalid[0]),
+        .s_rready (axs_rready[0]),
+        .s_rdata  (axs_rdata[0*64 +: 64]),
+        .s_rresp  (axs_rresp[0*2 +: 2]),
+        .s_awvalid(axs_awvalid[0]),
+        .s_awready(axs_awready[0]),
+        .s_awaddr (axs_awaddr[0*40 +: 40]),
+        .s_awid   (axs_awid[0*4 +: 4]),
+        .s_wvalid (axs_wvalid[0]),
+        .s_wready (axs_wready[0]),
+        .s_wdata  (axs_wdata[0*64 +: 64]),
+        .s_wstrb  (axs_wstrb[0*8 +: 8]),
+        .s_bvalid (axs_bvalid[0]),
+        .s_bready (axs_bready[0]),
+        .s_bresp  (axs_bresp[0*2 +: 2]),
+
+        // Master face (to DDR controller)
+        .m_arvalid(l2_m_arvalid),
+        .m_arready(l2_m_arready),
+        .m_araddr (l2_m_araddr),
+        .m_rvalid (l2_m_rvalid),
+        .m_rready (l2_m_rready),
+        .m_rdata  (l2_m_rdata),
+        .m_rresp  (l2_m_rresp),
+        .m_awvalid(l2_m_awvalid),
+        .m_awready(l2_m_awready),
+        .m_awaddr (l2_m_awaddr),
+        .m_wvalid (l2_m_wvalid),
+        .m_wready (l2_m_wready),
+        .m_wdata  (l2_m_wdata),
+        .m_wstrb  (l2_m_wstrb),
+        .m_bvalid (l2_m_bvalid),
+        .m_bready (l2_m_bready),
+
+        // L1 Snoop interfaces (Cores 0-3)
+        .snoop_valid(l2_snoop_valid),
+        .snoop_addr (l2_snoop_addr),
+        .snoop_type (l2_snoop_type),
+        .snoop_ack  (l2_snoop_ack),
+        .snoop_data_valid(l2_snoop_data_valid)
     );
 
     ddr_ctrl_top u_ddr_ctrl (
         .clk(clk), .rst_n(rst_n),
-        .s_awvalid(axs_awvalid[0]), .s_awready(axs_awready[0]), .s_awaddr(axs_awaddr[0*40 +: 40]), 
-        .s_awid(axs_awid[0*4 +: 4]), .s_awlen(8'h0), .s_awsize(3'h0),
-        .s_wvalid(axs_wvalid[0]), .s_wready(axs_wready[0]), .s_wdata(axs_wdata[0*64 +: 64]), 
-        .s_wstrb(axs_wstrb[0*8 +: 8]), .s_wlast(axs_wlast[0]),
-        .s_bvalid(axs_bvalid[0]), .s_bready(axs_bready[0]), .s_bresp(axs_bresp[0*2 +: 2]), .s_bid(axs_bid[0*4 +: 4]),
+        .s_awvalid(l2_m_awvalid), .s_awready(l2_m_awready), .s_awaddr(l2_m_awaddr), 
+        .s_awid(4'h0), .s_awlen(8'h0), .s_awsize(3'b011),
+        .s_wvalid(l2_m_wvalid), .s_wready(l2_m_wready), .s_wdata(l2_m_wdata), 
+        .s_wstrb(l2_m_wstrb), .s_wlast(1'b1),
+        .s_bvalid(l2_m_bvalid), .s_bready(l2_m_bready), .s_bresp(l2_m_bresp), .s_bid(),
         
-        .s_arvalid(axs_arvalid[0]), .s_arready(axs_arready[0]), .s_araddr(axs_araddr[0*40 +: 40]), 
-        .s_arid(axs_arid[0*4 +: 4]), .s_arlen(8'h0),
-        .s_rvalid(axs_rvalid[0]), .s_rready(axs_rready[0]), .s_rdata(axs_rdata[0*64 +: 64]), 
-        .s_rresp(axs_rresp[0*2 +: 2]), .s_rlast(axs_rlast[0]), .s_rid(axs_rid[0*4 +: 4]),
+        .s_arvalid(l2_m_arvalid), .s_arready(l2_m_arready), .s_araddr(l2_m_araddr), 
+        .s_arid(4'h0), .s_arlen(8'h0),
+        .s_rvalid(l2_m_rvalid), .s_rready(l2_m_rready), .s_rdata(l2_m_rdata), 
+        .s_rresp(l2_m_rresp), .s_rlast(), .s_rid(),
         
         .ddr_addr(ddr_addr), .ddr_ba(ddr_ba), .ddr_bg(ddr_bg),
         .ddr_ck_p(ddr_ck_p), .ddr_ck_n(ddr_ck_n), .ddr_cke(ddr_cke), .ddr_cs_n(ddr_cs_n),
@@ -418,30 +629,52 @@ module titan_x_top (
     wire psel_boot  = psel && (paddr[31:12] == 20'h400A0 || paddr[31:12] == 20'h20030);
     wire psel_can0  = psel && (paddr[31:12] == 20'h400B0 || paddr[31:12] == 20'h30000);
     wire psel_can1  = psel && (paddr[31:12] == 20'h400C0 || paddr[31:12] == 20'h30001);
+    wire psel_trng  = psel && (paddr[31:12] == 20'h400D0 || paddr[31:12] == 20'h20040);
+    wire psel_sha256= psel && (paddr[31:12] == 20'h400E0 || paddr[31:12] == 20'h20050);
+    wire psel_ecdsa = psel && (paddr[31:12] == 20'h400F0 || paddr[31:12] == 20'h20060);
+    wire psel_clint = psel && (paddr[31:16] == 16'h0200 || paddr[31:12] == 20'h40015);
+    wire psel_gpio  = psel && (paddr[31:12] == 20'h40011);
+    wire psel_wdt   = psel && (paddr[31:12] == 20'h40012);
+    wire psel_spi   = psel && (paddr[31:12] == 20'h40013);
+    wire psel_i2c   = psel && (paddr[31:12] == 20'h40014);
+    assign psel_mpu = psel && (paddr[31:16] == 16'h4010);
+    assign psel_qos = psel && (paddr[31:16] == 16'h4011);
     assign psel_plic = psel && (paddr[31:24] == 8'h0C || paddr[31:20] == 12'h40D);
 
     wire [31:0] prdata_uart0, prdata_uart1, prdata_uart2, prdata_uart3, prdata_uart4;
     wire [31:0] prdata_rtc, prdata_gem, prdata_usb, prdata_mipi, prdata_isp, prdata_hdmi;
     wire [31:0] prdata_drbg, prdata_aes, prdata_envm, prdata_boot, prdata_can0, prdata_can1;
+    wire [31:0] prdata_trng, prdata_sha256, prdata_ecdsa;
+    wire [31:0] prdata_clint, prdata_gpio, prdata_wdt, prdata_spi, prdata_i2c;
 
-    assign prdata_mux = psel_uart0 ? {32'h0, prdata_uart0} :
-                        psel_uart1 ? {32'h0, prdata_uart1} :
-                        psel_uart2 ? {32'h0, prdata_uart2} :
-                        psel_uart3 ? {32'h0, prdata_uart3} :
-                        psel_uart4 ? {32'h0, prdata_uart4} :
-                        psel_rtc   ? {32'h0, prdata_rtc} :
-                        psel_gem   ? {32'h0, prdata_gem} :
-                        psel_usb   ? {32'h0, prdata_usb} :
-                        psel_mipi  ? {32'h0, prdata_mipi} :
-                        psel_isp   ? {32'h0, prdata_isp} :
-                        psel_hdmi  ? {32'h0, prdata_hdmi} :
-                        psel_drbg  ? {32'h0, prdata_drbg} :
-                        psel_aes   ? {32'h0, prdata_aes} :
-                        psel_envm  ? {32'h0, prdata_envm} :
-                        psel_boot  ? {32'h0, prdata_boot} :
-                        psel_can0  ? {32'h0, prdata_can0} :
-                        psel_can1  ? {32'h0, prdata_can1} :
-                        psel_plic  ? {32'h0, prdata_plic} : 64'h0;
+    assign prdata_mux = psel_uart0  ? {32'h0, prdata_uart0} :
+                        psel_uart1  ? {32'h0, prdata_uart1} :
+                        psel_uart2  ? {32'h0, prdata_uart2} :
+                        psel_uart3  ? {32'h0, prdata_uart3} :
+                        psel_uart4  ? {32'h0, prdata_uart4} :
+                        psel_rtc    ? {32'h0, prdata_rtc} :
+                        psel_clint  ? {32'h0, prdata_clint} :
+                        psel_gpio   ? {32'h0, prdata_gpio} :
+                        psel_wdt    ? {32'h0, prdata_wdt} :
+                        psel_spi    ? {32'h0, prdata_spi} :
+                        psel_i2c    ? {32'h0, prdata_i2c} :
+                        psel_gem    ? {32'h0, prdata_gem} :
+                        psel_usb    ? {32'h0, prdata_usb} :
+                        psel_mipi   ? {32'h0, prdata_mipi} :
+                        psel_isp    ? {32'h0, prdata_isp} :
+                        psel_hdmi   ? {32'h0, prdata_hdmi} :
+                        psel_drbg   ? {32'h0, prdata_drbg} :
+                        psel_aes    ? {32'h0, prdata_aes} :
+                        psel_envm   ? {32'h0, prdata_envm} :
+                        psel_boot   ? {32'h0, prdata_boot} :
+                        psel_can0   ? {32'h0, prdata_can0} :
+                        psel_can1   ? {32'h0, prdata_can1} :
+                        psel_trng   ? {32'h0, prdata_trng} :
+                        psel_sha256 ? {32'h0, prdata_sha256} :
+                        psel_ecdsa  ? {32'h0, prdata_ecdsa} :
+                        psel_mpu    ? {32'h0, prdata_mpu} :
+                        psel_qos    ? {32'h0, prdata_qos} :
+                        psel_plic   ? {32'h0, prdata_plic} : 64'h0;
 
     // -------------------------------------------------------
     // DMA Peripherals (Masters 10, 11, 12)
@@ -467,7 +700,6 @@ module titan_x_top (
         .pipe_tx_data(), .pipe_tx_datak(), .pipe_tx_rate(), .pipe_tx_elecidle(), .pipe_tx_compliance(),
         .pipe_rx_data(64'h0), .pipe_rx_datak(8'h0), .pipe_rx_polarity(), .pipe_power_down(), .pipe_rx_valid(4'b0), .pipe_rx_elecidle(4'b1111), .pipe_rx_status(12'h0), .pipe_phy_status(4'b0)
     );
-    assign axm_rid[10*4 +: 4] = 4'h0;
 
     usb_otg u_usb (
         .clk(clk), .rst_n(rst_n), .ulpi_clk(ulpi_clk),
@@ -481,13 +713,19 @@ module titan_x_top (
     );
 
     // -------------------------------------------------------
-    // Security Block
+    // Security Subsystem & Root of Trust
     // -------------------------------------------------------
-    wire trng_seed_valid;
-    wire [255:0] trng_seed;
+    wire [255:0] trng_entropy;
+    wire         trng_valid;
+    wire         trng_ready;
 
-    assign trng_seed_valid = 1'b0;
-    assign trng_seed = 256'h0;
+    trng u_trng (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_trng), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_trng), .pready(), .pslverr(),
+        .trng_entropy(trng_entropy), .trng_valid(trng_valid), .trng_ready(trng_ready),
+        .trng_irq(plic_irq[8])
+    );
 
     wire [16:0] envm_addr;
     wire        envm_req;
@@ -504,7 +742,8 @@ module titan_x_top (
 
     secure_boot u_secure_boot (
         .clk(clk), .rst_n(rst_n),
-        .paddr(paddr), .psel(psel_boot), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_boot), .pready(), .pslverr(),
+        .paddr(paddr), .psel(psel_boot), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_boot), .pready(), .pslverr(),
         .envm_addr(envm_addr), .envm_req(envm_req), .envm_rdata(envm_rdata), .envm_valid(envm_valid),
         .boot_pass(boot_pass), .boot_fail(boot_fail)
     );
@@ -512,20 +751,37 @@ module titan_x_top (
     envm_ctrl u_envm (
         .clk(clk), .rst_n(rst_n),
         .s_arvalid(1'b0), .s_arready(), .s_araddr(32'h0), .s_rvalid(), .s_rready(1'b0), .s_rdata(), .s_rresp(),
-        .paddr(paddr), .psel(psel_envm), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_envm), .pready(), .pslverr(),
+        .paddr(paddr), .psel(psel_envm), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_envm), .pready(), .pslverr(),
         .envm_clk(), .envm_ce_n(), .envm_we_n(), .envm_addr(), .envm_wdata(), .envm_rdata(32'h0), .envm_ready(1'b1)
     );
 
     drbg u_drbg (
         .clk(clk), .rst_n(rst_n),
-        .paddr(paddr), .psel(psel_drbg), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_drbg), .pready(), .pslverr(),
-        .trng_entropy(trng_seed), .trng_valid(trng_seed_valid), .trng_ready(),
+        .paddr(paddr), .psel(psel_drbg), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_drbg), .pready(), .pslverr(),
+        .trng_entropy(trng_entropy), .trng_valid(trng_valid), .trng_ready(trng_ready),
         .drbg_irq(plic_irq[10])
+    );
+
+    sha256_engine u_sha256 (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_sha256), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[7:0]), .pwdata(pwdata), .prdata(prdata_sha256), .pready(),
+        .irq(plic_irq[12])
+    );
+
+    ecdsa_engine u_ecdsa (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_ecdsa), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_ecdsa), .pready(), .pslverr(),
+        .ecdsa_irq(plic_irq[9])
     );
 
     aes_engine u_aes (
         .clk(clk), .rst_n(rst_n),
-        .paddr(paddr), .psel(psel_aes), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_aes), .pready(), .pslverr(),
+        .paddr(paddr), .psel(psel_aes), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_aes), .pready(), .pslverr(),
         .s_axis_tdata(32'h0), .s_axis_tvalid(1'b0), .s_axis_tready(), .s_axis_tlast(1'b0),
         .m_axis_tdata(), .m_axis_tvalid(), .m_axis_tready(1'b0), .m_axis_tlast(),
         .aes_irq(plic_irq[11])
@@ -538,7 +794,65 @@ module titan_x_top (
         .clk(clk), .rtc_clk(rtc_clk), .rst_n(rst_n),
         .paddr(paddr), .psel(psel_rtc), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
         .prdata(prdata_rtc), .pready(), .pslverr(),
-        .timer_irq(timer_irq)
+        .timer_irq(rtc_timer_irq)
+    );
+
+    // Core-Local Interruptor (CLINT: mtime, mtimecmp, msip)
+    clint #(
+        .NUM_HARTS(5)
+    ) u_clint (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_clint), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[15:0]), .pwdata(pwdata),
+        .prdata(prdata_clint), .pready(),
+        .msip(clint_msip),
+        .mtip(clint_mtip)
+    );
+
+    // General Purpose I/O Controller
+    wire [31:0] gpio_io;
+    gpio_ctrl u_gpio (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_gpio), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_gpio), .pready(),
+        .gpio_pad(gpio_io),
+        .irq(plic_irq[13])
+    );
+
+    // Watchdog Timer
+    wire wdt_reset_n;
+    watchdog_timer u_wdt (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_wdt), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_wdt), .pready(),
+        .wdt_reset_n(wdt_reset_n),
+        .irq(plic_irq[14])
+    );
+
+    // SPI Master Controller
+    wire       spi_clk_out, spi_mosi_out;
+    wire [3:0] spi_csn_out;
+    spi_master u_spi (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_spi), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_spi), .pready(),
+        .spi_clk(spi_clk_out), .spi_mosi(spi_mosi_out), .spi_miso(1'b0),
+        .spi_csn(spi_csn_out),
+        .irq(plic_irq[15])
+    );
+
+    // I2C Master Controller
+    wire i2c_scl_io, i2c_sda_io;
+    i2c_master u_i2c (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_i2c), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_i2c), .pready(),
+        .scl_pad(i2c_scl_io), .sda_pad(i2c_sda_io),
+        .irq(plic_irq[16])
     );
 
     uart_16550 u_uart0 (.clk(clk), .rst_n(rst_n), .paddr(paddr), .psel(psel_uart0), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_uart0), .pready(), .pslverr(), .uart_irq(plic_irq[20]), .rxd(uart_rx[0]), .txd(uart_tx[0]), .irda_tx(), .irda_rx(1'b0), .lin_tx(), .lin_rx(1'b1));

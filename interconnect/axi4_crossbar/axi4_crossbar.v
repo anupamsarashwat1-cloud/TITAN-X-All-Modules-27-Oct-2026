@@ -64,6 +64,8 @@ module axi4_crossbar #(
     output wire [(NM*2)-1:0]    m_rresp,
     output wire [NM-1:0]        m_rlast,
     output wire [(NM*IDW)-1:0]  m_rid,
+    input  wire [(NM*4)-1:0]    m_awqos,
+    input  wire [(NM*4)-1:0]    m_arqos,
 
     // ── Slave Ports (Flattened) ──────────────────────────────────
     output wire [NS-1:0]        s_awvalid,
@@ -100,19 +102,27 @@ module axi4_crossbar #(
     // -------------------------------------------------------
     // Address Decoding (matches titan_x_top slave wiring)
     // -------------------------------------------------------
-    // S0: DDR4            (0x8000_0000)
-    // S1: AHB/APB bridge  (0x4000_0000)
-    // S2: BootROM         (0x1000_0000)
-    // S3: L2 cache        (0x0000_0000)
-    // S4-S8: peripheral banks (assigned in top)
+    // -------------------------------------------------------
+    // Address Decoding (matches titan_x_top slave wiring)
+    // -------------------------------------------------------
+    // S0: DDR4            (0x8000_0000 - 0xFFFF_FFFF)
+    // S1: AHB/APB bridge  (0x4000_0000 primary + 0x2000/0x3000/0x0C00/0x0200 aliases)
+    // S2: BootROM         (0x1000_0000 - 0x1FFF_FFFF)
+    // S3: Low Mem / SRAM  (0x0000_0000 - 0x01FF_FFFF)
+    // S4-S8: Unused peripheral banks (assigned in top)
     function [3:0] decode_slave;
         input [AW-1:0] addr;
         begin
-            if      (addr[39:31] == 9'h001)  decode_slave = 4'd0; // DDR
-            else if (addr[39:28] == 12'h004) decode_slave = 4'd1; // APB bridge
-            else if (addr[39:28] == 12'h001) decode_slave = 4'd2; // BootROM
-            else if (addr[39:28] == 12'h000) decode_slave = 4'd3; // L2
-            else                             decode_slave = T_UNMAPPED;
+            if      (addr[39:31] == 9'h001)   decode_slave = 4'd0; // DDR
+            else if (addr[39:28] == 12'h004 || // APB bridge primary
+                     addr[39:28] == 12'h002 || // Security peripherals (0x2000_0000)
+                     addr[39:28] == 12'h003 || // CAN peripherals (0x3000_0000)
+                     addr[39:24] == 16'h000C|| // Standard RISC-V PLIC (0x0C00_0000)
+                     addr[39:24] == 16'h0002)  // Standard RISC-V CLINT (0x0200_0000)
+                                              decode_slave = 4'd1; // APB bridge
+            else if (addr[39:28] == 12'h001)  decode_slave = 4'd2; // BootROM
+            else if (addr[39:28] == 12'h000)  decode_slave = 4'd3; // Low Memory / SRAM
+            else                              decode_slave = T_UNMAPPED;
         end
     endfunction
 
@@ -154,45 +164,61 @@ module axi4_crossbar #(
     // -------------------------------------------------------
     wire [3:0] aw_tgt [0:NM-1];
     wire [3:0] ar_tgt [0:NM-1];
+    wire [3:0] m_awqos_eff [0:NM-1];
+    wire [3:0] m_arqos_eff [0:NM-1];
     genvar gm;
     generate for (gm = 0; gm < NM; gm = gm + 1) begin : g_tgt
         assign aw_tgt[gm] = decode_slave(m_awaddr[gm*AW +: AW]);
         assign ar_tgt[gm] = decode_slave(m_araddr[gm*AW +: AW]);
+        assign m_awqos_eff[gm] = m_awqos[gm*4 +: 4];
+        assign m_arqos_eff[gm] = m_arqos[gm*4 +: 4];
     end endgenerate
 
     reg [4:0] aw_sel [0:NS-1];
     reg [4:0] w_sel  [0:NS-1];
     reg [4:0] ar_sel [0:NS-1];
+    reg [3:0] best_aw_qos [0:NS-1];
+    reg [3:0] best_ar_qos [0:NS-1];
     integer s_aw, k_aw, mm_aw;
     integer s_ar, k_ar, mm_ar;
     integer s_w,  k_w,  mm_w;
     integer s;
 
-    // AW channel arbitration
+    // AW channel arbitration (QoS-prioritized with round-robin tie-break)
     always @* begin
         for (s_aw = 0; s_aw < NS; s_aw = s_aw + 1) begin
             aw_sel[s_aw] = 5'd31;
+            best_aw_qos[s_aw] = 4'h0;
             for (k_aw = 0; k_aw < NM; k_aw = k_aw + 1) begin
                 mm_aw = rr_aw[s_aw] + k_aw; if (mm_aw >= NM) mm_aw = mm_aw - NM;
-                if ((aw_sel[s_aw] == 5'd31) && m_awvalid[mm_aw] &&
+                if (m_awvalid[mm_aw] &&
                     (aw_tgt[mm_aw] == s_aw[3:0]) && (wr_cnt[mm_aw] != 2'd3) &&
                     ((wr_cnt[mm_aw] == 2'd0) ||
-                     (wr_q[mm_aw][wr_rp[mm_aw]] == aw_tgt[mm_aw])))
-                    aw_sel[s_aw] = mm_aw[4:0];
+                     (wr_q[mm_aw][wr_rp[mm_aw]] == aw_tgt[mm_aw]))) begin
+                    if ((aw_sel[s_aw] == 5'd31) || (m_awqos_eff[mm_aw] > best_aw_qos[s_aw])) begin
+                        aw_sel[s_aw] = mm_aw[4:0];
+                        best_aw_qos[s_aw] = m_awqos_eff[mm_aw];
+                    end
+                end
             end
         end
     end
 
-    // AR channel arbitration
+    // AR channel arbitration (QoS-prioritized with round-robin tie-break)
     always @* begin
         for (s_ar = 0; s_ar < NS; s_ar = s_ar + 1) begin
             ar_sel[s_ar] = 5'd31;
+            best_ar_qos[s_ar] = 4'h0;
             for (k_ar = 0; k_ar < NM; k_ar = k_ar + 1) begin
                 mm_ar = rr_ar[s_ar] + k_ar; if (mm_ar >= NM) mm_ar = mm_ar - NM;
-                if ((ar_sel[s_ar] == 5'd31) && m_arvalid[mm_ar] &&
+                if (m_arvalid[mm_ar] &&
                     (ar_tgt[mm_ar] == s_ar[3:0]) &&
-                    ((rd_cnt[mm_ar] == 2'd0) || (rd_tgt[mm_ar] == ar_tgt[mm_ar])))
-                    ar_sel[s_ar] = mm_ar[4:0];
+                    ((rd_cnt[mm_ar] == 2'd0) || (rd_tgt[mm_ar] == ar_tgt[mm_ar]))) begin
+                    if ((ar_sel[s_ar] == 5'd31) || (m_arqos_eff[mm_ar] > best_ar_qos[s_ar])) begin
+                        ar_sel[s_ar] = mm_ar[4:0];
+                        best_ar_qos[s_ar] = m_arqos_eff[mm_ar];
+                    end
+                end
             end
         end
     end

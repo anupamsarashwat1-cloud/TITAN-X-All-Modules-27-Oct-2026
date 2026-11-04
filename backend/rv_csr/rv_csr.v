@@ -35,9 +35,10 @@ module rv_csr #(
     input  wire [11:0] csr_waddr,
     input  wire [63:0] csr_wdata,
     // trap entry / return (core-level control, single pulse each)
-    input  wire        trap_we,          // capture mepc/mcause/mstatus
+    input  wire        trap_we,          // capture mepc/mcause/mtval/mstatus
     input  wire [63:0] trap_pc,          // PC of the trapping instruction
     input  wire [63:0] trap_cause,
+    input  wire [63:0] trap_tval,
     input  wire        mret_we,          // mstatus MPIE/MIE shuffle
     // machine interrupt pending (from CLINT/PLIC glue; active high)
     input  wire        mip_m_ext,
@@ -48,6 +49,7 @@ module rv_csr #(
     // status out for the core/trap logic
     output wire [63:0] mtvec_out,
     output wire [63:0] mepc_out,
+    output wire [63:0] mtval_out,
     output wire        irq_pending      // enabled machine interrupt waiting
 );
 
@@ -121,15 +123,16 @@ module rv_csr #(
                 minstret_q <= minstret_q + 64'd1;
 
             if (trap_we) begin
-                mepc_q     <= {trap_pc[63:2], 2'b00}; // spec: low two bits clear
-                mcause_q   <= trap_cause;
-                mstatus_q[7] <= mstatus_q[3];         // MPIE <- MIE
-                mstatus_q[3] <= 1'b0;                 // enter handler MIE off
-                mstatus_q[12:11] <= 2'b11;            // MPP <- machine
+                mepc_q           <= {trap_pc[63:2], 2'b00}; // spec: low two bits clear
+                mcause_q         <= trap_cause;
+                mtval_q          <= trap_tval;
+                mstatus_q[7]     <= mstatus_q[3];         // MPIE <- MIE
+                mstatus_q[3]     <= 1'b0;                 // enter handler MIE off
+                mstatus_q[12:11] <= 2'b11;                // MPP <- machine
             end else if (mret_we) begin
-                mstatus_q[3]  <= mstatus_q[7];        // MIE <- MPIE
-                mstatus_q[7]  <= 1'b1;
-                mstatus_q[12:11] <= 2'b11;            // M-mode only invariant: MPP remains M-mode
+                mstatus_q[3]     <= mstatus_q[7];        // MIE <- MPIE
+                mstatus_q[7]     <= 1'b1;
+                mstatus_q[12:11] <= 2'b11;                // M-mode only invariant: MPP remains M-mode
             end else if (csr_we) begin
                 case (csr_waddr)
                     12'h300: begin
@@ -154,6 +157,7 @@ module rv_csr #(
 
     assign mtvec_out = {mtvec_q[63:2], 2'b00};
     assign mepc_out  = {mepc_q[63:2], 2'b00};
+    assign mtval_out = mtval_q;
 
     wire irq_any =
         (mip_m_ext   & mie_q[11]) |

@@ -76,3 +76,52 @@
 - **Scope:** `axi_rom`, `titan_x_top`, firmware execution (`firmware/main.c`), peripheral bring-up, DDR4 memory test, interrupt servicing.
 - **Goals:** Full SoC power-on reset ➔ Secure Boot SHA-256 check ➔ `core_rst_n` release ➔ Boot ROM execution ➔ Stack setup ➔ UART boot banner transmission ➔ DDR4 memory diagnostics ➔ Multi-core OS boot simulation.
 - **Exit Criteria:** 100% clean SoC simulation, zero protocol violations, all 71 modules working in seamless harmony.
+
+---
+
+## Milestone M7: Master Engineering Remediation, Integration & Qualification (Phases 14 - 22)
+
+### Phase 14: Architectural Discovery, Hardware Hierarchy & Machine-Readable Connectivity Matrix
+- **Scope:** Complete repository audit, `top/titan_x_top/titan_x_top.v`, `docs/qualification/STRUCTURAL_AUDIT_REPORT.md`.
+- **Goals:** Generate automated module-instantiation tree from `titan_x_top` down to leaf primitives; produce complete machine-readable connectivity matrix (`CONNECTIVITY_MATRIX.json`); inventory all 20 uninstantiated repo modules vs active top-level modules; definitively document processor pipeline reality (5-stage in-order RV64IM in Machine-mode with direct physical memory addressing).
+- **Exit Criteria:** Complete structural audit and connectivity matrix committing 0 unsupported claims.
+
+### Phase 15: Processor Core Execution, Exception Handling & Privileged Architecture
+- **Scope:** `backend/rv_core_top/rv_core_top.v`, `backend/rv_csr/rv_csr.v`, `backend/rv_execute/rv_execute.v`, `frontend/rv_decode/rv_decode.v`.
+- **Goals:** Eliminate hardwired `exception = 1'b0`; implement end-to-end exception detection unit (illegal instruction, misaligned fetch/load/store, instruction/data access faults); wire exception unit to CSR trap sequencer; implement trap entry and MRET sequencing (`mtvec`, `mepc`, `mcause`, `mtval`, `mstatus`); enforce `mstatus.MPP = 2'b11` invariant; verify pipeline forwarding, hazard stalls, and flush control.
+- **Exit Criteria:** 100% compliance on architectural exception and trap tests; zero unhandled fault traps.
+
+### Phase 16: Top-Level L1/L2 Cache Hierarchy & Memory Bus Integration
+- **Scope:** `frontend/rv_icache/`, `backend/rv_dcache/`, `memory/l2_cache_top/`, `memory/l2_cache_ctrl/`, `top/titan_x_top/`.
+- **Goals:** Integrate L1 instruction cache (`rv_icache`) and L1 data cache (`rv_dcache`) into the processor core memory interface; stitch shared L2 cache (`l2_cache_top`) into the primary system bus between AXI crossbar Slave 0 and `ddr_ctrl_top` (wiring request/response handshakes, miss refill, dirty eviction, and tag/data arrays); eliminate isolated clock/reset tie-offs.
+- **Exit Criteria:** L1 and L2 caches actively process transactions with verified hit/miss/eviction dynamics.
+
+### Phase 17: Multicore Snooping, Coherence Protocol & Shared-Memory Integration
+- **Scope:** `memory/l2_snoop_filter/`, `backend/rv_core_top/`, `top/titan_x_top/`, `integration/`.
+- **Goals:** Instantiate and connect `l2_snoop_filter` at top-level; wire core snoop ports (`snoop_valid`, `snoop_addr`, `snoop_type`, `snoop_ack`, `snoop_data`); implement and verify coherence state machine transitions; build integrated multicore shared-memory testbench (`tb_multicore_coherence.v`) verifying dirty evictions, write-read visibility, and snoop invalidations across cores.
+- **Exit Criteria:** Multi-core concurrent shared-memory cache coherency proven in simulation and formal SVA.
+
+### Phase 18: Cryptographic Root of Trust, Secure Boot Chain & Key Management
+- **Scope:** `security/secure_boot/`, `peripherals/sha256_engine/`, `security/ecdsa_engine/`, `peripherals/trng/`, `top/titan_x_top/`.
+- **Goals:** Integrate standard NIST SHA-256 hardware acceleration and ECDSA P-256 digital signature verification into `secure_boot.v`; implement authenticated public key storage, firmware header validation, and timeout handling; connect real entropy interface for TRNG / DRBG; positive, negative, tampered, truncated, and timeout testbenches gating `core_rst_n`.
+- **Exit Criteria:** Boot controller reliably prevents application processor execution prior to cryptographic authentication.
+
+### Phase 19: Interconnect Fabric, Crossbar Addressing & Traffic Arbitration
+- **Scope:** `interconnect/axi4_crossbar/`, `interconnect/interconnect_mpu/`, `interconnect/mmu_arbiter/`, `interconnect/qos_controller/`.
+- **Goals:** Establish definitive crossbar master/slave port map (active vs unused); integrate MPU memory protection firewall and QoS rate limiter into active data flow; verify starvation freedom, arbitration fairness, backpressure, and unmapped DECERR responses under concurrent multi-master traffic.
+- **Exit Criteria:** Zero deadlocks under heavy concurrent multi-master traffic; complete address decoding verified.
+
+### Phase 20: Interrupts, Timers, JTAG Debug & Peripheral Subsystem Integration
+- **Scope:** `backend/clint/`, `backend/plic/`, `backend/rv_debug/`, `peripherals/`, `top/titan_x_top/`.
+- **Goals:** Integrate CLINT at top level for software IPI interrupts (`sw_irq`) and `mtime`/`mtimecmp` timer interrupts; connect JTAG debug module (`rv_debug`) `halt_req`/`resume_req`/run-control registers; audit external PHY interfaces (GMII, PIPE, ULPI) and connect with realistic BFMs; integrate video streaming pipeline (MIPI CSI-2, ISP, VDMA, HDMI).
+- **Exit Criteria:** Complete interrupt servicing, cycle-accurate debug halting, and operational peripheral dataflows.
+
+### Phase 21: Layered Verification Framework (Levels 1–8), Fuzzing & Regression Runner
+- **Scope:** `scripts/run_regress.py`, `formal/`, `scripts/run_formal.py`, `scripts/run_mutations.py`.
+- **Goals:** 8-level verification framework (Static lint, module unit tests, subsystem integration, RISC-V compliance, full SoC boot, constrained-random stress testing, SVA BMC/induction formal proofs, mutation testing); strict runner exit code and raw log preservation.
+- **Exit Criteria:** 100% truthful pass rate across all verification tiers; zero hidden failures.
+
+### Phase 22: Synthesis Accounting, Formal SVA Proofs & Physical Design Readiness Assessment
+- **Scope:** `synth_rv_core_direct.tcl`, `scripts/run_synth.py`, `docs/qualification/`.
+- **Goals:** Reproducible Yosys generic and mapped synthesis flows; formal proof reports with bounded horizon and scope declarations; physical design readiness gap analysis (SDC constraints, foundry SRAM macros, CTS/UPF, IO pad ring); final Master Findings Ledger reconciliation and clean-clone gate verification.
+- **Exit Criteria:** Complete agreement between RTL, architecture documentation, synthesis metrics, and qualification evidence.

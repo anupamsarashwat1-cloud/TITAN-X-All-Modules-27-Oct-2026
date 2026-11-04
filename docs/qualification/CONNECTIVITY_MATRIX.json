@@ -1,0 +1,6509 @@
+{
+  "top_module": "titan_x_top",
+  "total_modules_declared": 268,
+  "total_modules_instantiated": 35,
+  "total_modules_omitted": 232,
+  "instantiated_modules": [
+    "BUFX4",
+    "aes_engine",
+    "axi4_crossbar",
+    "axi4_to_ahb",
+    "axi_rom",
+    "can_controller",
+    "ddr_ctrl_top",
+    "ddr_phy_if",
+    "ddr_scheduler",
+    "drbg",
+    "envm_ctrl",
+    "gem_ethernet",
+    "hdmi_ctrl",
+    "isp_pipeline",
+    "l2_cache_ctrl",
+    "l2_cache_top",
+    "l2_snoop_filter",
+    "mipi_csi2_rx",
+    "pcie_pipe_if",
+    "pcie_top",
+    "plic",
+    "rtc",
+    "rv_core_top",
+    "rv_csr",
+    "rv_decode",
+    "rv_execute",
+    "rv_fetch",
+    "rv_mem",
+    "rv_monitor_core",
+    "rv_regfile",
+    "rv_writeback",
+    "secure_boot",
+    "sram_512kx8_180nm",
+    "uart_16550",
+    "usb_otg"
+  ],
+  "omitted_modules": [
+    "ICGX4",
+    "ahb_to_apb",
+    "apb_bridge",
+    "arbiter",
+    "axi4_burst_to_lite",
+    "axi_adapter",
+    "axi_adapter_rd",
+    "axi_adapter_wr",
+    "axi_axil_adapter",
+    "axi_axil_adapter_rd",
+    "axi_axil_adapter_wr",
+    "axi_cdma",
+    "axi_cdma_desc_mux",
+    "axi_crossbar",
+    "axi_crossbar_addr",
+    "axi_crossbar_rd",
+    "axi_crossbar_wr",
+    "axi_dma",
+    "axi_dma_desc_mux",
+    "axi_dma_rd",
+    "axi_dma_wr",
+    "axi_dp_ram",
+    "axi_fifo",
+    "axi_fifo_rd",
+    "axi_fifo_wr",
+    "axi_interconnect",
+    "axi_ram",
+    "axi_ram_rd_if",
+    "axi_ram_wr_if",
+    "axi_ram_wr_rd_if",
+    "axi_register",
+    "axi_register_rd",
+    "axi_register_wr",
+    "axi_vfifo",
+    "axi_vfifo_dec",
+    "axi_vfifo_enc",
+    "axi_vfifo_raw",
+    "axi_vfifo_raw_rd",
+    "axi_vfifo_raw_wr",
+    "axil_adapter",
+    "axil_adapter_rd",
+    "axil_adapter_wr",
+    "axil_cdc",
+    "axil_cdc_rd",
+    "axil_cdc_wr",
+    "axil_crossbar",
+    "axil_crossbar_addr",
+    "axil_crossbar_rd",
+    "axil_crossbar_wr",
+    "axil_dp_ram",
+    "axil_interconnect",
+    "axil_ram",
+    "axil_reg_if",
+    "axil_reg_if_rd",
+    "axil_reg_if_wr",
+    "axil_register",
+    "axil_register_rd",
+    "axil_register_wr",
+    "axis_arb_mux",
+    "axis_register",
+    "cdc_sync",
+    "clint",
+    "debounce_switch",
+    "debug_wdt",
+    "debug_xbar",
+    "dma_client_axis_sink",
+    "dma_client_axis_source",
+    "dma_if_axi",
+    "dma_if_axi_rd",
+    "dma_if_axi_wr",
+    "dma_if_desc_mux",
+    "dma_if_mux",
+    "dma_if_mux_rd",
+    "dma_if_mux_wr",
+    "dma_if_pcie",
+    "dma_if_pcie_rd",
+    "dma_if_pcie_us",
+    "dma_if_pcie_us_rd",
+    "dma_if_pcie_us_wr",
+    "dma_if_pcie_wr",
+    "dma_psdpram",
+    "dma_psdpram_async",
+    "dma_ram_demux",
+    "dma_ram_demux_rd",
+    "dma_ram_demux_wr",
+    "ecdsa_engine",
+    "example_core",
+    "example_core_pcie",
+    "example_core_pcie_ptile",
+    "example_core_pcie_s10",
+    "example_core_pcie_us",
+    "fifo_async",
+    "fifo_sync",
+    "fpga",
+    "fpga_core",
+    "gem_sgmii_pcs",
+    "gpio_ctrl",
+    "i2c_master",
+    "interconnect_mpu",
+    "irq_rate_limit",
+    "l2_data_array",
+    "l2_tag_array",
+    "led_sreg_driver",
+    "mmc_controller",
+    "mmu_arbiter",
+    "pcie_axi_dma_desc_mux",
+    "pcie_axi_master",
+    "pcie_axi_master_rd",
+    "pcie_axi_master_wr",
+    "pcie_axil_master",
+    "pcie_axil_master_minimal",
+    "pcie_msix",
+    "pcie_ptile_cfg",
+    "pcie_ptile_fc_counter",
+    "pcie_ptile_if",
+    "pcie_ptile_if_rx",
+    "pcie_ptile_if_tx",
+    "pcie_s10_cfg",
+    "pcie_s10_if",
+    "pcie_s10_if_rx",
+    "pcie_s10_if_tx",
+    "pcie_s10_msi",
+    "pcie_tlp_demux",
+    "pcie_tlp_demux_bar",
+    "pcie_tlp_fc_count",
+    "pcie_tlp_fifo",
+    "pcie_tlp_fifo_mux",
+    "pcie_tlp_fifo_raw",
+    "pcie_tlp_mux",
+    "pcie_us_axi_dma",
+    "pcie_us_axi_dma_rd",
+    "pcie_us_axi_dma_wr",
+    "pcie_us_axi_master",
+    "pcie_us_axi_master_rd",
+    "pcie_us_axi_master_wr",
+    "pcie_us_axil_master",
+    "pcie_us_axis_cq_demux",
+    "pcie_us_axis_rc_demux",
+    "pcie_us_cfg",
+    "pcie_us_if",
+    "pcie_us_if_cc",
+    "pcie_us_if_cq",
+    "pcie_us_if_rc",
+    "pcie_us_if_rq",
+    "pcie_us_msi",
+    "priority_encoder",
+    "pulse_merge",
+    "qos_controller",
+    "qspi_controller",
+    "reset_sync",
+    "rv_bpu",
+    "rv_dcache",
+    "rv_debug",
+    "rv_fpu",
+    "rv_icache",
+    "rv_mmu",
+    "rv_pmp",
+    "rv_ptw",
+    "rv_tlb",
+    "sha256_engine",
+    "spi_master",
+    "sram_32x64_180nm",
+    "sync_reset",
+    "sync_signal",
+    "test_axi_adapter_16_32",
+    "test_axi_adapter_32_16",
+    "test_axi_adapter_32_32",
+    "test_axi_axil_adapter_16_32",
+    "test_axi_axil_adapter_32_16",
+    "test_axi_axil_adapter_32_32",
+    "test_axi_cdma_32",
+    "test_axi_cdma_32_unaligned",
+    "test_axi_crossbar_4x4",
+    "test_axi_dma_32_32",
+    "test_axi_dma_rd_32_32",
+    "test_axi_dma_rd_32_32_unaligned",
+    "test_axi_dma_wr_32_32",
+    "test_axi_dma_wr_32_32_unaligned",
+    "test_axi_dp_ram",
+    "test_axi_fifo",
+    "test_axi_fifo_delay",
+    "test_axi_interconnect_4x4",
+    "test_axi_ram",
+    "test_axi_register",
+    "test_axil_adapter_16_32",
+    "test_axil_adapter_32_16",
+    "test_axil_adapter_32_32",
+    "test_axil_cdc",
+    "test_axil_dp_ram",
+    "test_axil_interconnect_4x4",
+    "test_axil_ram",
+    "test_axil_register",
+    "test_dma_client_axis_sink_128_64",
+    "test_dma_client_axis_sink_512_64",
+    "test_dma_client_axis_source_128_64",
+    "test_dma_client_axis_source_512_64",
+    "test_dma_if_pcie_us_256",
+    "test_dma_if_pcie_us_rd_128",
+    "test_dma_if_pcie_us_rd_256",
+    "test_dma_if_pcie_us_rd_512",
+    "test_dma_if_pcie_us_rd_64",
+    "test_dma_if_pcie_us_wr_128",
+    "test_dma_if_pcie_us_wr_256",
+    "test_dma_if_pcie_us_wr_512",
+    "test_dma_if_pcie_us_wr_64",
+    "test_pcie_us_axi_dma_256",
+    "test_pcie_us_axi_dma_rd_128",
+    "test_pcie_us_axi_dma_rd_256",
+    "test_pcie_us_axi_dma_rd_512",
+    "test_pcie_us_axi_dma_rd_64",
+    "test_pcie_us_axi_dma_wr_128",
+    "test_pcie_us_axi_dma_wr_256",
+    "test_pcie_us_axi_dma_wr_512",
+    "test_pcie_us_axi_dma_wr_64",
+    "test_pcie_us_axi_master_128",
+    "test_pcie_us_axi_master_256",
+    "test_pcie_us_axi_master_64",
+    "test_pcie_us_axi_master_rd_128",
+    "test_pcie_us_axi_master_rd_256",
+    "test_pcie_us_axi_master_rd_512",
+    "test_pcie_us_axi_master_rd_64",
+    "test_pcie_us_axi_master_wr_128",
+    "test_pcie_us_axi_master_wr_256",
+    "test_pcie_us_axi_master_wr_512",
+    "test_pcie_us_axi_master_wr_64",
+    "test_pcie_us_axil_master_128",
+    "test_pcie_us_axil_master_256",
+    "test_pcie_us_axil_master_512",
+    "test_pcie_us_axil_master_64",
+    "trng",
+    "vdma",
+    "watchdog_timer"
+  ],
+  "signal_flow_audit": [
+    {
+      "subsystem": "Processor Instruction Fetch",
+      "path": "fe_pc -> rv_fetch -> imem_araddr -> crossbar Master [0..3, 8] -> Slave 0/2 (DDR / Boot ROM)",
+      "classification": "Fully connected and operational",
+      "notes": "Direct single-beat AXI requests from fetch stage; no in-line L1 I-cache in datapath."
+    },
+    {
+      "subsystem": "Instruction Decode",
+      "path": "imem_rdata -> rv_decode -> register/immediate control signals -> rv_execute",
+      "classification": "Fully connected and operational",
+      "notes": "RV64IM integer decoding; C-extension decode absent; illegal instruction signals currently unconnected to trap unit."
+    },
+    {
+      "subsystem": "Register-File Access",
+      "path": "rv_decode -> rd_addr1/2 -> rv_regfile -> rd_data1/2 -> ALU",
+      "classification": "Fully connected and operational",
+      "notes": "x0 hardwired to zero with write-first bypass; proved safe by FORMAL-01."
+    },
+    {
+      "subsystem": "Execute and Arithmetic Operations",
+      "path": "src1/src2 -> rv_execute (ALU, 64-bit MUL, iterative DIV) -> ex_res -> rv_mem",
+      "classification": "Fully connected and operational",
+      "notes": "Radix-4 multiplier and multi-cycle divider; verified with 100% compliance."
+    },
+    {
+      "subsystem": "Memory Access",
+      "path": "ex_res -> rv_mem -> dmem_awaddr/araddr -> crossbar Master [4..7, 9]",
+      "classification": "Fully connected and operational",
+      "notes": "Single-beat load/store operations; no in-line L1 D-cache in datapath."
+    },
+    {
+      "subsystem": "Writeback",
+      "path": "rv_mem/rv_execute -> rv_writeback -> wr_data -> rv_regfile",
+      "classification": "Fully connected and operational",
+      "notes": "Synchronous single-port GPR writeback."
+    },
+    {
+      "subsystem": "Exceptions and Interrupts",
+      "path": "plic (external) + rtc (timer) -> rv_csr -> trap vector redirect",
+      "classification": "Connected but functionally incomplete",
+      "notes": "Core has hardwired exception=0 (pipeline traps unhandled); CLINT sw_irq tied to 0."
+    },
+    {
+      "subsystem": "Instruction & Data Memory Transactions",
+      "path": "crossbar Master [0..9] -> crossbar -> Slave 0 (DDR) / Slave 1 (AHB/APB) / Slave 2 (Boot ROM)",
+      "classification": "Fully connected and operational",
+      "notes": "10-master crossbar arbitration; verified by tb_integ_xbar_concurrency."
+    },
+    {
+      "subsystem": "Cache Hierarchy",
+      "path": "rv_core_top -> [L1 I/D Cache] -> [L2 Cache] -> DDR Controller",
+      "classification": "Instantiated but isolated",
+      "notes": "L1 caches uninstantiated in core; L2 cache instantiated only with clk/rst_n (memory buses isolated)."
+    },
+    {
+      "subsystem": "Interconnect Routing",
+      "path": "axi4_crossbar address decoding [39:31] -> Slave select",
+      "classification": "Fully connected and operational",
+      "notes": "DECERR returned on unmapped address accesses; proved by FORMAL-04."
+    },
+    {
+      "subsystem": "Arbitration",
+      "path": "axi4_crossbar round-robin / priority arbiters on AW, AR, W, R channels",
+      "classification": "Fully connected and operational",
+      "notes": "Deadlock-free multi-master arbitration."
+    },
+    {
+      "subsystem": "DDR Access",
+      "path": "Slave 0 -> ddr_ctrl_top -> ddr_scheduler -> ddr_phy_if -> DDR4 SDRAM Pins",
+      "classification": "Connected to a behavioural model",
+      "notes": "Controller RTL verified against simulation ddr4_sdram_bfm; physical silicon PHY uncalibrated."
+    },
+    {
+      "subsystem": "Peripheral Access",
+      "path": "Slave 1 -> axi4_to_ahb -> APB bridge -> UART / RTC / CAN / AES / DRBG / ENVM",
+      "classification": "Fully connected and operational",
+      "notes": "Complete APB address decode and register read/write access."
+    },
+    {
+      "subsystem": "DMA Access",
+      "path": "VDMA / GEM / PCIe / USB -> crossbar -> DDR memory",
+      "classification": "Connected but functionally incomplete",
+      "notes": "DMA controllers have internal FIFOs; top-level streaming masters partially stubbed."
+    },
+    {
+      "subsystem": "Debug Access",
+      "path": "JTAG TAP -> rv_debug -> halt_req / resume_req -> rv_core_top",
+      "classification": "Not implemented",
+      "notes": "rv_debug is omitted from titan_x_top.v; core halt_req/resume_req tied to 0."
+    },
+    {
+      "subsystem": "Security and Boot",
+      "path": "eNVM -> secure_boot -> hash/digest check -> core_rst_n release",
+      "classification": "Fully connected and operational",
+      "notes": "Genuine magic header (0x5449544E), public key (0xCAFEF00D), rolling digest, timeout, reset gating verified across 5 scenarios."
+    },
+    {
+      "subsystem": "External I/O",
+      "path": "UART, CAN, GPIO, I2C, SPI, Ethernet, PCIe, USB, MIPI, HDMI pins",
+      "classification": "Connected to a behavioural model",
+      "notes": "High-speed SERDES PHYs (PCIe PIPE, GMII, ULPI) and HDMI TMDS serialized pads are simulation stubs."
+    }
+  ],
+  "hierarchy_tree": [
+    {
+      "instance": "u_plic",
+      "module": "plic",
+      "path": "titan_x_top.u_plic",
+      "file": "backend/plic/plic.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "interrupt_sources",
+          "expr": "plic_sources",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_plic",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr[23:0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_plic",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "pready_plic",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irq_targets",
+          "expr": "plic_targets",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_crossbar",
+      "module": "axi4_crossbar",
+      "path": "titan_x_top.u_crossbar",
+      "file": "interconnect/axi4_crossbar/axi4_crossbar.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "core_rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awvalid",
+          "expr": "axm_awvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awready",
+          "expr": "axm_awready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awaddr",
+          "expr": "axm_awaddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awid",
+          "expr": "axm_awid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wvalid",
+          "expr": "axm_wvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wready",
+          "expr": "axm_wready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wdata",
+          "expr": "axm_wdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wstrb",
+          "expr": "axm_wstrb",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wlast",
+          "expr": "axm_wlast",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bvalid",
+          "expr": "axm_bvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bready",
+          "expr": "axm_bready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bresp",
+          "expr": "axm_bresp",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bid",
+          "expr": "axm_bid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arvalid",
+          "expr": "axm_arvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arready",
+          "expr": "axm_arready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_araddr",
+          "expr": "axm_araddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arid",
+          "expr": "axm_arid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rvalid",
+          "expr": "axm_rvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rready",
+          "expr": "axm_rready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rdata",
+          "expr": "axm_rdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rresp",
+          "expr": "axm_rresp",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rlast",
+          "expr": "axm_rlast",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rid",
+          "expr": "axm_rid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awvalid",
+          "expr": "axs_awvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awready",
+          "expr": "axs_awready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awaddr",
+          "expr": "axs_awaddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awid",
+          "expr": "axs_awid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wvalid",
+          "expr": "axs_wvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wready",
+          "expr": "axs_wready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wdata",
+          "expr": "axs_wdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wstrb",
+          "expr": "axs_wstrb",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wlast",
+          "expr": "axs_wlast",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bvalid",
+          "expr": "axs_bvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bready",
+          "expr": "axs_bready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bresp",
+          "expr": "axs_bresp",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bid",
+          "expr": "axs_bid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arvalid",
+          "expr": "axs_arvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arready",
+          "expr": "axs_arready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_araddr",
+          "expr": "axs_araddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arid",
+          "expr": "axs_arid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rvalid",
+          "expr": "axs_rvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rready",
+          "expr": "axs_rready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rdata",
+          "expr": "axs_rdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rresp",
+          "expr": "axs_rresp",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rlast",
+          "expr": "axs_rlast",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rid",
+          "expr": "axs_rid",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_boot_rom",
+      "module": "axi_rom",
+      "path": "titan_x_top.u_boot_rom",
+      "file": "top/axi_rom/axi_rom.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arvalid",
+          "expr": "axs_arvalid[2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arready",
+          "expr": "axs_arready[2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_araddr",
+          "expr": "axs_araddr[2*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arid",
+          "expr": "axs_arid[2*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rvalid",
+          "expr": "axs_rvalid[2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rready",
+          "expr": "axs_rready[2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rdata",
+          "expr": "axs_rdata[2*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rresp",
+          "expr": "axs_rresp[2*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rlast",
+          "expr": "axs_rlast[2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rid",
+          "expr": "axs_rid[2*4 +: 4]",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_core",
+      "module": "rv_core_top",
+      "path": "titan_x_top.u_core",
+      "file": "backend/rv_core_top/rv_core_top.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "core_rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irq_m_ext",
+          "expr": "plic_targets[c*2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irq_m_timer",
+          "expr": "timer_irq[c]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irq_m_soft",
+          "expr": "sw_irq[c]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_arvalid",
+          "expr": "axm_arvalid[c]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_arready",
+          "expr": "axm_arready[c]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_araddr",
+          "expr": "axm_araddr[c*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_arlen",
+          "expr": "imem_arlen",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_arsize",
+          "expr": "imem_arsize",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_arburst",
+          "expr": "imem_arburst",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rvalid",
+          "expr": "axm_rvalid[c]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rready",
+          "expr": "axm_rready[c]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rdata",
+          "expr": "axm_rdata[c*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rresp",
+          "expr": "axm_rresp[c*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rlast",
+          "expr": "axm_rlast[c]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awvalid",
+          "expr": "axm_awvalid[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awready",
+          "expr": "axm_awready[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awaddr",
+          "expr": "axm_awaddr[(c+4)*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awlen",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_awsize",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_awburst",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_wvalid",
+          "expr": "axm_wvalid[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wready",
+          "expr": "axm_wready[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wdata",
+          "expr": "axm_wdata[(c+4)*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wstrb",
+          "expr": "axm_wstrb[(c+4)*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wlast",
+          "expr": "axm_wlast[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_bvalid",
+          "expr": "axm_bvalid[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_bready",
+          "expr": "axm_bready[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_bresp",
+          "expr": "axm_bresp[(c+4)*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_arvalid",
+          "expr": "axm_arvalid[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_arready",
+          "expr": "axm_arready[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_araddr",
+          "expr": "axm_araddr[(c+4)*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_arlen",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_arsize",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_arburst",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_arlock",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_rvalid",
+          "expr": "axm_rvalid[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_rready",
+          "expr": "axm_rready[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_rdata",
+          "expr": "axm_rdata[(c+4)*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_rresp",
+          "expr": "axm_rresp[(c+4)*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_rlast",
+          "expr": "axm_rlast[c+4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "snoop_valid",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "snoop_addr",
+          "expr": "40'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "snoop_type",
+          "expr": "2'b00",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "snoop_ack",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "snoop_data_valid",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "snoop_data",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "halt_req",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "resume_req",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "hart_halted",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "hart_running",
+          "expr": "",
+          "class": "UNCONNECTED"
+        }
+      ],
+      "children": [
+        {
+          "instance": "u_buf_flush1",
+          "module": "BUFX4",
+          "path": "titan_x_top.u_core.u_buf_flush1",
+          "file": "common/BUFX4/buf_macros.v",
+          "port_audit": [
+            {
+              "port": "A",
+              "expr": "flush_raw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "Y",
+              "expr": "flush_de_1",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
+          "instance": "u_buf_flush4",
+          "module": "BUFX4",
+          "path": "titan_x_top.u_core.u_buf_flush4",
+          "file": "common/BUFX4/buf_macros.v",
+          "port_audit": [
+            {
+              "port": "A",
+              "expr": "flush_raw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "Y",
+              "expr": "flush_de_4",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
+          "instance": "u_fetch",
+          "module": "rv_fetch",
+          "path": "titan_x_top.u_core.u_fetch",
+          "file": "frontend/rv_fetch/rv_fetch.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "stall",
+              "expr": "stall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "flush",
+              "expr": "exception",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch_taken",
+              "expr": "branch_taken",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch_target",
+              "expr": "branch_target",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imem_addr",
+              "expr": "fe_imem_addr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imem_arvalid",
+              "expr": "imem_arvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imem_arready",
+              "expr": "imem_arready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imem_rdata",
+              "expr": "imem_rdata[31:0]",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imem_rvalid",
+              "expr": "imem_rvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imem_rready",
+              "expr": "fe_rready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imem_rresp",
+              "expr": "imem_rresp",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pc_out",
+              "expr": "fe_pc",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "instr_out",
+              "expr": "fe_instr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_out",
+              "expr": "fe_valid",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
+          "instance": "u_decode",
+          "module": "rv_decode",
+          "path": "titan_x_top.u_core.u_decode",
+          "file": "frontend/rv_decode/rv_decode.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "stall",
+              "expr": "stall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "flush",
+              "expr": "flush_de_1",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pc_in",
+              "expr": "fe_pc",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "instr_in",
+              "expr": "fe_instr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_in",
+              "expr": "fe_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_rd",
+              "expr": "wb_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_data",
+              "expr": "wb_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_we",
+              "expr": "wb_we",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pc_out",
+              "expr": "de_pc",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_data",
+              "expr": "de_rs1",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_data",
+              "expr": "de_rs2",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imm",
+              "expr": "de_imm",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd",
+              "expr": "de_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_addr",
+              "expr": "de_rs1a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_addr",
+              "expr": "de_rs2a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct3",
+              "expr": "de_f3",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct7",
+              "expr": "de_f7",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "opcode",
+              "expr": "de_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "alu_op",
+              "expr": "de_aluop",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_read",
+              "expr": "de_memr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_write",
+              "expr": "de_memw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write",
+              "expr": "de_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch",
+              "expr": "de_branch",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jal",
+              "expr": "de_jal",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jalr",
+              "expr": "de_jalr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_csr",
+              "expr": "de_iscsr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "csr_op",
+              "expr": "de_csrop",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ecall",
+              "expr": "de_ecall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ebreak",
+              "expr": "de_ebreak",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_mret",
+              "expr": "de_mret",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_out",
+              "expr": "de_valid",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": [
+            {
+              "instance": "u_rf",
+              "module": "rv_regfile",
+              "path": "titan_x_top.u_core.u_decode.u_rf",
+              "file": "backend/rv_regfile/rv_regfile.v",
+              "port_audit": [
+                {
+                  "port": "clk",
+                  "expr": "clk",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rst_n",
+                  "expr": "rst_n",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_addr1",
+                  "expr": "r_rs1",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_data1",
+                  "expr": "rf_rs1_data",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_addr2",
+                  "expr": "r_rs2",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_data2",
+                  "expr": "rf_rs2_data",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "wr_en",
+                  "expr": "wb_we",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "wr_addr",
+                  "expr": "wb_rd",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "wr_data",
+                  "expr": "wb_data",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf1",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_decode.u_buf1",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf1",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf2",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_decode.u_buf2",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf2",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf3",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_decode.u_buf3",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf3",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf4",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_decode.u_buf4",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf4",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf5",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_decode.u_buf5",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf5",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "instance": "u_execute",
+          "module": "rv_execute",
+          "path": "titan_x_top.u_core.u_execute",
+          "file": "backend/rv_execute/rv_execute.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "stall",
+              "expr": "stall_ex",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "flush",
+              "expr": "flush_de_4",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pc_in",
+              "expr": "de_pc",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_data",
+              "expr": "de_rs1",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_data",
+              "expr": "de_rs2",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imm",
+              "expr": "de_imm",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_in",
+              "expr": "de_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_addr",
+              "expr": "de_rs1a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_addr",
+              "expr": "de_rs2a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct3",
+              "expr": "de_f3",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct7",
+              "expr": "de_f7",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "opcode",
+              "expr": "de_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "alu_op",
+              "expr": "de_aluop",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_read",
+              "expr": "de_memr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_write",
+              "expr": "de_memw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write",
+              "expr": "de_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch",
+              "expr": "de_branch",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jal",
+              "expr": "de_jal",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jalr",
+              "expr": "de_jalr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_amo",
+              "expr": "1'b0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "amo_funct5",
+              "expr": "5'h0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "is_csr",
+              "expr": "de_iscsr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "csr_op",
+              "expr": "de_csrop",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ecall",
+              "expr": "de_ecall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ebreak",
+              "expr": "de_ebreak",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_mret",
+              "expr": "de_mret",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "irq_m_ext",
+              "expr": "irq_m_ext",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "irq_m_timer",
+              "expr": "irq_m_timer",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "irq_m_soft",
+              "expr": "irq_m_soft",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_in",
+              "expr": "de_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_mem_data",
+              "expr": "fwd_mem_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_mem_valid",
+              "expr": "fwd_mem_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_mem_rd",
+              "expr": "fwd_mem_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_data",
+              "expr": "fwd_wb_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_valid",
+              "expr": "fwd_wb_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_rd",
+              "expr": "fwd_wb_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fpu_result",
+              "expr": "64'h0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "fpu_valid",
+              "expr": "1'b0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "fpu_done",
+              "expr": "1'b0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "alu_result",
+              "expr": "ex_alures",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_out",
+              "expr": "ex_rs2",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_out",
+              "expr": "ex_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct3_out",
+              "expr": "ex_f3",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "opcode_out",
+              "expr": "ex_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_read_out",
+              "expr": "ex_memr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_write_out",
+              "expr": "ex_memw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write_out",
+              "expr": "ex_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_amo_out",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "amo_funct5_out",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "valid_out",
+              "expr": "ex_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mul_div_stall",
+              "expr": "mul_div_stall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch_taken",
+              "expr": "branch_taken",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch_target",
+              "expr": "branch_target",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "lr_addr",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "lr_valid",
+              "expr": "",
+              "class": "UNCONNECTED"
+            }
+          ],
+          "children": [
+            {
+              "instance": "u_csr",
+              "module": "rv_csr",
+              "path": "titan_x_top.u_core.u_execute.u_csr",
+              "file": "backend/rv_csr/rv_csr.v",
+              "port_audit": [
+                {
+                  "port": "clk",
+                  "expr": "clk",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rst_n",
+                  "expr": "rst_n",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_raddr",
+                  "expr": "csr_a",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_rdata",
+                  "expr": "csr_old",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_we",
+                  "expr": "csr_we_w",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_waddr",
+                  "expr": "csr_a",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_wdata",
+                  "expr": "csr_wd",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "trap_we",
+                  "expr": "trap_commit",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "trap_pc",
+                  "expr": "pc_in",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "trap_cause",
+                  "expr": "trap_cause_w",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mret_we",
+                  "expr": "mret_commit",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mip_m_ext",
+                  "expr": "irq_m_ext",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mip_m_timer",
+                  "expr": "irq_m_timer",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mip_m_soft",
+                  "expr": "irq_m_soft",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "retire_pulse",
+                  "expr": "ex_exit",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mtvec_out",
+                  "expr": "mtvec_q",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mepc_out",
+                  "expr": "mepc_q",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "irq_pending",
+                  "expr": "irq_pend",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex1",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex1",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_1",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex2",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex2",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_2",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex3",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex3",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_3",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex4",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex4",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_4",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "instance": "u_mem",
+          "module": "rv_mem",
+          "path": "titan_x_top.u_core.u_mem",
+          "file": "backend/rv_mem/rv_mem.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "flush",
+              "expr": "1'b0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "alu_result",
+              "expr": "ex_alures",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_data",
+              "expr": "ex_rs2",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_in",
+              "expr": "ex_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct3",
+              "expr": "ex_f3",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "opcode",
+              "expr": "ex_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_read",
+              "expr": "ex_memr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_write",
+              "expr": "ex_memw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write",
+              "expr": "ex_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_in",
+              "expr": "ex_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_awvalid",
+              "expr": "dmem_awvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_awready",
+              "expr": "dmem_awready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_awaddr",
+              "expr": "dmem_awaddr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_wvalid",
+              "expr": "dmem_wvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_wready",
+              "expr": "dmem_wready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_wdata",
+              "expr": "dmem_wdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_wstrb",
+              "expr": "dmem_wstrb",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_bvalid",
+              "expr": "dmem_bvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_bready",
+              "expr": "dmem_bready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_arvalid",
+              "expr": "dmem_arvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_arready",
+              "expr": "dmem_arready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_araddr",
+              "expr": "dmem_araddr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_rvalid",
+              "expr": "dmem_rvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_rready",
+              "expr": "dmem_rready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_rdata",
+              "expr": "dmem_rdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dmem_rresp",
+              "expr": "dmem_rresp",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "result",
+              "expr": "mem_result",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_out",
+              "expr": "mem_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write_out",
+              "expr": "mem_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_out",
+              "expr": "mem_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_mem_data",
+              "expr": "fwd_mem_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_mem_rd",
+              "expr": "fwd_mem_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_mem_valid",
+              "expr": "fwd_mem_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_stall",
+              "expr": "mem_stall",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
+          "instance": "u_wb",
+          "module": "rv_writeback",
+          "path": "titan_x_top.u_core.u_wb",
+          "file": "backend/rv_writeback/rv_writeback.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "result",
+              "expr": "mem_result",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_in",
+              "expr": "mem_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write",
+              "expr": "mem_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_in",
+              "expr": "mem_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_data",
+              "expr": "wb_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_rd",
+              "expr": "wb_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_we",
+              "expr": "wb_we",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_data",
+              "expr": "fwd_wb_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_rd",
+              "expr": "fwd_wb_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_valid",
+              "expr": "fwd_wb_valid",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "instance": "u_monitor",
+      "module": "rv_monitor_core",
+      "path": "titan_x_top.u_monitor",
+      "file": "backend/rv_monitor_core/rv_monitor_core.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "core_rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irq_m_ext",
+          "expr": "plic_targets[8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irq_m_timer",
+          "expr": "timer_irq[4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irq_m_soft",
+          "expr": "sw_irq[4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_arvalid",
+          "expr": "axm_arvalid[8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_arready",
+          "expr": "axm_arready[8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_araddr",
+          "expr": "axm_araddr[8*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rvalid",
+          "expr": "axm_rvalid[8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rdata",
+          "expr": "axm_rdata[8*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "imem_rresp",
+          "expr": "axm_rresp[8*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awvalid",
+          "expr": "axm_awvalid[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awready",
+          "expr": "axm_awready[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awaddr",
+          "expr": "axm_awaddr[9*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_awlen",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_awsize",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_awburst",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_wvalid",
+          "expr": "axm_wvalid[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wready",
+          "expr": "axm_wready[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wdata",
+          "expr": "axm_wdata[9*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wstrb",
+          "expr": "axm_wstrb[9*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_wlast",
+          "expr": "axm_wlast[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_bvalid",
+          "expr": "axm_bvalid[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_bready",
+          "expr": "axm_bready[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_bresp",
+          "expr": "axm_bresp[9*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_arvalid",
+          "expr": "axm_arvalid[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_arready",
+          "expr": "axm_arready[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_araddr",
+          "expr": "axm_araddr[9*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_arlen",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_arsize",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_arburst",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_rvalid",
+          "expr": "axm_rvalid[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_rready",
+          "expr": "axm_rready[9]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_rdata",
+          "expr": "axm_rdata[9*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "dmem_rlast",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "dmem_rresp",
+          "expr": "axm_rresp[9*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "halt_req",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "resume_req",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": [
+        {
+          "instance": "u_decode",
+          "module": "rv_decode",
+          "path": "titan_x_top.u_monitor.u_decode",
+          "file": "frontend/rv_decode/rv_decode.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "stall",
+              "expr": "stall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "flush",
+              "expr": "flush_de",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pc_in",
+              "expr": "fe_pc",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "instr_in",
+              "expr": "fe_instr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_in",
+              "expr": "fe_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_rd",
+              "expr": "mon_wb_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_data",
+              "expr": "mon_wb_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wb_we",
+              "expr": "mon_wb_we",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pc_out",
+              "expr": "de_pc",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_data",
+              "expr": "de_rs1",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_data",
+              "expr": "de_rs2",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imm",
+              "expr": "de_imm",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd",
+              "expr": "de_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_addr",
+              "expr": "de_rs1a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_addr",
+              "expr": "de_rs2a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct3",
+              "expr": "de_f3",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct7",
+              "expr": "de_f7",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "opcode",
+              "expr": "de_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "alu_op",
+              "expr": "de_aluop",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_read",
+              "expr": "de_memr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_write",
+              "expr": "de_memw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write",
+              "expr": "de_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch",
+              "expr": "de_branch",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jal",
+              "expr": "de_jal",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jalr",
+              "expr": "de_jalr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_out",
+              "expr": "de_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_csr",
+              "expr": "de_is_csr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "csr_op",
+              "expr": "de_csr_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ecall",
+              "expr": "de_is_ecall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ebreak",
+              "expr": "de_is_ebreak",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_mret",
+              "expr": "de_is_mret",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": [
+            {
+              "instance": "u_rf",
+              "module": "rv_regfile",
+              "path": "titan_x_top.u_monitor.u_decode.u_rf",
+              "file": "backend/rv_regfile/rv_regfile.v",
+              "port_audit": [
+                {
+                  "port": "clk",
+                  "expr": "clk",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rst_n",
+                  "expr": "rst_n",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_addr1",
+                  "expr": "r_rs1",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_data1",
+                  "expr": "rf_rs1_data",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_addr2",
+                  "expr": "r_rs2",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rd_data2",
+                  "expr": "rf_rs2_data",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "wr_en",
+                  "expr": "wb_we",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "wr_addr",
+                  "expr": "wb_rd",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "wr_data",
+                  "expr": "wb_data",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf1",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_decode.u_buf1",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf1",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf2",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_decode.u_buf2",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf2",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf3",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_decode.u_buf3",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf3",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf4",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_decode.u_buf4",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf4",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf5",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_decode.u_buf5",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_buf5",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "instance": "u_execute",
+          "module": "rv_execute",
+          "path": "titan_x_top.u_monitor.u_execute",
+          "file": "backend/rv_execute/rv_execute.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "stall",
+              "expr": "stall_ex",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "flush",
+              "expr": "flush_de",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pc_in",
+              "expr": "de_pc",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_data",
+              "expr": "de_rs1",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_data",
+              "expr": "de_rs2",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "imm",
+              "expr": "de_imm",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_in",
+              "expr": "de_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs1_addr",
+              "expr": "de_rs1a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_addr",
+              "expr": "de_rs2a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct3",
+              "expr": "de_f3",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct7",
+              "expr": "de_f7",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "opcode",
+              "expr": "de_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "alu_op",
+              "expr": "de_aluop",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_read",
+              "expr": "de_memr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_write",
+              "expr": "de_memw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write",
+              "expr": "de_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch",
+              "expr": "de_branch",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jal",
+              "expr": "de_jal",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "jalr",
+              "expr": "de_jalr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_amo",
+              "expr": "de_is_amo",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "amo_funct5",
+              "expr": "de_amo_f5",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_csr",
+              "expr": "de_is_csr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "csr_op",
+              "expr": "de_csr_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ecall",
+              "expr": "de_is_ecall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_ebreak",
+              "expr": "de_is_ebreak",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_mret",
+              "expr": "de_is_mret",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "irq_m_ext",
+              "expr": "irq_m_ext",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "irq_m_timer",
+              "expr": "irq_m_timer",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "irq_m_soft",
+              "expr": "irq_m_soft",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_in",
+              "expr": "de_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_mem_data",
+              "expr": "64'h0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "fwd_mem_valid",
+              "expr": "1'b0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "fwd_mem_rd",
+              "expr": "5'h0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "fwd_wb_data",
+              "expr": "mon_wb_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_valid",
+              "expr": "mon_wb_we",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fwd_wb_rd",
+              "expr": "mon_wb_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "fpu_result",
+              "expr": "64'h0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "fpu_valid",
+              "expr": "1'b0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "fpu_done",
+              "expr": "1'b1",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "alu_result",
+              "expr": "ex_alures",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rs2_out",
+              "expr": "ex_rs2",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_out",
+              "expr": "ex_rd",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "funct3_out",
+              "expr": "ex_f3",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "opcode_out",
+              "expr": "ex_op",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_read_out",
+              "expr": "ex_memr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mem_write_out",
+              "expr": "ex_memw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reg_write_out",
+              "expr": "ex_regw",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "is_amo_out",
+              "expr": "ex_is_amo",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "amo_funct5_out",
+              "expr": "ex_amo_f5",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "valid_out",
+              "expr": "ex_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "mul_div_stall",
+              "expr": "mul_div_stall",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch_taken",
+              "expr": "branch_taken",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "branch_target",
+              "expr": "branch_target",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "lr_addr",
+              "expr": "ex_lr_addr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "lr_valid",
+              "expr": "ex_lr_valid",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": [
+            {
+              "instance": "u_csr",
+              "module": "rv_csr",
+              "path": "titan_x_top.u_monitor.u_execute.u_csr",
+              "file": "backend/rv_csr/rv_csr.v",
+              "port_audit": [
+                {
+                  "port": "clk",
+                  "expr": "clk",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rst_n",
+                  "expr": "rst_n",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_raddr",
+                  "expr": "csr_a",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_rdata",
+                  "expr": "csr_old",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_we",
+                  "expr": "csr_we_w",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_waddr",
+                  "expr": "csr_a",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "csr_wdata",
+                  "expr": "csr_wd",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "trap_we",
+                  "expr": "trap_commit",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "trap_pc",
+                  "expr": "pc_in",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "trap_cause",
+                  "expr": "trap_cause_w",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mret_we",
+                  "expr": "mret_commit",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mip_m_ext",
+                  "expr": "irq_m_ext",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mip_m_timer",
+                  "expr": "irq_m_timer",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mip_m_soft",
+                  "expr": "irq_m_soft",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "retire_pulse",
+                  "expr": "ex_exit",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mtvec_out",
+                  "expr": "mtvec_q",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "mepc_out",
+                  "expr": "mepc_q",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "irq_pending",
+                  "expr": "irq_pend",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex1",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex1",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_1",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex2",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex2",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_2",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex3",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex3",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_3",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            },
+            {
+              "instance": "u_buf_flush_ex4",
+              "module": "BUFX4",
+              "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex4",
+              "file": "common/BUFX4/buf_macros.v",
+              "port_audit": [
+                {
+                  "port": "A",
+                  "expr": "flush",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "Y",
+                  "expr": "flush_ex_4",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "instance": "u_l2_cache",
+      "module": "l2_cache_top",
+      "path": "titan_x_top.u_l2_cache",
+      "file": "memory/l2_cache_top/l2_cache_top.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": [
+        {
+          "instance": "u_ctrl",
+          "module": "l2_cache_ctrl",
+          "path": "titan_x_top.u_l2_cache.u_ctrl",
+          "file": "memory/l2_cache_ctrl/l2_cache_ctrl.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_arvalid",
+              "expr": "s_arvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_arready",
+              "expr": "s_arready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_araddr",
+              "expr": "s_araddr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_rvalid",
+              "expr": "s_rvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_rready",
+              "expr": "s_rready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_rdata",
+              "expr": "s_rdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_rresp",
+              "expr": "s_rresp",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_awvalid",
+              "expr": "s_awvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_awready",
+              "expr": "s_awready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_awaddr",
+              "expr": "s_awaddr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_wvalid",
+              "expr": "s_wvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_wready",
+              "expr": "s_wready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_wdata",
+              "expr": "s_wdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_wstrb",
+              "expr": "s_wstrb",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_bvalid",
+              "expr": "s_bvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_bready",
+              "expr": "s_bready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "s_bresp",
+              "expr": "s_bresp",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_arvalid",
+              "expr": "m_arvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_arready",
+              "expr": "m_arready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_araddr",
+              "expr": "m_araddr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_rvalid",
+              "expr": "m_rvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_rready",
+              "expr": "m_rready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_rdata",
+              "expr": "m_rdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_rresp",
+              "expr": "m_rresp",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_awvalid",
+              "expr": "m_awvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_awready",
+              "expr": "m_awready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_awaddr",
+              "expr": "m_awaddr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_wvalid",
+              "expr": "m_wvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_wready",
+              "expr": "m_wready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_wdata",
+              "expr": "m_wdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_wstrb",
+              "expr": "m_wstrb",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_bvalid",
+              "expr": "m_bvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m_bready",
+              "expr": "m_bready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tag_cs",
+              "expr": "tag_cs",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tag_we",
+              "expr": "tag_we",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tag_index",
+              "expr": "tag_index",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tag_in",
+              "expr": "tag_in",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tag_out",
+              "expr": "tag_out",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tag_valid_out",
+              "expr": "tag_valid_out",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_cs",
+              "expr": "ctrl_dat_cs",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_we",
+              "expr": "ctrl_dat_we",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_bank",
+              "expr": "ctrl_dat_bank",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_wmask",
+              "expr": "ctrl_dat_wmask",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_addr",
+              "expr": "ctrl_dat_addr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_din",
+              "expr": "ctrl_dat_din",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_dout",
+              "expr": "ctrl_dat_dout",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dat_dout_valid",
+              "expr": "ctrl_dat_dout_valid",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
+          "instance": "u_sram",
+          "module": "sram_512kx8_180nm",
+          "path": "titan_x_top.u_l2_cache.u_sram",
+          "file": "memory/sram_512kx8_180nm/sram_512kx8_180nm.v",
+          "port_audit": [
+            {
+              "port": "CLK",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "CEN",
+              "expr": "~dat_cs[b]",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "WEN",
+              "expr": "~(dat_we[b])",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "A",
+              "expr": "dat_addr[b]",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "D",
+              "expr": "dat_din[(i*8)+7 : i*8]",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "Q",
+              "expr": "q_out",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
+          "instance": "u_snoop_filter",
+          "module": "l2_snoop_filter",
+          "path": "titan_x_top.u_l2_cache.u_snoop_filter",
+          "file": "memory/l2_snoop_filter/l2_snoop_filter.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "req_valid",
+              "expr": "s_arvalid || s_awvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "req_addr",
+              "expr": "s_arvalid ? s_araddr : s_awaddr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "req_type",
+              "expr": "s_awvalid ? 2'b01 : 2'b00",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "req_core",
+              "expr": "2'b00",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "snoop_valid",
+              "expr": "snoop_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "snoop_addr",
+              "expr": "snoop_addr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "snoop_type",
+              "expr": "snoop_type",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "snoop_ack",
+              "expr": "snoop_ack",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "snoop_data_valid",
+              "expr": "snoop_data_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "resp_valid",
+              "expr": "sf_resp_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "resp_hit",
+              "expr": "sf_resp_hit",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "resp_dirty",
+              "expr": "sf_resp_dirty",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "resp_owner",
+              "expr": "sf_resp_owner",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "instance": "u_ddr_ctrl",
+      "module": "ddr_ctrl_top",
+      "path": "titan_x_top.u_ddr_ctrl",
+      "file": "memory/ddr_ctrl_top/ddr_ctrl_top.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awvalid",
+          "expr": "axs_awvalid[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awready",
+          "expr": "axs_awready[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awaddr",
+          "expr": "axs_awaddr[0*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awid",
+          "expr": "axs_awid[0*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awlen",
+          "expr": "8'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_awsize",
+          "expr": "3'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_wvalid",
+          "expr": "axs_wvalid[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wready",
+          "expr": "axs_wready[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wdata",
+          "expr": "axs_wdata[0*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wstrb",
+          "expr": "axs_wstrb[0*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wlast",
+          "expr": "axs_wlast[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bvalid",
+          "expr": "axs_bvalid[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bready",
+          "expr": "axs_bready[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bresp",
+          "expr": "axs_bresp[0*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bid",
+          "expr": "axs_bid[0*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arvalid",
+          "expr": "axs_arvalid[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arready",
+          "expr": "axs_arready[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_araddr",
+          "expr": "axs_araddr[0*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arid",
+          "expr": "axs_arid[0*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arlen",
+          "expr": "8'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_rvalid",
+          "expr": "axs_rvalid[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rready",
+          "expr": "axs_rready[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rdata",
+          "expr": "axs_rdata[0*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rresp",
+          "expr": "axs_rresp[0*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rlast",
+          "expr": "axs_rlast[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rid",
+          "expr": "axs_rid[0*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_addr",
+          "expr": "ddr_addr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_ba",
+          "expr": "ddr_ba",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_bg",
+          "expr": "ddr_bg",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_ck_p",
+          "expr": "ddr_ck_p",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_ck_n",
+          "expr": "ddr_ck_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_cke",
+          "expr": "ddr_cke",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_cs_n",
+          "expr": "ddr_cs_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_ras_n",
+          "expr": "ddr_ras_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_cas_n",
+          "expr": "ddr_cas_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_we_n",
+          "expr": "ddr_we_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_dq",
+          "expr": "ddr_dq",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_dqs_p",
+          "expr": "ddr_dqs_p",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ddr_dqs_n",
+          "expr": "ddr_dqs_n",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": [
+        {
+          "instance": "u_sched",
+          "module": "ddr_scheduler",
+          "path": "titan_x_top.u_ddr_ctrl.u_sched",
+          "file": "memory/ddr_scheduler/ddr_scheduler.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_valid",
+              "expr": "sched_cmd_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_type",
+              "expr": "sched_cmd_type",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_bg",
+              "expr": "sched_bg",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_bank",
+              "expr": "sched_bank",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_row",
+              "expr": "sched_row",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_col",
+              "expr": "sched_col",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_ready",
+              "expr": "sched_ready",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "cmd_done",
+              "expr": "sched_cmd_done",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_data",
+              "expr": "sched_rddata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rd_valid",
+              "expr": "sched_rdvalid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "wr_data",
+              "expr": "sched_wrdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_cs_n",
+              "expr": "dfi_cs_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_ras_n",
+              "expr": "dfi_ras_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_cas_n",
+              "expr": "dfi_cas_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_we_n",
+              "expr": "dfi_we_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_bank",
+              "expr": "dfi_bank_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_bg",
+              "expr": "dfi_bg_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_addr",
+              "expr": "dfi_addr_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_wrdata_valid",
+              "expr": "dfi_wrdata_valid_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_wrdata",
+              "expr": "dfi_wrdata_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_rddata",
+              "expr": "dfi_rddata_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_rddata_valid",
+              "expr": "dfi_rddata_valid_w",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
+          "instance": "u_phy",
+          "module": "ddr_phy_if",
+          "path": "titan_x_top.u_ddr_ctrl.u_phy",
+          "file": "memory/ddr_phy_if/ddr_phy_if.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_ck_en",
+              "expr": "init_done",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_cs_n",
+              "expr": "dfi_cs_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_ras_n",
+              "expr": "dfi_ras_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_cas_n",
+              "expr": "dfi_cas_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_we_n",
+              "expr": "dfi_we_n_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_bank",
+              "expr": "dfi_bank_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_bg",
+              "expr": "dfi_bg_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_addr",
+              "expr": "dfi_addr_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_wrdata_valid",
+              "expr": "dfi_wrdata_valid_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_wrdata",
+              "expr": "dfi_wrdata_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_wrdata_mask",
+              "expr": "8'h00",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "dfi_rddata",
+              "expr": "dfi_rddata_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "dfi_rddata_valid",
+              "expr": "dfi_rddata_valid_w",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_ck_p",
+              "expr": "ddr_ck_p",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_ck_n",
+              "expr": "ddr_ck_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_cke",
+              "expr": "ddr_cke",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_cs_n",
+              "expr": "ddr_cs_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_ras_n",
+              "expr": "ddr_ras_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_cas_n",
+              "expr": "ddr_cas_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_we_n",
+              "expr": "ddr_we_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_ba",
+              "expr": "ddr_ba",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_bg",
+              "expr": "ddr_bg",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_addr",
+              "expr": "ddr_addr",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_dm",
+              "expr": "ddr_dm",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_dq",
+              "expr": "ddr_dq",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_dqs_p",
+              "expr": "ddr_dqs_p",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "ddr_dqs_n",
+              "expr": "ddr_dqs_n",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "instance": "u_axi2ahb",
+      "module": "axi4_to_ahb",
+      "path": "titan_x_top.u_axi2ahb",
+      "file": "interconnect/axi4_to_ahb/axi4_to_ahb.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awvalid",
+          "expr": "axs_awvalid[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awready",
+          "expr": "axs_awready[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awaddr",
+          "expr": "axs_awaddr[1*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awid",
+          "expr": "axs_awid[1*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wvalid",
+          "expr": "axs_wvalid[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wready",
+          "expr": "axs_wready[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wdata",
+          "expr": "axs_wdata[1*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wstrb",
+          "expr": "axs_wstrb[1*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bvalid",
+          "expr": "axs_bvalid[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bready",
+          "expr": "axs_bready[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bresp",
+          "expr": "axs_bresp[1*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bid",
+          "expr": "axs_bid[1*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arvalid",
+          "expr": "axs_arvalid[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arready",
+          "expr": "axs_arready[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_araddr",
+          "expr": "axs_araddr[1*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arid",
+          "expr": "axs_arid[1*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rvalid",
+          "expr": "axs_rvalid[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rready",
+          "expr": "axs_rready[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rdata",
+          "expr": "axs_rdata[1*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rresp",
+          "expr": "axs_rresp[1*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rlast",
+          "expr": "axs_rlast[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "haddr",
+          "expr": "haddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "hwrite",
+          "expr": "hwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "htrans",
+          "expr": "htrans",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "hsize",
+          "expr": "hsize",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "hburst",
+          "expr": "hburst",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "hwdata",
+          "expr": "hwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "hrdata",
+          "expr": "hrdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "hready",
+          "expr": "hready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "hresp",
+          "expr": "hresp",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_gem",
+      "module": "gem_ethernet",
+      "path": "titan_x_top.u_gem",
+      "file": "peripherals/gem_ethernet/gem_ethernet.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "tx_clk",
+          "expr": "eth_tx_clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rx_clk",
+          "expr": "eth_rx_clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awvalid",
+          "expr": "axm_awvalid[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awready",
+          "expr": "axm_awready[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awaddr",
+          "expr": "axm_awaddr[10*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awid",
+          "expr": "axm_awid[10*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wvalid",
+          "expr": "axm_wvalid[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wready",
+          "expr": "axm_wready[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wdata",
+          "expr": "axm_wdata[10*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wstrb",
+          "expr": "axm_wstrb[10*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wlast",
+          "expr": "axm_wlast[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bvalid",
+          "expr": "axm_bvalid[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bready",
+          "expr": "axm_bready[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bresp",
+          "expr": "axm_bresp[10*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bid",
+          "expr": "axm_bid[10*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arvalid",
+          "expr": "axm_arvalid[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arready",
+          "expr": "axm_arready[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_araddr",
+          "expr": "axm_araddr[10*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arid",
+          "expr": "axm_arid[10*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rvalid",
+          "expr": "axm_rvalid[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rready",
+          "expr": "axm_rready[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rdata",
+          "expr": "axm_rdata[10*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rresp",
+          "expr": "axm_rresp[10*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rlast",
+          "expr": "axm_rlast[10]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_gem",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_gem",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "mac_irq",
+          "expr": "plic_irq[27]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "gmii_txd",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "gmii_tx_en",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "gmii_tx_er",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "gmii_rxd",
+          "expr": "8'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "gmii_rx_dv",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "gmii_rx_er",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "gmii_crs",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "gmii_col",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_pcie",
+      "module": "pcie_top",
+      "path": "titan_x_top.u_pcie",
+      "file": "peripherals/pcie_top/pcie_top.v",
+      "port_audit": [
+        {
+          "port": "pcie_clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pcie_rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pipe_clk",
+          "expr": "pipe_clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awvalid",
+          "expr": "axm_awvalid[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awready",
+          "expr": "axm_awready[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awaddr",
+          "expr": "axm_awaddr[11*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awid",
+          "expr": "axm_awid[11*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wvalid",
+          "expr": "axm_wvalid[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wready",
+          "expr": "axm_wready[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wdata",
+          "expr": "axm_wdata[11*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wstrb",
+          "expr": "axm_wstrb[11*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wlast",
+          "expr": "axm_wlast[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bvalid",
+          "expr": "axm_bvalid[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bready",
+          "expr": "axm_bready[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bresp",
+          "expr": "axm_bresp[11*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bid",
+          "expr": "axm_bid[11*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arvalid",
+          "expr": "axm_arvalid[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arready",
+          "expr": "axm_arready[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_araddr",
+          "expr": "axm_araddr[11*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arid",
+          "expr": "axm_arid[11*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rvalid",
+          "expr": "axm_rvalid[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rready",
+          "expr": "axm_rready[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rdata",
+          "expr": "axm_rdata[11*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rresp",
+          "expr": "axm_rresp[11*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rlast",
+          "expr": "axm_rlast[11]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rid",
+          "expr": "axm_rid[11*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pipe_tx_data",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pipe_tx_datak",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pipe_tx_rate",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pipe_tx_elecidle",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pipe_tx_compliance",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pipe_rx_data",
+          "expr": "64'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "pipe_rx_datak",
+          "expr": "8'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "pipe_rx_polarity",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pipe_power_down",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pipe_rx_valid",
+          "expr": "4'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "pipe_rx_elecidle",
+          "expr": "4'b1111",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "pipe_rx_status",
+          "expr": "12'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "pipe_phy_status",
+          "expr": "4'b0",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": [
+        {
+          "instance": "u_pipe_if",
+          "module": "pcie_pipe_if",
+          "path": "titan_x_top.u_pcie.u_pipe_if",
+          "file": "peripherals/pcie_pipe_if/pcie_pipe_if.v",
+          "port_audit": [
+            {
+              "port": "pclk",
+              "expr": "pipe_clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "reset_n",
+              "expr": "pcie_rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tx_data",
+              "expr": "64'h0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "tx_datak",
+              "expr": "8'h0",
+              "class": "TIED_TO_CONSTANT"
+            },
+            {
+              "port": "rx_data",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "rx_datak",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "rx_valid",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "rx_elecidle",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "rx_status",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "tx_rate",
+              "expr": "tx_rate",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "power_down",
+              "expr": "power_down",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tx_elecidle",
+              "expr": "tx_elecidle",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "tx_compliance",
+              "expr": "tx_compliance",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rx_polarity",
+              "expr": "rx_polarity",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_tx_data",
+              "expr": "pipe_tx_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_tx_datak",
+              "expr": "pipe_tx_datak",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_rx_data",
+              "expr": "pipe_rx_data",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_rx_datak",
+              "expr": "pipe_rx_datak",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_tx_rate",
+              "expr": "pipe_tx_rate",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_tx_elecidle",
+              "expr": "pipe_tx_elecidle",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_tx_compliance",
+              "expr": "pipe_tx_compliance",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_rx_polarity",
+              "expr": "pipe_rx_polarity",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_power_down",
+              "expr": "pipe_power_down",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_rx_valid",
+              "expr": "pipe_rx_valid",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_rx_elecidle",
+              "expr": "pipe_rx_elecidle",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_rx_status",
+              "expr": "pipe_rx_status",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pipe_phy_status",
+              "expr": "pipe_phy_status",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "instance": "u_usb",
+      "module": "usb_otg",
+      "path": "titan_x_top.u_usb",
+      "file": "storage/usb_otg/usb_otg.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ulpi_clk",
+          "expr": "ulpi_clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awvalid",
+          "expr": "axm_awvalid[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awready",
+          "expr": "axm_awready[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awaddr",
+          "expr": "axm_awaddr[12*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awid",
+          "expr": "axm_awid[12*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_awlen",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_awsize",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_wvalid",
+          "expr": "axm_wvalid[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wready",
+          "expr": "axm_wready[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wdata",
+          "expr": "axm_wdata[12*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wstrb",
+          "expr": "axm_wstrb[12*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_wlast",
+          "expr": "axm_wlast[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bvalid",
+          "expr": "axm_bvalid[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bready",
+          "expr": "axm_bready[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bresp",
+          "expr": "axm_bresp[12*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_bid",
+          "expr": "axm_bid[12*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arvalid",
+          "expr": "axm_arvalid[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arready",
+          "expr": "axm_arready[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_araddr",
+          "expr": "axm_araddr[12*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arid",
+          "expr": "axm_arid[12*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_arlen",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_arsize",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_rvalid",
+          "expr": "axm_rvalid[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rready",
+          "expr": "axm_rready[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rdata",
+          "expr": "axm_rdata[12*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rresp",
+          "expr": "axm_rresp[12*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rlast",
+          "expr": "axm_rlast[12]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_rid",
+          "expr": "axm_rid[12*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "ulpi_data",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "ulpi_dir",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "ulpi_nxt",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "ulpi_stp",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "ulpi_reset",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_usb",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_usb",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "usb_irq",
+          "expr": "plic_irq[28]",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_secure_boot",
+      "module": "secure_boot",
+      "path": "titan_x_top.u_secure_boot",
+      "file": "security/secure_boot/secure_boot.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_boot",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_boot",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "envm_addr",
+          "expr": "envm_addr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "envm_req",
+          "expr": "envm_req",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "envm_rdata",
+          "expr": "envm_rdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "envm_valid",
+          "expr": "envm_valid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "boot_pass",
+          "expr": "boot_pass",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "boot_fail",
+          "expr": "boot_fail",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_envm",
+      "module": "envm_ctrl",
+      "path": "titan_x_top.u_envm",
+      "file": "security/envm_ctrl/envm_ctrl.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arvalid",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_arready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "s_araddr",
+          "expr": "32'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_rvalid",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "s_rready",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_rdata",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "s_rresp",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_envm",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_envm",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "envm_clk",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "envm_ce_n",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "envm_we_n",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "envm_addr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "envm_wdata",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "envm_rdata",
+          "expr": "32'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "envm_ready",
+          "expr": "1'b1",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_drbg",
+      "module": "drbg",
+      "path": "titan_x_top.u_drbg",
+      "file": "security/drbg/drbg.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_drbg",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_drbg",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "trng_entropy",
+          "expr": "trng_seed",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "trng_valid",
+          "expr": "trng_seed_valid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "trng_ready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "drbg_irq",
+          "expr": "plic_irq[10]",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_aes",
+      "module": "aes_engine",
+      "path": "titan_x_top.u_aes",
+      "file": "peripherals/aes_engine/aes_engine.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_aes",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_aes",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "s_axis_tdata",
+          "expr": "32'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_axis_tvalid",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_axis_tready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "s_axis_tlast",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "m_axis_tdata",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_axis_tvalid",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_axis_tready",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "m_axis_tlast",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "aes_irq",
+          "expr": "plic_irq[11]",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_rtc",
+      "module": "rtc",
+      "path": "titan_x_top.u_rtc",
+      "file": "peripherals/rtc/rtc.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rtc_clk",
+          "expr": "rtc_clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_rtc",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_rtc",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "timer_irq",
+          "expr": "timer_irq",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_uart0",
+      "module": "uart_16550",
+      "path": "titan_x_top.u_uart0",
+      "file": "peripherals/uart_16550/uart_16550.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_uart0",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_uart0",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "uart_irq",
+          "expr": "plic_irq[20]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rxd",
+          "expr": "uart_rx[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "txd",
+          "expr": "uart_tx[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irda_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "irda_rx",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "lin_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "lin_rx",
+          "expr": "1'b1",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_uart1",
+      "module": "uart_16550",
+      "path": "titan_x_top.u_uart1",
+      "file": "peripherals/uart_16550/uart_16550.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_uart1",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_uart1",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "uart_irq",
+          "expr": "plic_irq[21]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rxd",
+          "expr": "uart_rx[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "txd",
+          "expr": "uart_tx[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irda_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "irda_rx",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "lin_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "lin_rx",
+          "expr": "1'b1",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_uart2",
+      "module": "uart_16550",
+      "path": "titan_x_top.u_uart2",
+      "file": "peripherals/uart_16550/uart_16550.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_uart2",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_uart2",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "uart_irq",
+          "expr": "plic_irq[22]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rxd",
+          "expr": "uart_rx[2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "txd",
+          "expr": "uart_tx[2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irda_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "irda_rx",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "lin_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "lin_rx",
+          "expr": "1'b1",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_uart3",
+      "module": "uart_16550",
+      "path": "titan_x_top.u_uart3",
+      "file": "peripherals/uart_16550/uart_16550.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_uart3",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_uart3",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "uart_irq",
+          "expr": "plic_irq[23]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rxd",
+          "expr": "uart_rx[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "txd",
+          "expr": "uart_tx[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irda_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "irda_rx",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "lin_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "lin_rx",
+          "expr": "1'b1",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_uart4",
+      "module": "uart_16550",
+      "path": "titan_x_top.u_uart4",
+      "file": "peripherals/uart_16550/uart_16550.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_uart4",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_uart4",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "uart_irq",
+          "expr": "plic_irq[24]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rxd",
+          "expr": "uart_rx[4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "txd",
+          "expr": "uart_tx[4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "irda_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "irda_rx",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "lin_tx",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "lin_rx",
+          "expr": "1'b1",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_can0",
+      "module": "can_controller",
+      "path": "titan_x_top.u_can0",
+      "file": "peripherals/can_controller/can_controller.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_can0",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_can0",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "can_irq",
+          "expr": "plic_irq[25]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "can_tx",
+          "expr": "can_tx[0]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "can_rx",
+          "expr": "can_rx[0]",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_can1",
+      "module": "can_controller",
+      "path": "titan_x_top.u_can1",
+      "file": "peripherals/can_controller/can_controller.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_can1",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_can1",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "can_irq",
+          "expr": "plic_irq[26]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "can_tx",
+          "expr": "can_tx[1]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "can_rx",
+          "expr": "can_rx[1]",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_mipi",
+      "module": "mipi_csi2_rx",
+      "path": "titan_x_top.u_mipi",
+      "file": "video/mipi_csi2_rx/mipi_csi2_rx.v",
+      "port_audit": [
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rxbyteclkhs",
+          "expr": "mipi_rxbyteclkhs",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_axis_tdata",
+          "expr": "isp_tdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_axis_tvalid",
+          "expr": "isp_tvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_axis_tready",
+          "expr": "isp_tready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_axis_tuser",
+          "expr": "isp_tuser",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_axis_tlast",
+          "expr": "isp_tlast",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pclk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_mipi",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_mipi",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "rxdatahs",
+          "expr": "32'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "rxvalidhs",
+          "expr": "4'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "rxactivehs",
+          "expr": "4'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "rxsyncbhs",
+          "expr": "4'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "rxdata_lp",
+          "expr": "8'h0",
+          "class": "TIED_TO_CONSTANT"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_isp",
+      "module": "isp_pipeline",
+      "path": "titan_x_top.u_isp",
+      "file": "video/isp_pipeline/isp_pipeline.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_axis_tdata",
+          "expr": "isp_tdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_axis_tvalid",
+          "expr": "isp_tvalid",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_axis_tready",
+          "expr": "isp_tready",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_axis_tuser",
+          "expr": "isp_tuser",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_axis_tlast",
+          "expr": "isp_tlast",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "m_axis_tdata",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_axis_tvalid",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_axis_tready",
+          "expr": "1'b1",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "m_axis_tlast",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "m_axis_tuser",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_isp",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_isp",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_hdmi",
+      "module": "hdmi_ctrl",
+      "path": "titan_x_top.u_hdmi",
+      "file": "video/hdmi_ctrl/hdmi_ctrl.v",
+      "port_audit": [
+        {
+          "port": "clk_pixel",
+          "expr": "hdmi_clk_pixel",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "clk_tmds",
+          "expr": "hdmi_clk_tmds",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_axis_tdata",
+          "expr": "32'h0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_axis_tvalid",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_axis_tready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "s_axis_tuser",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "s_axis_tlast",
+          "expr": "1'b0",
+          "class": "TIED_TO_CONSTANT"
+        },
+        {
+          "port": "tmds_clk_p",
+          "expr": "hdmi_tmds_clk_p",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "tmds_clk_n",
+          "expr": "hdmi_tmds_clk_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "tmds_data_p",
+          "expr": "hdmi_tmds_data_p",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "tmds_data_n",
+          "expr": "hdmi_tmds_data_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pclk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "paddr",
+          "expr": "paddr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "psel",
+          "expr": "psel_hdmi",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "penable",
+          "expr": "penable",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwrite",
+          "expr": "pwrite",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pwdata",
+          "expr": "pwdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "prdata",
+          "expr": "prdata_hdmi",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "pready",
+          "expr": "",
+          "class": "UNCONNECTED"
+        },
+        {
+          "port": "pslverr",
+          "expr": "",
+          "class": "UNCONNECTED"
+        }
+      ],
+      "children": []
+    }
+  ]
+}

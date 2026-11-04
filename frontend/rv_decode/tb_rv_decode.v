@@ -24,6 +24,7 @@ module tb_rv_decode();
     wire [4:0]  alu_op;
     wire        mem_read, mem_write, reg_write;
     wire        branch, jal, jalr, valid_out;
+    wire        illegal_instr;
 
     integer error_count;
 
@@ -35,7 +36,8 @@ module tb_rv_decode();
         .rd(rd), .rs1_addr(rs1_addr), .rs2_addr(rs2_addr),
         .funct3(funct3), .funct7(funct7), .opcode(opcode), .alu_op(alu_op),
         .mem_read(mem_read), .mem_write(mem_write), .reg_write(reg_write),
-        .branch(branch), .jal(jal), .jalr(jalr), .valid_out(valid_out)
+        .branch(branch), .jal(jal), .jalr(jalr),
+        .illegal_instr(illegal_instr), .valid_out(valid_out)
     );
 
     initial clk = 0;
@@ -140,6 +142,17 @@ module tb_rv_decode();
         // Now decode ADDI x6, x5, 0 — rs1=x5 should read back 0xABCD...
         decode_instr(64'h2000, {12'd0, 5'd5, 3'b000, 5'd6, 7'h13});
         check(rs1_data, 64'hABCD_EF01_2345_6789, "rs1_data=0xABCDEF0123456789 (WB x5)");
+        check(illegal_instr, 1'b0, "ADDI is legal instruction");
+
+        // TEST 8: Illegal Opcode (e.g., 0x00000000 or invalid opcode 0x0B)
+        $display("\n--- TEST 8: Illegal Opcode ---");
+        decode_instr(64'h2004, 32'h0000_0000); // 16-bit low bits != 2'b11
+        check(illegal_instr, 1'b1, "all-zero word flagged as illegal_instr");
+
+        // TEST 9: Unrecognized SYSTEM instruction
+        $display("\n--- TEST 9: Invalid SYSTEM instruction ---");
+        decode_instr(64'h2008, 32'h1230_0073); // SYSTEM opcode with unknown funct12
+        check(illegal_instr, 1'b1, "unknown SYSTEM funct12 flagged as illegal_instr");
 
         $display("\n==============================");
         if (error_count == 0)

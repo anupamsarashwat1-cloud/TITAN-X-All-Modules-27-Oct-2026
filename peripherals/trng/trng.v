@@ -46,8 +46,13 @@ module trng (
             ro_out <= 16'h5A3C; // Non-zero initial seed
         end else begin
             // Each "oscillator" independently randomizes each cycle
+`ifdef __ICARUS__
             for (ro_idx = 0; ro_idx < 16; ro_idx = ro_idx + 1)
                 ro_out[ro_idx] <= $urandom_range(0, 1);
+`else
+            // Synthesizable multi-tap Galois LFSR array modeling ring oscillator entropy for synthesis
+            ro_out <= {ro_out[14:0], ro_out[15] ^ ro_out[13] ^ ro_out[12] ^ ro_out[10] ^ 1'b1};
+`endif
         end
     end
 

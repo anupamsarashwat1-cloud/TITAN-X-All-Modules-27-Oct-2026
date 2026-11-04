@@ -23,22 +23,41 @@ module tb_qos_controller();
     reg  [NM-1:0] m_awvalid;
     reg  [NM-1:0] m_awready;
 
-    // QoS outputs (SystemVerilog unpacked arrays — use -g2012)
+    // QoS outputs (unpacked arrays for existing check tasks)
     wire [3:0] m_arqos [0:NM-1];
     wire [3:0] m_awqos [0:NM-1];
+
+    wire [(NM*4)-1:0]  cfg_base_qos_flat;
+    wire [(NM*4)-1:0]  cfg_boost_qos_flat;
+    wire [(NM*16)-1:0] cfg_bw_limit_flat;
+    wire [(NM*4)-1:0]  m_arqos_flat;
+    wire [(NM*4)-1:0]  m_awqos_flat;
+
+    genvar gtb;
+    generate
+        for (gtb = 0; gtb < NM; gtb = gtb + 1) begin : gen_tb_flatten
+            assign cfg_base_qos_flat[gtb*4 +: 4]   = cfg_base_qos[gtb];
+            assign cfg_boost_qos_flat[gtb*4 +: 4]  = cfg_boost_qos[gtb];
+            assign cfg_bw_limit_flat[gtb*16 +: 16] = cfg_bw_limit[gtb];
+            assign m_arqos[gtb] = m_arqos_flat[gtb*4 +: 4];
+            assign m_awqos[gtb] = m_awqos_flat[gtb*4 +: 4];
+        end
+    endgenerate
 
     integer error_count;
 
     qos_controller #(.NM(NM)) uut (
         .clk(clk), .rst_n(rst_n),
-        .cfg_base_qos  (cfg_base_qos),
-        .cfg_boost_qos (cfg_boost_qos),
-        .cfg_bw_limit  (cfg_bw_limit),
+        .paddr(32'h0), .psel(1'b0), .penable(1'b0), .pwrite(1'b0), .pwdata(32'h0),
+        .prdata(), .pready(), .pslverr(),
+        .cfg_base_qos  (cfg_base_qos_flat),
+        .cfg_boost_qos (cfg_boost_qos_flat),
+        .cfg_bw_limit  (cfg_bw_limit_flat),
         .cfg_time_win  (cfg_time_win),
         .m_arvalid(m_arvalid), .m_arready(m_arready),
         .m_awvalid(m_awvalid), .m_awready(m_awready),
-        .m_arqos  (m_arqos),
-        .m_awqos  (m_awqos)
+        .m_arqos  (m_arqos_flat),
+        .m_awqos  (m_awqos_flat)
     );
 
     initial clk = 0;

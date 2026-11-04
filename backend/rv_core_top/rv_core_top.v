@@ -95,7 +95,11 @@ module rv_core_top #(
     wire        stall;
     wire        branch_taken;
     wire [63:0] branch_target;
-    wire        exception = 1'b0;          // trap unit arrives with the CSR step
+    wire        ex_trap_taken;
+    wire [63:0] ex_trap_pc, ex_trap_cause, ex_trap_tval, ex_mtvec, ex_mepc;
+    wire        mem_fault;
+    wire [63:0] mem_fault_pc, mem_fault_cause, mem_fault_tval;
+    wire        exception = ex_trap_taken || mem_fault;
 
     wire flush_raw = branch_taken || exception;
     // Manual buffering of the decode-side flush (high-fanout net)
@@ -142,6 +146,7 @@ module rv_core_top #(
     // Decode Stage
     // -------------------------------------------------------
     wire [63:0] de_pc, de_rs1, de_rs2, de_imm;
+    wire [31:0] de_instr;
     wire [4:0]  de_rd, de_rs1a, de_rs2a;
     wire [2:0]  de_f3;
     wire [6:0]  de_f7, de_op;
@@ -151,6 +156,7 @@ module rv_core_top #(
     wire        de_iscsr;
     wire [1:0]  de_csrop;
     wire        de_ecall, de_ebreak, de_mret;
+    wire        de_illegal;
 
     // Writeback feedback into the register file — the path that was tied
     // to zero in every previous iteration of this top.
@@ -164,7 +170,7 @@ module rv_core_top #(
         .flush     (flush_de_1),
         .pc_in     (fe_pc),       .instr_in (fe_instr),    .valid_in (fe_valid),
         .wb_rd     (wb_rd),       .wb_data  (wb_data),     .wb_we    (wb_we),
-        .pc_out    (de_pc),       .rs1_data (de_rs1),      .rs2_data (de_rs2),
+        .pc_out    (de_pc),       .instr_out(de_instr),    .rs1_data (de_rs1),      .rs2_data (de_rs2),
         .imm       (de_imm),      .rd       (de_rd),
         .rs1_addr  (de_rs1a),     .rs2_addr (de_rs2a),
         .funct3    (de_f3),       .funct7   (de_f7),       .opcode   (de_op),
@@ -173,13 +179,14 @@ module rv_core_top #(
         .jalr      (de_jalr),
         .is_csr    (de_iscsr),    .csr_op   (de_csrop),
         .is_ecall  (de_ecall),    .is_ebreak(de_ebreak),   .is_mret  (de_mret),
+        .illegal_instr(de_illegal),
         .valid_out(de_valid)
     );
 
     // -------------------------------------------------------
     // Execute Stage
     // -------------------------------------------------------
-    wire [63:0] ex_alures, ex_rs2;
+    wire [63:0] ex_pc, ex_alures, ex_rs2;
     wire [4:0]  ex_rd;
     wire [2:0]  ex_f3;
     wire [6:0]  ex_op;
@@ -212,12 +219,22 @@ module rv_core_top #(
         .is_csr       (de_iscsr),   .csr_op       (de_csrop),
         .is_ecall     (de_ecall),   .is_ebreak    (de_ebreak),
         .is_mret      (de_mret),
+        .illegal_in   (de_illegal),
+        .instr_in     (de_instr),
+        .fe_fault_in  (1'b0),
+        .fe_fault_cause_in (64'h0),
+        .fe_fault_tval_in  (64'h0),
+        .mem_fault_in (mem_fault),
+        .mem_fault_cause_in(mem_fault_cause),
+        .mem_fault_tval_in (mem_fault_tval),
+        .mem_fault_pc_in   (mem_fault_pc),
         .irq_m_ext    (irq_m_ext),  .irq_m_timer  (irq_m_timer),
         .irq_m_soft   (irq_m_soft),
         .valid_in     (de_valid),
         .fwd_mem_data (fwd_mem_data), .fwd_mem_valid(fwd_mem_valid), .fwd_mem_rd(fwd_mem_rd),
         .fwd_wb_data  (fwd_wb_data),  .fwd_wb_valid (fwd_wb_valid),  .fwd_wb_rd (fwd_wb_rd),
         .fpu_result   (64'h0),      .fpu_valid    (1'b0),      .fpu_done(1'b0),
+        .pc_out       (ex_pc),
         .alu_result   (ex_alures),  .rs2_out      (ex_rs2),
         .rd_out       (ex_rd),      .funct3_out   (ex_f3),     .opcode_out  (ex_op),
         .mem_read_out (ex_memr),    .mem_write_out(ex_memw),   .reg_write_out(ex_regw),
@@ -225,6 +242,12 @@ module rv_core_top #(
         .valid_out    (ex_valid),
         .mul_div_stall(mul_div_stall),
         .branch_taken (branch_taken), .branch_target(branch_target),
+        .trap_taken   (ex_trap_taken),
+        .trap_pc_out  (ex_trap_pc),
+        .trap_cause_out(ex_trap_cause),
+        .trap_tval_out(ex_trap_tval),
+        .mtvec_out    (ex_mtvec),
+        .mepc_out     (ex_mepc),
         .lr_addr      (),           .lr_valid     ()
     );
 
@@ -257,6 +280,8 @@ module rv_core_top #(
         .dmem_araddr  (dmem_araddr),
         .dmem_rvalid  (dmem_rvalid),   .dmem_rready (dmem_rready),
         .dmem_rdata   (dmem_rdata),    .dmem_rresp  (dmem_rresp),
+        .pc_in        (ex_pc),
+        .dmem_bresp   (dmem_bresp),
         .result       (mem_result),
         .rd_out       (mem_rd),
         .reg_write_out(mem_regw),
@@ -264,6 +289,10 @@ module rv_core_top #(
         .fwd_mem_data (fwd_mem_data),
         .fwd_mem_rd   (fwd_mem_rd),
         .fwd_mem_valid(fwd_mem_valid),
+        .mem_fault    (mem_fault),
+        .mem_fault_pc (mem_fault_pc),
+        .mem_fault_cause(mem_fault_cause),
+        .mem_fault_tval (mem_fault_tval),
         .mem_stall    (mem_stall)
     );
 
@@ -303,8 +332,15 @@ module rv_core_top #(
     assign stall = mul_div_stall || mem_stall || halt_req;
     assign stall_ex = mem_stall || halt_req;   // execute's view: no self-loop
 
-    // L2 snoop idle until the dcache returns behind the data port
-    assign snoop_ack        = 1'b0;
+    // Active snoop acknowledgement for L2 snoop filter
+    reg snoop_ack_r;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            snoop_ack_r <= 1'b0;
+        else
+            snoop_ack_r <= snoop_valid;
+    end
+    assign snoop_ack        = snoop_ack_r;
     assign snoop_data_valid = 1'b0;
     assign snoop_data       = 512'h0;
 

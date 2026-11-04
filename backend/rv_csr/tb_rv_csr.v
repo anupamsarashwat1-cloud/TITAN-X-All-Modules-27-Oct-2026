@@ -19,9 +19,9 @@ module tb_rv_csr();
     reg  [11:0] waddr;
     reg  [63:0] wdata;
     reg         trap_we, mret_we, retire;
-    reg  [63:0] trap_pc, trap_cause;
+    reg  [63:0] trap_pc, trap_cause, trap_tval;
     reg         ip_ext, ip_timer, ip_soft;
-    wire [63:0] mtvec_o, mepc_o;
+    wire [63:0] mtvec_o, mepc_o, mtval_o;
     wire        irq_pend;
 
     integer errors;
@@ -31,10 +31,12 @@ module tb_rv_csr();
         .csr_raddr(raddr), .csr_rdata(rdata),
         .csr_we(we), .csr_waddr(waddr), .csr_wdata(wdata),
         .trap_we(trap_we), .trap_pc(trap_pc), .trap_cause(trap_cause),
+        .trap_tval(trap_tval),
         .mret_we(mret_we),
         .mip_m_ext(ip_ext), .mip_m_timer(ip_timer), .mip_m_soft(ip_soft),
         .retire_pulse(retire),
-        .mtvec_out(mtvec_o), .mepc_out(mepc_o), .irq_pending(irq_pend)
+        .mtvec_out(mtvec_o), .mepc_out(mepc_o), .mtval_out(mtval_o),
+        .irq_pending(irq_pend)
     );
 
     initial clk = 0;
@@ -129,12 +131,16 @@ module tb_rv_csr();
         // ---- trap entry shuffle ----
         // current mstatus: MIE=1 MPIE=1 (from FFFF..FF88 masked write)
         trap_we = 1; trap_pc = 64'h0000_0000_0002_0416; trap_cause = 64'd11;
+        trap_tval = 64'hDEAD_BEEF_CAFE_BABE;
         @(negedge clk);
         trap_we = 0;
         raddr = 12'h341; #1;
         chk64(rdata, 64'h0000_0000_0002_0414, "trap mepc = pc & ~3");
         raddr = 12'h342; #1;
         chk64(rdata, 64'd11, "trap mcause");
+        raddr = 12'h343; #1;
+        chk64(rdata, 64'hDEAD_BEEF_CAFE_BABE, "trap mtval");
+        chk64(mtval_o, 64'hDEAD_BEEF_CAFE_BABE, "trap mtval_out port");
         raddr = 12'h300; #1;
         chk64(rdata[3], 1'b0,  "post-trap MIE=0");
         chk64(rdata[7], 1'b1,  "post-trap MPIE=old MIE");
