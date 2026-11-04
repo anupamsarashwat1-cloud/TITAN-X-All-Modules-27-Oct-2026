@@ -82,6 +82,7 @@ module l2_snoop_filter #(
     reg [1:0] line_state;
     reg [1:0] req_core_saved;
     reg [1:0] req_type_saved;
+    reg [3:0] target_snoop_mask;
 
     // Combinational lookup and allocation logic to avoid BLKSEQ in sequential block
     reg       combo_line_hit;
@@ -125,6 +126,7 @@ module l2_snoop_filter #(
             line_state <= ST_I;
             req_core_saved <= 2'h0;
             req_type_saved <= 2'h0;
+            target_snoop_mask <= 4'h0;
             for (integer s=0; s<DIR_SETS; s=s+1) begin
                 for (integer w=0; w<DIR_WAYS; w=w+1) begin
                     dir_state[s][w] <= ST_I;
@@ -162,6 +164,7 @@ module l2_snoop_filter #(
                                 snoop_valid <= combo_hit_mask;
                                 snoop_addr  <= {tag, index, 6'h0};
                                 snoop_type  <= (req_type_saved == 2'b00) ? 2'b00 : 2'b01; // GetS vs GetM
+                                target_snoop_mask <= combo_hit_mask;
                                 state <= SNOOP_REQ;
                             end else begin
                                 // It's us, no snoop needed
@@ -174,11 +177,13 @@ module l2_snoop_filter #(
                         end else if (combo_line_state == ST_S) begin
                             if (req_type_saved == 2'b01 || req_type_saved == 2'b10) begin
                                 // Write request to shared line: invalidate others
-                                snoop_valid <= combo_hit_mask & ~(1 << req_core_saved);
-                                snoop_addr  <= {tag, index, 6'h0};
-                                snoop_type  <= 2'b10; // Inv
-                                if (snoop_valid != 4'h0) state <= SNOOP_REQ;
-                                else begin
+                                if ((combo_hit_mask & ~(1 << req_core_saved)) != 4'h0) begin
+                                    snoop_valid <= combo_hit_mask & ~(1 << req_core_saved);
+                                    snoop_addr  <= {tag, index, 6'h0};
+                                    snoop_type  <= 2'b10; // Inv
+                                    target_snoop_mask <= combo_hit_mask & ~(1 << req_core_saved);
+                                    state <= SNOOP_REQ;
+                                end else begin
                                     resp_valid <= 1'b1;
                                     resp_hit <= 1'b1;
                                     resp_dirty <= 1'b0;
@@ -197,15 +202,15 @@ module l2_snoop_filter #(
 
                 SNOOP_REQ: begin
                     // Wait for all snooped cores to ack
-                    // In real hardware, track per-core acks
-                    if ((snoop_ack & hit_mask) == hit_mask) begin // Simplified condition
+                    if ((snoop_ack & target_snoop_mask) == target_snoop_mask) begin
                         resp_valid <= 1'b1;
                         resp_hit <= 1'b1;
-                        resp_dirty <= |(snoop_data_valid & hit_mask);
-                        resp_owner <= 0; // Logic to determine which core had dirty data
+                        resp_dirty <= |(snoop_data_valid & target_snoop_mask);
+                        resp_owner <= req_core_saved;
+                        snoop_valid <= 4'h0;
                         state <= UPDATE;
                     end else begin
-                        snoop_valid <= hit_mask & ~snoop_ack; // Keep requesting un-acked
+                        snoop_valid <= target_snoop_mask & ~snoop_ack; // Keep requesting un-acked
                     end
                 end
 

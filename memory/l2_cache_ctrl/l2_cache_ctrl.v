@@ -41,10 +41,10 @@ module l2_cache_ctrl #(
     // Data array interface
     output reg               dat_cs,    output reg        dat_we,
     output reg               dat_bank,
-    output reg  [3:0]        dat_wmask,
-    output reg  [IDX_W-1:0]  dat_addr,
-    output reg  [31:0]       dat_din,
-    input  wire [31:0]       dat_dout,  input  wire       dat_dout_valid
+    output reg  [(DATA_W/8)-1:0] dat_wmask,
+    output reg  [IDX_W-1:0]      dat_addr,
+    output reg  [DATA_W-1:0]     dat_din,
+    input  wire [DATA_W-1:0]     dat_dout,  input  wire       dat_dout_valid
 );
     localparam ST_IDLE      = 3'd0;
     localparam ST_TAG_LU    = 3'd1;
@@ -62,6 +62,8 @@ module l2_cache_ctrl #(
     reg [DATA_W-1:0] fetch_data;
     reg              aw_done;
     reg              w_done;
+    reg              aw_latched;
+    reg              w_latched;
 
     wire [TAG_W-1:0]  req_tag   = req_addr[ADDR_W-1 : OFF_W+IDX_W];
     wire [IDX_W-1:0]  req_index = req_addr[OFF_W+IDX_W-1 : OFF_W];
@@ -69,16 +71,17 @@ module l2_cache_ctrl #(
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state     <= ST_IDLE;
-            s_arready <= 1'b1;  s_awready <= 1'b1;  s_wready  <= 1'b1;
-            s_rvalid  <= 1'b0;  s_rdata   <= 64'h0; s_rresp   <= 2'h0;
-            s_bvalid  <= 1'b0;  s_bresp   <= 2'h0;
-            m_arvalid <= 1'b0;  m_awvalid <= 1'b0;  m_wvalid  <= 1'b0;
-            m_rready  <= 1'b0;  m_bready  <= 1'b0;
-            tag_cs    <= 1'b0;  tag_we    <= 1'b0;
-            dat_cs    <= 1'b0;  dat_we    <= 1'b0;
-            req_addr  <= 40'h0; req_wr    <= 1'b0;
-            aw_done   <= 1'b0;  w_done    <= 1'b0;
+            state      <= ST_IDLE;
+            s_arready  <= 1'b1;  s_awready <= 1'b1;  s_wready  <= 1'b1;
+            s_rvalid   <= 1'b0;  s_rdata   <= {DATA_W{1'b0}}; s_rresp   <= 2'h0;
+            s_bvalid   <= 1'b0;  s_bresp   <= 2'h0;
+            m_arvalid  <= 1'b0;  m_awvalid <= 1'b0;  m_wvalid  <= 1'b0;
+            m_rready   <= 1'b0;  m_bready  <= 1'b0;
+            tag_cs     <= 1'b0;  tag_we    <= 1'b0;
+            dat_cs     <= 1'b0;  dat_we    <= 1'b0;
+            req_addr   <= {ADDR_W{1'b0}}; req_wr <= 1'b0;
+            aw_done    <= 1'b0;  w_done    <= 1'b0;
+            aw_latched <= 1'b0;  w_latched <= 1'b0;
         end else begin
             // Default deassert
             tag_cs   <= 1'b0;  dat_cs   <= 1'b0;
@@ -86,26 +89,51 @@ module l2_cache_ctrl #(
 
             case (state)
                 ST_IDLE: begin
-                    s_arready <= 1'b1;
-                    s_awready <= 1'b1;
-                    s_wready  <= 1'b1;
-                    if (s_arvalid) begin
+                    if (!aw_latched && !w_latched && s_arvalid && s_arready) begin
                         req_addr  <= s_araddr;
                         req_wr    <= 1'b0;
                         s_arready <= 1'b0;
+                        s_awready <= 1'b0;
+                        s_wready  <= 1'b0;
                         // Issue tag lookup
                         tag_cs    <= 1'b1;  tag_we <= 1'b0;
                         tag_index <= s_araddr[OFF_W+IDX_W-1:OFF_W];
                         state     <= ST_TAG_LU;
-                    end else if (s_awvalid && s_wvalid) begin
-                        req_addr  <= s_awaddr;
-                        req_wdata <= s_wdata;
-                        req_wstrb <= s_wstrb;
-                        req_wr    <= 1'b1;
-                        s_awready <= 1'b0;  s_wready <= 1'b0;
-                        tag_cs    <= 1'b1;  tag_we   <= 1'b0;
-                        tag_index <= s_awaddr[OFF_W+IDX_W-1:OFF_W];
-                        state     <= ST_TAG_LU;
+                    end else begin
+                        // AW capture
+                        if (s_awvalid && s_awready) begin
+                            req_addr   <= s_awaddr;
+                            aw_latched <= 1'b1;
+                            s_awready  <= 1'b0;
+                        end
+                        // W capture
+                        if (s_wvalid && s_wready) begin
+                            req_wdata  <= s_wdata;
+                            req_wstrb  <= s_wstrb;
+                            w_latched  <= 1'b1;
+                            s_wready   <= 1'b0;
+                        end
+
+                        // If both AW and W have been captured (now or previously)
+                        if (((s_awvalid && s_awready) || aw_latched) &&
+                            ((s_wvalid  && s_wready)  || w_latched)) begin
+                            req_wr     <= 1'b1;
+                            aw_latched <= 1'b0;
+                            w_latched  <= 1'b0;
+                            s_arready  <= 1'b0;
+                            s_awready  <= 1'b0;
+                            s_wready   <= 1'b0;
+                            tag_cs     <= 1'b1;
+                            tag_we     <= 1'b0;
+                            tag_index  <= aw_latched ? req_addr[OFF_W+IDX_W-1:OFF_W] : s_awaddr[OFF_W+IDX_W-1:OFF_W];
+                            state      <= ST_TAG_LU;
+                        end else begin
+                            // Maintain readiness for the pending channel
+                            if (!aw_latched && !(s_awvalid && s_awready)) s_awready <= 1'b1;
+                            if (!w_latched  && !(s_wvalid  && s_wready))  s_wready  <= 1'b1;
+                            if (!aw_latched && !w_latched && !s_awvalid && !s_wvalid) s_arready <= 1'b1;
+                            else s_arready <= 1'b0;
+                        end
                     end
                 end
 
@@ -122,8 +150,14 @@ module l2_cache_ctrl #(
                         dat_cs    <= 1'b1;  dat_we    <= 1'b1;
                         dat_bank  <= req_index[0];
                         dat_addr  <= req_index;
-                        dat_din   <= req_wdata[31:0];
-                        dat_wmask <= req_wstrb[3:0];
+                        dat_din   <= req_wdata;
+                        dat_wmask <= req_wstrb;
+                        m_awvalid <= 1'b1;
+                        m_awaddr  <= req_addr;
+                        m_wvalid  <= 1'b1;
+                        m_wdata   <= req_wdata;
+                        m_wstrb   <= req_wstrb;
+                        m_bready  <= 1'b1;
                         aw_done   <= 1'b0;
                         w_done    <= 1'b0;
                         state     <= ST_WRTHR;
@@ -137,16 +171,25 @@ module l2_cache_ctrl #(
                 end
 
                 ST_HIT: begin
-                    if (dat_dout_valid) begin
-                        s_rdata  <= {32'h0, dat_dout};  // 32-bit SRAM → 64-bit bus
+                    if (s_rvalid) begin
+                        if (s_rready) begin
+                            s_rvalid  <= 1'b0;
+                            s_arready <= 1'b1;
+                            s_awready <= 1'b1;
+                            s_wready  <= 1'b1;
+                            state     <= ST_IDLE;
+                        end else begin
+                            s_rvalid  <= 1'b1; // hold until ready
+                        end
+                    end else if (dat_dout_valid) begin
+                        s_rdata  <= dat_dout;
                         s_rvalid <= 1'b1;
                         s_rresp  <= 2'h0;
-                        if (s_rready) state <= ST_IDLE;
                     end
                 end
 
                 ST_MISS_FETCH: begin
-                    if (m_arready) m_arvalid <= 1'b0;
+                    if (m_arvalid && m_arready) m_arvalid <= 1'b0;
                     if (m_rvalid) begin
                         fetch_data <= m_rdata;
                         m_rready   <= 1'b0;
@@ -154,8 +197,8 @@ module l2_cache_ctrl #(
                         dat_cs    <= 1'b1;  dat_we    <= 1'b1;
                         dat_bank  <= req_index[0];
                         dat_addr  <= req_index;
-                        dat_din   <= m_rdata[31:0];
-                        dat_wmask <= 4'hF;
+                        dat_din   <= m_rdata;
+                        dat_wmask <= { (DATA_W/8){1'b1} };
                         // Update tag
                         tag_cs    <= 1'b1;  tag_we    <= 1'b1;
                         tag_index <= req_index;
@@ -166,42 +209,66 @@ module l2_cache_ctrl #(
 
                 ST_FILL: begin
                     if (!req_wr) begin
-                        s_rdata  <= fetch_data;
-                        s_rvalid <= 1'b1;
-                        s_rresp  <= 2'h0;
-                        if (s_rready) state <= ST_IDLE;
+                        if (s_rvalid) begin
+                            if (s_rready) begin
+                                s_rvalid  <= 1'b0;
+                                s_arready <= 1'b1;
+                                s_awready <= 1'b1;
+                                s_wready  <= 1'b1;
+                                state     <= ST_IDLE;
+                            end else begin
+                                s_rvalid  <= 1'b1; // hold until ready
+                            end
+                        end else begin
+                            s_rdata  <= fetch_data;
+                            s_rvalid <= 1'b1;
+                            s_rresp  <= 2'h0;
+                        end
                     end else begin
-                        aw_done <= 1'b0;
-                        w_done  <= 1'b0;
-                        state   <= ST_WRTHR;
+                        dat_cs    <= 1'b1;  dat_we    <= 1'b1;
+                        dat_bank  <= req_index[0];
+                        dat_addr  <= req_index;
+                        dat_din   <= req_wdata;
+                        dat_wmask <= req_wstrb;
+                        m_awvalid <= 1'b1;
+                        m_awaddr  <= req_addr;
+                        m_wvalid  <= 1'b1;
+                        m_wdata   <= req_wdata;
+                        m_wstrb   <= req_wstrb;
+                        m_bready  <= 1'b1;
+                        aw_done   <= 1'b0;
+                        w_done    <= 1'b0;
+                        state     <= ST_WRTHR;
                     end
                 end
 
                 ST_WRTHR: begin
                     // Write-through to DDR
-                    if (!aw_done) begin
-                        m_awvalid <= 1'b1;
-                        m_awaddr  <= req_addr;
-                        if (m_awready) begin
-                            m_awvalid <= 1'b0;
-                            aw_done   <= 1'b1;
-                        end
+                    if (m_awvalid && m_awready) begin
+                        m_awvalid <= 1'b0;
+                        aw_done   <= 1'b1;
                     end
-                    if (!w_done) begin
-                        m_wvalid  <= 1'b1;
-                        m_wdata   <= req_wdata;
-                        m_wstrb   <= req_wstrb;
-                        if (m_wready) begin
-                            m_wvalid <= 1'b0;
-                            w_done   <= 1'b1;
-                        end
+                    if (m_wvalid && m_wready) begin
+                        m_wvalid  <= 1'b0;
+                        w_done    <= 1'b1;
                     end
-                    m_bready  <= 1'b1;
-                    if (m_bvalid) begin
+                    if (m_bvalid && m_bready) begin
                         m_bready <= 1'b0;
                         s_bvalid <= 1'b1;
                         s_bresp  <= 2'h0;
-                        if (s_bready) state <= ST_IDLE;
+                        state    <= ST_RESP;
+                    end
+                end
+
+                ST_RESP: begin
+                    if (s_bready) begin
+                        s_bvalid  <= 1'b0;
+                        s_arready <= 1'b1;
+                        s_awready <= 1'b1;
+                        s_wready  <= 1'b1;
+                        state     <= ST_IDLE;
+                    end else begin
+                        s_bvalid  <= 1'b1;
                     end
                 end
 

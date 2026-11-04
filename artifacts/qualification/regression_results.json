@@ -634,7 +634,7 @@
       "==============================",
       "L2_CACHE_TOP VERDICT: \u2705 PASS \u2014 Completed (no crash)",
       "==============================",
-      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top/tb_l2_cache_top.v:158: $finish called at 6130000 (1ps)"
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top/tb_l2_cache_top.v:160: $finish called at 6130000 (1ps)"
     ]
   },
   {
@@ -701,6 +701,17 @@
       "MMU_ARBITER VERDICT: \u2705 PASS \u2014 All tests passed",
       "==============================",
       "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/mmu_arbiter/tb_mmu_arbiter.v:124: $finish called at 266000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_multicore_coherence",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_multicore_coherence.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "MULTICORE_COHERENCE: 13 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_multicore_coherence.v:317: $finish called at 401895000 (1ps)"
     ]
   },
   {

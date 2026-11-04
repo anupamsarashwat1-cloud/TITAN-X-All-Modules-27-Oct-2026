@@ -12,10 +12,12 @@ module l2_cache_top (
     // AXI4-Lite slave (from crossbar / L1s)
     input  wire        s_arvalid,  output wire        s_arready,
     input  wire [39:0] s_araddr,
+    input  wire [3:0]  s_arid,
     output wire        s_rvalid,   input  wire        s_rready,
     output wire [63:0] s_rdata,    output wire [1:0]  s_rresp,
     input  wire        s_awvalid,  output wire        s_awready,
     input  wire [39:0] s_awaddr,
+    input  wire [3:0]  s_awid,
     input  wire        s_wvalid,   output wire        s_wready,
     input  wire [63:0] s_wdata,    input  wire [7:0]  s_wstrb,
     output wire        s_bvalid,   input  wire        s_bready,
@@ -54,10 +56,10 @@ module l2_cache_top (
 
     // Internal wires: controller ↔ data arrays (4 banks)
     wire        ctrl_dat_cs, ctrl_dat_we, ctrl_dat_bank;
-    wire [3:0]  ctrl_dat_wmask;
+    wire [7:0]  ctrl_dat_wmask;
     wire [5:0]  ctrl_dat_addr;
-    wire [31:0] ctrl_dat_din;
-    wire [31:0] ctrl_dat_dout;
+    wire [63:0] ctrl_dat_din;
+    wire [63:0] ctrl_dat_dout;
     wire        ctrl_dat_dout_valid;
 
     wire [3:0]  dat_cs, dat_we;
@@ -67,7 +69,7 @@ module l2_cache_top (
 
     assign dat_cs  = ctrl_dat_cs ? (4'b0001 << ctrl_dat_bank) : 4'h0;
     assign dat_we  = ctrl_dat_we ? (4'b0001 << ctrl_dat_bank) : 4'h0;
-    assign dat_din = {32'h0, ctrl_dat_din};
+    assign dat_din = ctrl_dat_din;
     genvar b_addr;
     generate
         for (b_addr = 0; b_addr < 4; b_addr = b_addr + 1) begin : gen_addr_zero
@@ -75,7 +77,7 @@ module l2_cache_top (
         end
     endgenerate
 
-    assign ctrl_dat_dout       = dat_dout[ctrl_dat_bank][31:0];
+    assign ctrl_dat_dout       = dat_dout[ctrl_dat_bank];
     assign ctrl_dat_dout_valid = 1'b1;
 
     l2_cache_ctrl u_ctrl (
@@ -147,15 +149,20 @@ module l2_cache_top (
     wire sf_resp_valid, sf_resp_hit, sf_resp_dirty;
     wire [1:0] sf_resp_owner;
 
+    wire [1:0]  snoop_req_core  = (s_awvalid && s_awready) ? s_awid[1:0] : s_arid[1:0];
+    wire        snoop_req_valid = (s_arvalid && s_arready) || (s_awvalid && s_awready);
+    wire [39:0] snoop_req_addr  = (s_awvalid && s_awready) ? s_awaddr : s_araddr;
+    wire [1:0]  snoop_req_type  = (s_awvalid && s_awready) ? 2'b01 : 2'b00;
+
     l2_snoop_filter #(
         .NUM_CORES(4)
     ) u_snoop_filter (
         .clk(clk),
         .rst_n(rst_n),
-        .req_valid(s_arvalid || s_awvalid),
-        .req_addr(s_arvalid ? s_araddr : s_awaddr),
-        .req_type(s_awvalid ? 2'b01 : 2'b00), // simplified
-        .req_core(2'b00), // requires core ID from crossbar AXI ID
+        .req_valid(snoop_req_valid),
+        .req_addr(snoop_req_addr),
+        .req_type(snoop_req_type),
+        .req_core(snoop_req_core),
         .snoop_valid(snoop_valid),
         .snoop_addr(snoop_addr),
         .snoop_type(snoop_type),

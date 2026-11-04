@@ -46,10 +46,10 @@ module tb_l2_cache_ctrl();
     wire dat_cs;
     wire dat_we;
     wire dat_bank;
-    wire [3:0] dat_wmask;
+    wire [7:0] dat_wmask;
     wire [5:0] dat_addr;
-    wire [31:0] dat_din;
-    logic [31:0] dat_dout;
+    wire [63:0] dat_din;
+    logic [63:0] dat_dout;
     logic dat_dout_valid;
 
     // DUT Instantiation
