@@ -149,16 +149,85 @@ module titan_x_top (
     wire [(NS*2)-1:0]    axs_rresp;
     wire [(NS*IDW)-1:0]  axs_rid;
 
+    // Post-MPU buses (Crossbar Master inputs)
+    wire [NM-1:0]        xbar_axm_awvalid, xbar_axm_awready;
+    wire [(NM*AW)-1:0]   xbar_axm_awaddr;
+    wire [(NM*IDW)-1:0]  xbar_axm_awid;
+    wire [NM-1:0]        xbar_axm_wvalid, xbar_axm_wready, xbar_axm_wlast;
+    wire [(NM*DW)-1:0]   xbar_axm_wdata;
+    wire [(NM*8)-1:0]    xbar_axm_wstrb;
+    wire [NM-1:0]        xbar_axm_bvalid, xbar_axm_bready;
+    wire [(NM*2)-1:0]    xbar_axm_bresp;
+    wire [(NM*IDW)-1:0]  xbar_axm_bid;
+    wire [NM-1:0]        xbar_axm_arvalid, xbar_axm_arready, xbar_axm_rlast;
+    wire [(NM*AW)-1:0]   xbar_axm_araddr;
+    wire [(NM*IDW)-1:0]  xbar_axm_arid;
+    wire [NM-1:0]        xbar_axm_rvalid, xbar_axm_rready;
+    wire [(NM*DW)-1:0]   xbar_axm_rdata;
+    wire [(NM*2)-1:0]    xbar_axm_rresp;
+    wire [(NM*IDW)-1:0]  xbar_axm_rid;
+
+    wire [(NM*4)-1:0]    qos_aw, qos_ar;
+    wire [31:0]          prdata_qos, prdata_mpu;
+    wire                 psel_mpu, psel_qos;
+
+    // QoS Controller Instantiation
+    qos_controller #(
+        .NM(NM), .IDW(IDW)
+    ) u_qos_controller (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_qos), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_qos), .pready(), .pslverr(),
+        .cfg_base_qos({(NM*4){1'b0}}),
+        .cfg_boost_qos({(NM*4){1'b0}}),
+        .cfg_bw_limit({(NM*16){1'b0}}),
+        .cfg_time_win(16'h0),
+        .m_arvalid(axm_arvalid), .m_arready(axm_arready),
+        .m_awvalid(axm_awvalid), .m_awready(axm_awready),
+        .m_arqos(qos_ar),
+        .m_awqos(qos_aw)
+    );
+
+    // Interconnect Memory Protection Unit (MPU) Instantiation
+    interconnect_mpu #(
+        .NM(NM), .REGIONS(16), .AW(AW), .DW(DW), .IDW(IDW)
+    ) u_interconnect_mpu (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_mpu), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_mpu), .pready(), .pslverr(),
+        .cfg_base_addr({(16*40){1'b0}}),
+        .cfg_limit_addr({(16*40){1'b0}}),
+        .cfg_master_mask({(16*16){1'b0}}),
+        .cfg_perm({(16*2){1'b0}}),
+        .cfg_valid(16'h0),
+        // AR Channel
+        .s_arvalid(axm_arvalid), .s_arready(axm_arready), .s_araddr(axm_araddr), .s_arid(axm_arid),
+        .m_arvalid(xbar_axm_arvalid), .m_arready(xbar_axm_arready), .m_araddr(xbar_axm_araddr), .m_arid(xbar_axm_arid),
+        // R Channel
+        .m_rvalid(xbar_axm_rvalid), .m_rready(xbar_axm_rready), .m_rdata(xbar_axm_rdata), .m_rresp(xbar_axm_rresp), .m_rlast(xbar_axm_rlast), .m_rid(xbar_axm_rid),
+        .s_rvalid(axm_rvalid), .s_rready(axm_rready), .s_rdata(axm_rdata), .s_rresp(axm_rresp), .s_rlast(axm_rlast), .s_rid(axm_rid),
+        // AW Channel
+        .s_awvalid(axm_awvalid), .s_awready(axm_awready), .s_awaddr(axm_awaddr), .s_awid(axm_awid),
+        .m_awvalid(xbar_axm_awvalid), .m_awready(xbar_axm_awready), .m_awaddr(xbar_axm_awaddr), .m_awid(xbar_axm_awid),
+        // W Channel
+        .s_wvalid(axm_wvalid), .s_wready(axm_wready), .s_wdata(axm_wdata), .s_wstrb(axm_wstrb), .s_wlast(axm_wlast),
+        .m_wvalid(xbar_axm_wvalid), .m_wready(xbar_axm_wready), .m_wdata(xbar_axm_wdata), .m_wstrb(xbar_axm_wstrb), .m_wlast(xbar_axm_wlast),
+        // B Channel
+        .m_bvalid(xbar_axm_bvalid), .m_bready(xbar_axm_bready), .m_bresp(xbar_axm_bresp), .m_bid(xbar_axm_bid),
+        .s_bvalid(axm_bvalid), .s_bready(axm_bready), .s_bresp(axm_bresp), .s_bid(axm_bid)
+    );
+
     // Crossbar Instantiation
     axi4_crossbar #(
         .NM(NM), .NS(NS), .AW(AW), .DW(DW), .IDW(IDW)
     ) u_crossbar (
         .clk(clk), .rst_n(core_rst_n),
-        .m_awvalid(axm_awvalid), .m_awready(axm_awready), .m_awaddr(axm_awaddr), .m_awid(axm_awid),
-        .m_wvalid(axm_wvalid), .m_wready(axm_wready), .m_wdata(axm_wdata), .m_wstrb(axm_wstrb), .m_wlast(axm_wlast),
-        .m_bvalid(axm_bvalid), .m_bready(axm_bready), .m_bresp(axm_bresp), .m_bid(axm_bid),
-        .m_arvalid(axm_arvalid), .m_arready(axm_arready), .m_araddr(axm_araddr), .m_arid(axm_arid),
-        .m_rvalid(axm_rvalid), .m_rready(axm_rready), .m_rdata(axm_rdata), .m_rresp(axm_rresp), .m_rlast(axm_rlast), .m_rid(axm_rid),
+        .m_awvalid(xbar_axm_awvalid), .m_awready(xbar_axm_awready), .m_awaddr(xbar_axm_awaddr), .m_awid(xbar_axm_awid),
+        .m_wvalid(xbar_axm_wvalid), .m_wready(xbar_axm_wready), .m_wdata(xbar_axm_wdata), .m_wstrb(xbar_axm_wstrb), .m_wlast(xbar_axm_wlast),
+        .m_bvalid(xbar_axm_bvalid), .m_bready(xbar_axm_bready), .m_bresp(xbar_axm_bresp), .m_bid(xbar_axm_bid),
+        .m_arvalid(xbar_axm_arvalid), .m_arready(xbar_axm_arready), .m_araddr(xbar_axm_araddr), .m_arid(xbar_axm_arid),
+        .m_rvalid(xbar_axm_rvalid), .m_rready(xbar_axm_rready), .m_rdata(xbar_axm_rdata), .m_rresp(xbar_axm_rresp), .m_rlast(xbar_axm_rlast), .m_rid(xbar_axm_rid),
+        .m_awqos(qos_aw), .m_arqos(qos_ar),
         .s_awvalid(axs_awvalid), .s_awready(axs_awready), .s_awaddr(axs_awaddr), .s_awid(axs_awid),
         .s_wvalid(axs_wvalid), .s_wready(axs_wready), .s_wdata(axs_wdata), .s_wstrb(axs_wstrb), .s_wlast(axs_wlast),
         .s_bvalid(axs_bvalid), .s_bready(axs_bready), .s_bresp(axs_bresp), .s_bid(axs_bid),
@@ -508,6 +577,8 @@ module titan_x_top (
     wire psel_trng  = psel && (paddr[31:12] == 20'h400D0 || paddr[31:12] == 20'h20040);
     wire psel_sha256= psel && (paddr[31:12] == 20'h400E0 || paddr[31:12] == 20'h20050);
     wire psel_ecdsa = psel && (paddr[31:12] == 20'h400F0 || paddr[31:12] == 20'h20060);
+    assign psel_mpu = psel && (paddr[31:16] == 16'h4010);
+    assign psel_qos = psel && (paddr[31:16] == 16'h4011);
     assign psel_plic = psel && (paddr[31:24] == 8'h0C || paddr[31:20] == 12'h40D);
 
     wire [31:0] prdata_uart0, prdata_uart1, prdata_uart2, prdata_uart3, prdata_uart4;
@@ -535,6 +606,8 @@ module titan_x_top (
                         psel_trng   ? {32'h0, prdata_trng} :
                         psel_sha256 ? {32'h0, prdata_sha256} :
                         psel_ecdsa  ? {32'h0, prdata_ecdsa} :
+                        psel_mpu    ? {32'h0, prdata_mpu} :
+                        psel_qos    ? {32'h0, prdata_qos} :
                         psel_plic   ? {32'h0, prdata_plic} : 64'h0;
 
     // -------------------------------------------------------
@@ -561,7 +634,6 @@ module titan_x_top (
         .pipe_tx_data(), .pipe_tx_datak(), .pipe_tx_rate(), .pipe_tx_elecidle(), .pipe_tx_compliance(),
         .pipe_rx_data(64'h0), .pipe_rx_datak(8'h0), .pipe_rx_polarity(), .pipe_power_down(), .pipe_rx_valid(4'b0), .pipe_rx_elecidle(4'b1111), .pipe_rx_status(12'h0), .pipe_phy_status(4'b0)
     );
-    assign axm_rid[10*4 +: 4] = 4'h0;
 
     usb_otg u_usb (
         .clk(clk), .rst_n(rst_n), .ulpi_clk(ulpi_clk),

@@ -72,6 +72,7 @@ module axi4_crossbar_formal #(
         .m_bvalid(m_bvalid), .m_bready(m_bready), .m_bresp(m_bresp), .m_bid(m_bid),
         .m_arvalid(m_arvalid), .m_arready(m_arready), .m_araddr(m_araddr), .m_arid(m_arid),
         .m_rvalid(m_rvalid), .m_rready(m_rready), .m_rdata(m_rdata), .m_rresp(m_rresp), .m_rlast(m_rlast), .m_rid(m_rid),
+        .m_awqos({(NM*4){1'b0}}), .m_arqos({(NM*4){1'b0}}),
         .s_awvalid(s_awvalid), .s_awready(s_awready), .s_awaddr(s_awaddr), .s_awid(s_awid),
         .s_wvalid(s_wvalid), .s_wready(s_wready), .s_wdata(s_wdata), .s_wstrb(s_wstrb), .s_wlast(s_wlast),
         .s_bvalid(s_bvalid), .s_bready(s_bready), .s_bresp(s_bresp), .s_bid(s_bid),
@@ -82,11 +83,16 @@ module axi4_crossbar_formal #(
     function [3:0] decode_slave;
         input [AW-1:0] addr;
         begin
-            if      (addr[39:31] == 9'h001)  decode_slave = 4'd0; // DDR
-            else if (addr[39:28] == 12'h004) decode_slave = 4'd1; // APB bridge
-            else if (addr[39:28] == 12'h001) decode_slave = 4'd2; // BootROM
-            else if (addr[39:28] == 12'h000) decode_slave = 4'd3; // L2
-            else                             decode_slave = 4'hF;
+            if      (addr[39:31] == 9'h001)   decode_slave = 4'd0; // DDR
+            else if (addr[39:28] == 12'h004 || // APB bridge primary
+                     addr[39:28] == 12'h002 || // Security peripherals (0x2000_0000)
+                     addr[39:28] == 12'h003 || // CAN peripherals (0x3000_0000)
+                     addr[39:24] == 16'h000C|| // Standard RISC-V PLIC (0x0C00_0000)
+                     addr[39:24] == 16'h0002)  // Standard RISC-V CLINT (0x0200_0000)
+                                              decode_slave = 4'd1; // APB bridge
+            else if (addr[39:28] == 12'h001)  decode_slave = 4'd2; // BootROM
+            else if (addr[39:28] == 12'h000)  decode_slave = 4'd3; // Low Memory / SRAM
+            else                              decode_slave = 4'hF;
         end
     endfunction
 
