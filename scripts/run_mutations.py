@@ -27,8 +27,8 @@ MUTATIONS = [
         "file": "interconnect/axi4_crossbar/axi4_crossbar.v",
         "tb": "interconnect/axi4_crossbar/tb_axi4_crossbar.v",
         "deps": ["interconnect/axi4_crossbar/axi4_crossbar.v"],
-        "target": "if      (addr[39:31] == 9'h001)  decode_slave = 4'd0; // DDR",
-        "replacement": "if      (addr[39:31] == 9'h001)  decode_slave = 4'd1; // DDR MISROUTED TO APB",
+        "target": "if      (addr[39:31] == 9'h001)   decode_slave = 4'd0; // DDR",
+        "replacement": "if      (addr[39:31] == 9'h001)   decode_slave = 4'd1; // DDR MISROUTED TO APB",
         "description": "Misroutes DDR address aperture (0x8000_0000) to APB bridge slave 1 instead of DDR slave 0"
     },
     {
