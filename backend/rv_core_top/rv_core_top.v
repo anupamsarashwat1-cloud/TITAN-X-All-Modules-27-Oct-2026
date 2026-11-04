@@ -459,11 +459,35 @@ module rv_core_top #(
         .mem_stall    (mem_stall)
     );
 
+    function is_mmio_addr;
+        input [39:0] a;
+        begin
+            is_mmio_addr = (a >= 40'h0_0200_0000 && a < 40'h0_0201_0000) ||
+                           (a >= 40'h0_0C00_0000 && a < 40'h0_1000_0000) ||
+                           (a >= 40'h0_4000_0000 && a < 40'h0_5000_0000);
+        end
+    endfunction
+
+    reg [39:0] latched_mem_addr;
+    reg        latched_is_mmio;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            latched_mem_addr <= 40'h0;
+            latched_is_mmio  <= 1'b0;
+        end else if (pipe_dmem_arvalid || pipe_dmem_awvalid) begin
+            latched_mem_addr <= pipe_dmem_arvalid ? pipe_dmem_araddr : pipe_dmem_awaddr;
+            latched_is_mmio  <= is_mmio_addr(pipe_dmem_arvalid ? pipe_dmem_araddr : pipe_dmem_awaddr);
+        end
+    end
+
     // MMIO Detection
-    wire [39:0] cur_mem_addr = pipe_dmem_arvalid ? pipe_dmem_araddr : pipe_dmem_awaddr;
-    wire is_mmio = (cur_mem_addr >= 40'h0_0200_0000 && cur_mem_addr < 40'h0_0201_0000) ||
-                   (cur_mem_addr >= 40'h0_0C00_0000 && cur_mem_addr < 40'h0_1000_0000) ||
-                   (cur_mem_addr >= 40'h0_4000_0000 && cur_mem_addr < 40'h0_5000_0000);
+    wire [39:0] cur_mem_addr = (pipe_dmem_arvalid || pipe_dmem_awvalid) ?
+                               (pipe_dmem_arvalid ? pipe_dmem_araddr : pipe_dmem_awaddr) :
+                               latched_mem_addr;
+    wire is_mmio = (pipe_dmem_arvalid || pipe_dmem_awvalid) ?
+                   is_mmio_addr(pipe_dmem_arvalid ? pipe_dmem_araddr : pipe_dmem_awaddr) :
+                   latched_is_mmio;
 
     // L1 D-Cache & Burst-to-Lite Shim
     wire [63:0] dcache_cpu_rdata;
@@ -524,12 +548,12 @@ module rv_core_top #(
     ) u_dcache (
         .clk              (clk),
         .rst_n            (rst_n),
-        .cpu_addr         ({cur_mem_addr[39:3], 3'b000}),
+        .cpu_addr         (cur_mem_addr),
         .cpu_wdata        (pipe_dmem_wdata),
         .cpu_wstrb        (pipe_dmem_wstrb),
         .cpu_req          (dcache_req),
         .cpu_wr           (dcache_wr),
-        .cpu_size         (3'b011),
+        .cpu_size         (ex_f3),
         .cpu_rdata        (dcache_cpu_rdata),
         .cpu_valid        (dcache_cpu_valid),
         .cpu_stall        (dcache_cpu_stall),
@@ -671,9 +695,9 @@ module rv_core_top #(
     assign pipe_dmem_rvalid  = !ENABLE_L1_CACHE ? dmem_rvalid  :
                                is_mmio          ? dmem_rvalid  : dcache_cpu_valid;
     assign pipe_dmem_rdata   = !ENABLE_L1_CACHE ? dmem_rdata   :
-                               is_mmio          ? dmem_rdata   : dcache_cpu_rdata;
+                               is_mmio          ? dmem_rdata   : (dcache_cpu_rdata << {cur_mem_addr[2:0], 3'b000});
     assign pipe_dmem_rresp   = !ENABLE_L1_CACHE ? dmem_rresp   :
-                               is_mmio          ? dmem_rresp   : 2'b00;
+                               is_mmio          ? dmem_rresp   : dc_b2l_rresp;
 
     assign dmem_awvalid = !ENABLE_L1_CACHE ? pipe_dmem_awvalid :
                           is_mmio          ? pipe_dmem_awvalid : dc_out_awvalid;

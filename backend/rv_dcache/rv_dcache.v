@@ -312,6 +312,26 @@ module rv_dcache #(
             if (flush_all)
                 flush_pend <= 1'b1;
 
+            // Snoop handling and MESI coherence transitions across all FSM states
+            if (snoop_valid) begin
+                snoop_ack <= 1'b1;
+                if (|snoop_way_hit) begin
+                    // Supply dirty data if modified
+                    if (tag_sram[snoop_index][snoop_hit_way][TAG_D]) begin
+                        snoop_data       <= data_sram[snoop_index][snoop_hit_way];
+                        snoop_data_valid <= 1'b1;
+                    end
+                    if (snoop_type == 2'b01 || snoop_type == 2'b10 || snoop_type == 2'b11) begin
+                        // Invalidate: transition to Invalid (I)
+                        tag_sram[snoop_index][snoop_hit_way][TAG_V] <= 1'b0;
+                        tag_sram[snoop_index][snoop_hit_way][TAG_D] <= 1'b0;
+                    end else if (snoop_type == 2'b00) begin
+                        // Downgrade to Shared (S): clear dirty bit
+                        tag_sram[snoop_index][snoop_hit_way][TAG_D] <= 1'b0;
+                    end
+                end
+            end
+
             case (state)
                 D_IDLE: begin
                     if (cpu_req && cache_hit) begin
@@ -388,25 +408,6 @@ module rv_dcache #(
                         state      <= D_FLUSH_SCAN;
                     end
 
-                    // Snoop handling and MESI coherence transitions
-                    if (snoop_valid) begin
-                        snoop_ack <= 1'b1;
-                        if (|snoop_way_hit) begin
-                            // Supply dirty data if modified
-                            if (tag_sram[snoop_index][snoop_hit_way][TAG_D]) begin
-                                snoop_data       <= data_sram[snoop_index][snoop_hit_way];
-                                snoop_data_valid <= 1'b1;
-                            end
-                            if (snoop_type == 2'b01 || snoop_type == 2'b10 || snoop_type == 2'b11) begin
-                                // Invalidate: transition to Invalid (I)
-                                tag_sram[snoop_index][snoop_hit_way][TAG_V] <= 1'b0;
-                                tag_sram[snoop_index][snoop_hit_way][TAG_D] <= 1'b0;
-                            end else if (snoop_type == 2'b00) begin
-                                // Downgrade to Shared (S): clear dirty bit
-                                tag_sram[snoop_index][snoop_hit_way][TAG_D] <= 1'b0;
-                            end
-                        end
-                    end
                 end
 
                 D_FLUSH_SCAN: begin
