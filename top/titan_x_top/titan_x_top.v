@@ -243,8 +243,14 @@ module titan_x_top (
     assign axs_bid[2*4 +: 4] = 4'h0;
 
     // -------------------------------------------------------
-    // Cores 0-3 (RV64GC)
+    // Cores 0-3 (RV64GC) with L2 Coherence Snooping
     // -------------------------------------------------------
+    wire [3:0]   l2_snoop_valid;
+    wire [39:0]  l2_snoop_addr;
+    wire [1:0]   l2_snoop_type;
+    wire [3:0]   l2_snoop_ack;
+    wire [3:0]   l2_snoop_data_valid;
+
     genvar c;
     generate
         for (c = 0; c < 4; c = c + 1) begin : gen_cores
@@ -285,8 +291,8 @@ module titan_x_top (
                 .dmem_arlen(), .dmem_arsize(), .dmem_arburst(), .dmem_arlock(),
                 .dmem_rvalid(axm_rvalid[c+4]), .dmem_rready(axm_rready[c+4]), .dmem_rdata(axm_rdata[(c+4)*64 +: 64]), 
                 .dmem_rresp(axm_rresp[(c+4)*2 +: 2]), .dmem_rlast(axm_rlast[c+4]),
-                .snoop_valid(1'b0), .snoop_addr(40'h0), .snoop_type(2'b00),
-                .snoop_ack(), .snoop_data_valid(), .snoop_data(),
+                .snoop_valid(l2_snoop_valid[c]), .snoop_addr(l2_snoop_addr), .snoop_type(l2_snoop_type),
+                .snoop_ack(l2_snoop_ack[c]), .snoop_data_valid(l2_snoop_data_valid[c]), .snoop_data(),
                 .halt_req(1'b0), .resume_req(1'b0),
                 .hart_halted(), .hart_running()
             );
@@ -338,27 +344,98 @@ module titan_x_top (
     assign ddr_act_n   = 1'b1;
 
     // -------------------------------------------------------
-    // Memory Subsystem (Slave 0)
+    // Memory Subsystem (Slave 0) — L2 Cache & DDR4 Controller
     // -------------------------------------------------------
-    wire [15:0] l2_dat_cs, l2_dat_we, l2_dat_bank, l2_dat_addr, l2_dat_din, l2_dat_dout;
-    wire l2_dat_dout_valid;
-    
+    wire         l2_m_arvalid, l2_m_arready;
+    wire [39:0]  l2_m_araddr;
+    wire         l2_m_rvalid, l2_m_rready;
+    wire [63:0]  l2_m_rdata;
+    wire [1:0]   l2_m_rresp;
+    wire         l2_m_awvalid, l2_m_awready;
+    wire [39:0]  l2_m_awaddr;
+    wire         l2_m_wvalid, l2_m_wready;
+    wire [63:0]  l2_m_wdata;
+    wire [7:0]   l2_m_wstrb;
+    wire         l2_m_bvalid, l2_m_bready;
+    wire [1:0]   l2_m_bresp;
+
+    // Crossbar Slave 0 ID tracking
+    reg [3:0] l2_s_rid, l2_s_bid;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            l2_s_rid <= 4'h0;
+            l2_s_bid <= 4'h0;
+        end else begin
+            if (axs_arvalid[0] && axs_arready[0])
+                l2_s_rid <= axs_arid[0*4 +: 4];
+            if (axs_awvalid[0] && axs_awready[0])
+                l2_s_bid <= axs_awid[0*4 +: 4];
+        end
+    end
+    assign axs_rlast[0]        = 1'b1;
+    assign axs_rid[0*4 +: 4]   = l2_s_rid;
+    assign axs_bid[0*4 +: 4]   = l2_s_bid;
+
     l2_cache_top u_l2_cache (
-        .clk(clk), .rst_n(rst_n)
+        .clk(clk),
+        .rst_n(rst_n),
+        // Slave face (from crossbar Slave 0)
+        .s_arvalid(axs_arvalid[0]),
+        .s_arready(axs_arready[0]),
+        .s_araddr (axs_araddr[0*40 +: 40]),
+        .s_rvalid (axs_rvalid[0]),
+        .s_rready (axs_rready[0]),
+        .s_rdata  (axs_rdata[0*64 +: 64]),
+        .s_rresp  (axs_rresp[0*2 +: 2]),
+        .s_awvalid(axs_awvalid[0]),
+        .s_awready(axs_awready[0]),
+        .s_awaddr (axs_awaddr[0*40 +: 40]),
+        .s_wvalid (axs_wvalid[0]),
+        .s_wready (axs_wready[0]),
+        .s_wdata  (axs_wdata[0*64 +: 64]),
+        .s_wstrb  (axs_wstrb[0*8 +: 8]),
+        .s_bvalid (axs_bvalid[0]),
+        .s_bready (axs_bready[0]),
+        .s_bresp  (axs_bresp[0*2 +: 2]),
+
+        // Master face (to DDR controller)
+        .m_arvalid(l2_m_arvalid),
+        .m_arready(l2_m_arready),
+        .m_araddr (l2_m_araddr),
+        .m_rvalid (l2_m_rvalid),
+        .m_rready (l2_m_rready),
+        .m_rdata  (l2_m_rdata),
+        .m_rresp  (l2_m_rresp),
+        .m_awvalid(l2_m_awvalid),
+        .m_awready(l2_m_awready),
+        .m_awaddr (l2_m_awaddr),
+        .m_wvalid (l2_m_wvalid),
+        .m_wready (l2_m_wready),
+        .m_wdata  (l2_m_wdata),
+        .m_wstrb  (l2_m_wstrb),
+        .m_bvalid (l2_m_bvalid),
+        .m_bready (l2_m_bready),
+
+        // L1 Snoop interfaces (Cores 0-3)
+        .snoop_valid(l2_snoop_valid),
+        .snoop_addr (l2_snoop_addr),
+        .snoop_type (l2_snoop_type),
+        .snoop_ack  (l2_snoop_ack),
+        .snoop_data_valid(l2_snoop_data_valid)
     );
 
     ddr_ctrl_top u_ddr_ctrl (
         .clk(clk), .rst_n(rst_n),
-        .s_awvalid(axs_awvalid[0]), .s_awready(axs_awready[0]), .s_awaddr(axs_awaddr[0*40 +: 40]), 
-        .s_awid(axs_awid[0*4 +: 4]), .s_awlen(8'h0), .s_awsize(3'h0),
-        .s_wvalid(axs_wvalid[0]), .s_wready(axs_wready[0]), .s_wdata(axs_wdata[0*64 +: 64]), 
-        .s_wstrb(axs_wstrb[0*8 +: 8]), .s_wlast(axs_wlast[0]),
-        .s_bvalid(axs_bvalid[0]), .s_bready(axs_bready[0]), .s_bresp(axs_bresp[0*2 +: 2]), .s_bid(axs_bid[0*4 +: 4]),
+        .s_awvalid(l2_m_awvalid), .s_awready(l2_m_awready), .s_awaddr(l2_m_awaddr), 
+        .s_awid(4'h0), .s_awlen(8'h0), .s_awsize(3'b011),
+        .s_wvalid(l2_m_wvalid), .s_wready(l2_m_wready), .s_wdata(l2_m_wdata), 
+        .s_wstrb(l2_m_wstrb), .s_wlast(1'b1),
+        .s_bvalid(l2_m_bvalid), .s_bready(l2_m_bready), .s_bresp(l2_m_bresp), .s_bid(),
         
-        .s_arvalid(axs_arvalid[0]), .s_arready(axs_arready[0]), .s_araddr(axs_araddr[0*40 +: 40]), 
-        .s_arid(axs_arid[0*4 +: 4]), .s_arlen(8'h0),
-        .s_rvalid(axs_rvalid[0]), .s_rready(axs_rready[0]), .s_rdata(axs_rdata[0*64 +: 64]), 
-        .s_rresp(axs_rresp[0*2 +: 2]), .s_rlast(axs_rlast[0]), .s_rid(axs_rid[0*4 +: 4]),
+        .s_arvalid(l2_m_arvalid), .s_arready(l2_m_arready), .s_araddr(l2_m_araddr), 
+        .s_arid(4'h0), .s_arlen(8'h0),
+        .s_rvalid(l2_m_rvalid), .s_rready(l2_m_rready), .s_rdata(l2_m_rdata), 
+        .s_rresp(l2_m_rresp), .s_rlast(), .s_rid(),
         
         .ddr_addr(ddr_addr), .ddr_ba(ddr_ba), .ddr_bg(ddr_bg),
         .ddr_ck_p(ddr_ck_p), .ddr_ck_n(ddr_ck_n), .ddr_cke(ddr_cke), .ddr_cs_n(ddr_cs_n),

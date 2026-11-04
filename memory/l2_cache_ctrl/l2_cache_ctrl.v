@@ -60,6 +60,8 @@ module l2_cache_ctrl #(
     reg [7:0]        req_wstrb;
     reg              req_wr;
     reg [DATA_W-1:0] fetch_data;
+    reg              aw_done;
+    reg              w_done;
 
     wire [TAG_W-1:0]  req_tag   = req_addr[ADDR_W-1 : OFF_W+IDX_W];
     wire [IDX_W-1:0]  req_index = req_addr[OFF_W+IDX_W-1 : OFF_W];
@@ -76,6 +78,7 @@ module l2_cache_ctrl #(
             tag_cs    <= 1'b0;  tag_we    <= 1'b0;
             dat_cs    <= 1'b0;  dat_we    <= 1'b0;
             req_addr  <= 40'h0; req_wr    <= 1'b0;
+            aw_done   <= 1'b0;  w_done    <= 1'b0;
         end else begin
             // Default deassert
             tag_cs   <= 1'b0;  dat_cs   <= 1'b0;
@@ -121,6 +124,8 @@ module l2_cache_ctrl #(
                         dat_addr  <= req_index;
                         dat_din   <= req_wdata[31:0];
                         dat_wmask <= req_wstrb[3:0];
+                        aw_done   <= 1'b0;
+                        w_done    <= 1'b0;
                         state     <= ST_WRTHR;
                     end else begin
                         // Miss: fetch from DDR
@@ -166,20 +171,32 @@ module l2_cache_ctrl #(
                         s_rresp  <= 2'h0;
                         if (s_rready) state <= ST_IDLE;
                     end else begin
-                        state <= ST_WRTHR;
+                        aw_done <= 1'b0;
+                        w_done  <= 1'b0;
+                        state   <= ST_WRTHR;
                     end
                 end
 
                 ST_WRTHR: begin
                     // Write-through to DDR
-                    m_awvalid <= 1'b1;
-                    m_awaddr  <= req_addr;
-                    m_wvalid  <= 1'b1;
-                    m_wdata   <= req_wdata;
-                    m_wstrb   <= req_wstrb;
+                    if (!aw_done) begin
+                        m_awvalid <= 1'b1;
+                        m_awaddr  <= req_addr;
+                        if (m_awready) begin
+                            m_awvalid <= 1'b0;
+                            aw_done   <= 1'b1;
+                        end
+                    end
+                    if (!w_done) begin
+                        m_wvalid  <= 1'b1;
+                        m_wdata   <= req_wdata;
+                        m_wstrb   <= req_wstrb;
+                        if (m_wready) begin
+                            m_wvalid <= 1'b0;
+                            w_done   <= 1'b1;
+                        end
+                    end
                     m_bready  <= 1'b1;
-                    if (m_awready) m_awvalid <= 1'b0;
-                    if (m_wready)  m_wvalid  <= 1'b0;
                     if (m_bvalid) begin
                         m_bready <= 1'b0;
                         s_bvalid <= 1'b1;

@@ -332,8 +332,15 @@ module rv_core_top #(
     assign stall = mul_div_stall || mem_stall || halt_req;
     assign stall_ex = mem_stall || halt_req;   // execute's view: no self-loop
 
-    // L2 snoop idle until the dcache returns behind the data port
-    assign snoop_ack        = 1'b0;
+    // Active snoop acknowledgement for L2 snoop filter
+    reg snoop_ack_r;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            snoop_ack_r <= 1'b0;
+        else
+            snoop_ack_r <= snoop_valid;
+    end
+    assign snoop_ack        = snoop_ack_r;
     assign snoop_data_valid = 1'b0;
     assign snoop_data       = 512'h0;
 
