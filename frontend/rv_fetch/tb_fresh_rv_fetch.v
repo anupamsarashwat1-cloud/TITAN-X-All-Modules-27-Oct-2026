@@ -23,6 +23,9 @@ module tb_fresh_rv_fetch;
     wire [63:0] pc_out;
     wire [31:0] instr_out;
     wire        valid_out;
+    wire        fault_out;
+    wire [63:0] fault_cause_out;
+    wire [63:0] fault_tval_out;
 
     integer tests_passed = 0;
     integer tests_failed = 0;
@@ -49,7 +52,10 @@ module tb_fresh_rv_fetch;
         .imem_rresp     (imem_rresp),
         .pc_out         (pc_out),
         .instr_out      (instr_out),
-        .valid_out      (valid_out)
+        .valid_out      (valid_out),
+        .fault_out      (fault_out),
+        .fault_cause_out(fault_cause_out),
+        .fault_tval_out (fault_tval_out)
     );
 
     task check(input [255:0] test_name, input condition);
@@ -254,7 +260,7 @@ module tb_fresh_rv_fetch;
         imem_rvalid = 1'b0;
         imem_rresp  = 2'b00;
 
-        check("Test 6.1: SLVERR suppresses valid_out", valid_out == 1'b0);
+        check("Test 6.1: SLVERR asserts instruction access fault (Cause 1)", fault_out == 1'b1 && fault_cause_out == 64'd1);
 
         // ----------------------------------------------------
         // Final Scorecard

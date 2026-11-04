@@ -15,6 +15,9 @@ module rv_decode (
     input  wire [63:0] pc_in,
     input  wire [31:0] instr_in,
     input  wire        valid_in,
+    input  wire        fault_in,
+    input  wire [63:0] fault_cause_in,
+    input  wire [63:0] fault_tval_in,
     // Writeback feedback
     input  wire [4:0]  wb_rd,
     input  wire [63:0] wb_data,
@@ -45,6 +48,9 @@ module rv_decode (
     output reg         is_ebreak,
     output reg         is_mret,
     output reg         illegal_instr,
+    output reg         fault_out,
+    output reg  [63:0] fault_cause_out,
+    output reg  [63:0] fault_tval_out,
     output reg         valid_out
 );
     wire [6:0] op   = instr_in[6:0];
@@ -301,7 +307,10 @@ module rv_decode (
             is_ebreak     <= 1'b0;
             is_mret       <= 1'b0;
             illegal_instr <= 1'b0;
-            valid_out     <= 1'b0;
+            fault_out       <= 1'b0;
+            fault_cause_out <= 64'h0;
+            fault_tval_out  <= 64'h0;
+            valid_out       <= 1'b0;
         end else if (flush_buf5) begin
             rd            <= 5'h0;
             rs1_addr      <= 5'h0;
@@ -322,7 +331,10 @@ module rv_decode (
             is_ebreak     <= 1'b0;
             is_mret       <= 1'b0;
             illegal_instr <= 1'b0;
-            valid_out     <= 1'b0;
+            fault_out       <= 1'b0;
+            fault_cause_out <= 64'h0;
+            fault_tval_out  <= 64'h0;
+            valid_out       <= 1'b0;
         end else if (!stall) begin
             rd            <= r_rd;
             rs1_addr      <= r_rs1;
@@ -343,7 +355,10 @@ module rv_decode (
             is_ebreak     <= eb_comb;
             is_mret       <= mret_comb;
             illegal_instr <= valid_in && illegal_comb;
-            valid_out     <= valid_in;
+            fault_out       <= valid_in && (fault_in === 1'b1);
+            fault_cause_out <= (valid_in && (fault_in === 1'b1)) ? fault_cause_in : 64'h0;
+            fault_tval_out  <= (valid_in && (fault_in === 1'b1)) ? fault_tval_in : 64'h0;
+            valid_out       <= valid_in;
         end
     end
 endmodule

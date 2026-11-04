@@ -166,6 +166,24 @@ module rv_dcache #(
                               way_hit[5] ? 3'd5 : way_hit[6] ? 3'd6 :
                               way_hit[7] ? 3'd7 : 3'd0;
 
+    // Snoop matching (coherence MESI protocol)
+    wire [INDEX_W-1:0] snoop_index = snoop_addr[OFFSET_W+INDEX_W-1:OFFSET_W];
+    wire [TAG_W-1:0]   snoop_tag   = snoop_addr[ADDR_W-1:OFFSET_W+INDEX_W];
+
+    wire [WAYS-1:0] snoop_way_hit;
+    genvar sw;
+    generate
+        for (sw = 0; sw < WAYS; sw = sw + 1) begin : snoop_hit_gen
+            assign snoop_way_hit[sw] = tag_sram[snoop_index][sw][TAG_V] &&
+                                       (tag_sram[snoop_index][sw][TAG_W-1:0] == snoop_tag);
+        end
+    endgenerate
+
+    wire [2:0] snoop_hit_way = snoop_way_hit[1] ? 3'd1 : snoop_way_hit[2] ? 3'd2 :
+                               snoop_way_hit[3] ? 3'd3 : snoop_way_hit[4] ? 3'd4 :
+                               snoop_way_hit[5] ? 3'd5 : snoop_way_hit[6] ? 3'd6 :
+                               snoop_way_hit[7] ? 3'd7 : 3'd0;
+
     // PLRU victim
     wire [6:0] plru = plru_state[index];
     wire [2:0] plru_victim =
@@ -370,9 +388,25 @@ module rv_dcache #(
                         state      <= D_FLUSH_SCAN;
                     end
 
-                    // Snoop acknowledgement (coherence datapath TODO)
-                    if (snoop_valid)
+                    // Snoop handling and MESI coherence transitions
+                    if (snoop_valid) begin
                         snoop_ack <= 1'b1;
+                        if (|snoop_way_hit) begin
+                            // Supply dirty data if modified
+                            if (tag_sram[snoop_index][snoop_hit_way][TAG_D]) begin
+                                snoop_data       <= data_sram[snoop_index][snoop_hit_way];
+                                snoop_data_valid <= 1'b1;
+                            end
+                            if (snoop_type == 2'b01 || snoop_type == 2'b10 || snoop_type == 2'b11) begin
+                                // Invalidate: transition to Invalid (I)
+                                tag_sram[snoop_index][snoop_hit_way][TAG_V] <= 1'b0;
+                                tag_sram[snoop_index][snoop_hit_way][TAG_D] <= 1'b0;
+                            end else if (snoop_type == 2'b00) begin
+                                // Downgrade to Shared (S): clear dirty bit
+                                tag_sram[snoop_index][snoop_hit_way][TAG_D] <= 1'b0;
+                            end
+                        end
+                    end
                 end
 
                 D_FLUSH_SCAN: begin

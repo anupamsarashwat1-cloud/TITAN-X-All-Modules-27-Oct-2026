@@ -31,7 +31,10 @@ module rv_fetch #(
     // To decode stage
     output reg  [63:0] pc_out,
     output reg  [31:0] instr_out,
-    output reg         valid_out
+    output reg         valid_out,
+    output reg         fault_out,
+    output reg  [63:0] fault_cause_out,
+    output reg  [63:0] fault_tval_out
 );
     reg [63:0] pc;
 
@@ -60,11 +63,14 @@ module rv_fetch #(
             pc           <= RESET_PC;
             imem_addr    <= RESET_PC;
             imem_arvalid <= 1'b0;
-            pc_out       <= 64'h0;
-            instr_out    <= 32'h0000_0013; // NOP
-            valid_out    <= 1'b0;
-            fstate       <= F_REQ;
-            pending_r    <= 1'b0;
+            pc_out          <= 64'h0;
+            instr_out       <= 32'h0000_0013; // NOP
+            valid_out       <= 1'b0;
+            fault_out       <= 1'b0;
+            fault_cause_out <= 64'h0;
+            fault_tval_out  <= 64'h0;
+            fstate          <= F_REQ;
+            pending_r       <= 1'b0;
         end else begin
             case (fstate)
                 F_REQ: begin
@@ -79,11 +85,14 @@ module rv_fetch #(
                     // Redirect outranks stall: the wrong-path beat is dead
                     // either way once the front-end is flushed.
                     if (redirect) begin
-                        valid_out    <= 1'b0;
-                        pc           <= branch_target;
-                        imem_addr    <= branch_target;
-                        imem_arvalid <= 1'b1;
-                        fstate       <= F_WAIT;
+                        valid_out       <= 1'b0;
+                        fault_out       <= 1'b0;
+                        fault_cause_out <= 64'h0;
+                        fault_tval_out  <= 64'h0;
+                        pc              <= branch_target;
+                        imem_addr       <= branch_target;
+                        imem_arvalid    <= 1'b1;
+                        fstate          <= F_WAIT;
                     end else if (!stall) begin
                     // Refill-gap valid discipline. valid_out was set for
                     // exactly the one delivery cycle; it must drop so decode
@@ -95,10 +104,13 @@ module rv_fetch #(
                     // made the instruction evaporate the moment the stall
                     // released (every other store/load follower vanished).
                     // Producer rule: hold VALID until the consumer takes it.
-                        valid_out    <= 1'b0;
-                        imem_addr    <= pc;
-                        imem_arvalid <= 1'b1;
-                        fstate       <= F_WAIT;
+                        valid_out       <= 1'b0;
+                        fault_out       <= 1'b0;
+                        fault_cause_out <= 64'h0;
+                        fault_tval_out  <= 64'h0;
+                        imem_addr       <= pc;
+                        imem_arvalid    <= 1'b1;
+                        fstate          <= F_WAIT;
                     end
                     // else: hold {pc_out, instr_out, valid_out} intact —
                     // decode is frozen and will consume on release.
@@ -110,8 +122,11 @@ module rv_fetch #(
                         pending_r    <= 1'b1;
                     end
                     if (redirect) begin
-                        valid_out <= 1'b0;
-                        pc        <= branch_target;
+                        valid_out       <= 1'b0;
+                        fault_out       <= 1'b0;
+                        fault_cause_out <= 64'h0;
+                        fault_tval_out  <= 64'h0;
+                        pc              <= branch_target;
                         // An orphan survives this edge if an AR is still
                         // unaccepted (its address must stay stable — AXI
                         // forbids swapping ARADDR under held ARVALID) or a
@@ -132,16 +147,30 @@ module rv_fetch #(
                             imem_arvalid <= 1'b1;
                         end
                     end else if (!stall && pending_r && imem_rvalid) begin
-                        pc_out    <= pc;
-                        instr_out <= imem_rdata;
-                        valid_out <= (imem_rresp == 2'b00);
+                        pc_out <= pc;
+                        if (imem_rresp != 2'b00) begin
+                            instr_out       <= 32'h0000_0013; // NOP
+                            valid_out       <= 1'b1;
+                            fault_out       <= 1'b1;
+                            fault_cause_out <= 64'd1;         // Instruction access fault
+                            fault_tval_out  <= pc;
+                        end else begin
+                            instr_out       <= imem_rdata;
+                            valid_out       <= 1'b1;
+                            fault_out       <= 1'b0;
+                            fault_cause_out <= 64'h0;
+                            fault_tval_out  <= 64'h0;
+                        end
                         pc        <= pc + 64'd4;
                         pending_r <= 1'b0;
                         fstate    <= F_REQ;
                     end
                 end
                 F_FLUSH: begin
-                    valid_out <= 1'b0;
+                    valid_out       <= 1'b0;
+                    fault_out       <= 1'b0;
+                    fault_cause_out <= 64'h0;
+                    fault_tval_out  <= 64'h0;
                     // Latest target wins if another redirect arrives mid-drain.
                     if (redirect)
                         pc    <= branch_target;

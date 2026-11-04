@@ -46,7 +46,48 @@ module titan_x_top (
     output wire [4:0]  uart_tx,
     input  wire [4:0]  uart_rx,
     output wire [1:0]  can_tx,
-    input  wire [1:0]  can_rx
+    input  wire [1:0]  can_rx,
+
+    // Gate G: Gigabit Ethernet GMII External Interface
+    output wire [7:0]  gmii_txd,
+    output wire        gmii_tx_en,
+    output wire        gmii_tx_er,
+    input  wire [7:0]  gmii_rxd,
+    input  wire        gmii_rx_dv,
+    input  wire        gmii_rx_er,
+    input  wire        gmii_crs,
+    input  wire        gmii_col,
+
+    // Gate H: PCIe Gen2 x4 PIPE 3.0 External Interface
+    output wire [63:0] pipe_tx_data,
+    output wire [7:0]  pipe_tx_datak,
+    input  wire [63:0] pipe_rx_data,
+    input  wire [7:0]  pipe_rx_datak,
+    output wire [1:0]  pipe_tx_rate,
+    output wire [3:0]  pipe_tx_elecidle,
+    output wire [3:0]  pipe_tx_compliance,
+    output wire [3:0]  pipe_rx_polarity,
+    output wire [7:0]  pipe_power_down,
+    input  wire [3:0]  pipe_rx_valid,
+    input  wire [3:0]  pipe_rx_elecidle,
+    input  wire [11:0] pipe_rx_status,
+    input  wire [3:0]  pipe_phy_status,
+
+    // Gate I: USB 2.0 OTG ULPI External Interface
+    inout  wire [7:0]  ulpi_data,
+    input  wire        ulpi_dir,
+    input  wire        ulpi_nxt,
+    output wire        ulpi_stp,
+    output wire        ulpi_reset,
+
+    // Gate J: Storage & Memory Interfaces (SD/MMC & QSPI)
+    output wire        sd_clk,
+    inout  wire        sd_cmd,
+    inout  wire [7:0]  sd_dat,
+    output wire        sd_reset_n,
+    output wire        qspi_sclk,
+    output wire        qspi_cs_n,
+    inout  wire [3:0]  qspi_io
 );
 
     // -------------------------------------------------------
@@ -252,24 +293,7 @@ module titan_x_top (
         .s_rvalid(axs_rvalid), .s_rready(axs_rready), .s_rdata(axs_rdata), .s_rresp(axs_rresp), .s_rlast(axs_rlast), .s_rid(axs_rid)
     );
 
-    // Tie off unused masters
-    genvar m;
-    generate
-        for (m = 13; m < 15; m = m + 1) begin : gen_unused_axim
-            assign axm_awvalid[m] = 1'b0;
-            assign axm_awaddr[m*40 +: 40] = 40'h0;
-            assign axm_awid[m*4 +: 4] = 4'h0;
-            assign axm_wvalid[m] = 1'b0;
-            assign axm_wdata[m*64 +: 64] = 64'h0;
-            assign axm_wstrb[m*8 +: 8] = 8'h0;
-            assign axm_wlast[m] = 1'b0;
-            assign axm_bready[m] = 1'b1;
-            assign axm_arvalid[m] = 1'b0;
-            assign axm_araddr[m*40 +: 40] = 40'h0;
-            assign axm_arid[m*4 +: 4] = 4'h0;
-            assign axm_rready[m] = 1'b1;
-        end
-    endgenerate
+    // Masters 13 and 14 are connected to mmc_controller and vdma below.
 
     // Tie off unused slaves (Slaves 3-8 return DECERR without bus hang)
     genvar s;
@@ -344,6 +368,7 @@ module titan_x_top (
     wire [1:0]   l2_snoop_type;
     wire [3:0]   l2_snoop_ack;
     wire [3:0]   l2_snoop_data_valid;
+    wire [511:0] core_snoop_data [0:3];
 
     wire [4:0]   dbg_halt_req;
     wire [4:0]   dbg_resume_req;
@@ -369,7 +394,8 @@ module titan_x_top (
             
             rv_core_top #(
                 .HART_ID(c),
-                .RESET_PC(64'h0000_0000_1000_0000)
+                .RESET_PC(64'h0000_0000_1000_0000),
+                .ENABLE_L1_CACHE(1)
             ) u_core (
                 .clk(clk), .rst_n(core_rst_n),
                 .irq_m_ext(plic_targets[c*2]), .irq_m_timer(timer_irq[c]), .irq_m_soft(sw_irq[c]),
@@ -391,7 +417,7 @@ module titan_x_top (
                 .dmem_rvalid(axm_rvalid[c+4]), .dmem_rready(axm_rready[c+4]), .dmem_rdata(axm_rdata[(c+4)*64 +: 64]), 
                 .dmem_rresp(axm_rresp[(c+4)*2 +: 2]), .dmem_rlast(axm_rlast[c+4]),
                 .snoop_valid(l2_snoop_valid[c]), .snoop_addr(l2_snoop_addr), .snoop_type(l2_snoop_type),
-                .snoop_ack(l2_snoop_ack[c]), .snoop_data_valid(l2_snoop_data_valid[c]), .snoop_data(),
+                .snoop_ack(l2_snoop_ack[c]), .snoop_data_valid(l2_snoop_data_valid[c]), .snoop_data(core_snoop_data[c]),
                 .halt_req(dbg_halt_req[c]), .resume_req(dbg_resume_req[c]),
                 .hart_halted(dbg_hart_halted[c]), .hart_running(dbg_hart_running[c])
             );
@@ -555,7 +581,8 @@ module titan_x_top (
         .snoop_addr (l2_snoop_addr),
         .snoop_type (l2_snoop_type),
         .snoop_ack  (l2_snoop_ack),
-        .snoop_data_valid(l2_snoop_data_valid)
+        .snoop_data_valid(l2_snoop_data_valid),
+        .snoop_data (core_snoop_data[0] | core_snoop_data[1] | core_snoop_data[2] | core_snoop_data[3])
     );
 
     ddr_ctrl_top u_ddr_ctrl (
@@ -637,6 +664,9 @@ module titan_x_top (
     wire psel_wdt   = psel && (paddr[31:12] == 20'h40012);
     wire psel_spi   = psel && (paddr[31:12] == 20'h40013);
     wire psel_i2c   = psel && (paddr[31:12] == 20'h40014);
+    wire psel_mmc   = psel && (paddr[31:12] == 20'h40016);
+    wire psel_qspi  = psel && (paddr[31:12] == 20'h40017);
+    wire psel_vdma  = psel && (paddr[31:12] == 20'h40018);
     assign psel_mpu = psel && (paddr[31:16] == 16'h4010);
     assign psel_qos = psel && (paddr[31:16] == 16'h4011);
     assign psel_plic = psel && (paddr[31:24] == 8'h0C || paddr[31:20] == 12'h40D);
@@ -646,6 +676,7 @@ module titan_x_top (
     wire [31:0] prdata_drbg, prdata_aes, prdata_envm, prdata_boot, prdata_can0, prdata_can1;
     wire [31:0] prdata_trng, prdata_sha256, prdata_ecdsa;
     wire [31:0] prdata_clint, prdata_gpio, prdata_wdt, prdata_spi, prdata_i2c;
+    wire [31:0] prdata_mmc, prdata_qspi, prdata_vdma;
 
     assign prdata_mux = psel_uart0  ? {32'h0, prdata_uart0} :
                         psel_uart1  ? {32'h0, prdata_uart1} :
@@ -658,6 +689,9 @@ module titan_x_top (
                         psel_wdt    ? {32'h0, prdata_wdt} :
                         psel_spi    ? {32'h0, prdata_spi} :
                         psel_i2c    ? {32'h0, prdata_i2c} :
+                        psel_mmc    ? {32'h0, prdata_mmc} :
+                        psel_qspi   ? {32'h0, prdata_qspi} :
+                        psel_vdma   ? {32'h0, prdata_vdma} :
                         psel_gem    ? {32'h0, prdata_gem} :
                         psel_usb    ? {32'h0, prdata_usb} :
                         psel_mipi   ? {32'h0, prdata_mipi} :
@@ -677,8 +711,14 @@ module titan_x_top (
                         psel_plic   ? {32'h0, prdata_plic} : 64'h0;
 
     // -------------------------------------------------------
-    // DMA Peripherals (Masters 10, 11, 12)
+    // DMA Peripherals (Masters 10, 11, 12, 13, 14)
     // -------------------------------------------------------
+    wire [7:0] safe_gmii_rxd   = (gmii_rxd === 8'hxx || gmii_rxd === 8'hzz) ? 8'h0 : gmii_rxd;
+    wire       safe_gmii_rx_dv = (gmii_rx_dv === 1'bx || gmii_rx_dv === 1'bz) ? 1'b0 : gmii_rx_dv;
+    wire       safe_gmii_rx_er = (gmii_rx_er === 1'bx || gmii_rx_er === 1'bz) ? 1'b0 : gmii_rx_er;
+    wire       safe_gmii_crs   = (gmii_crs === 1'bx || gmii_crs === 1'bz) ? 1'b0 : gmii_crs;
+    wire       safe_gmii_col   = (gmii_col === 1'bx || gmii_col === 1'bz) ? 1'b0 : gmii_col;
+
     gem_ethernet u_gem (
         .clk(clk), .rst_n(rst_n), .tx_clk(eth_tx_clk), .rx_clk(eth_rx_clk),
         .m_awvalid(axm_awvalid[10]), .m_awready(axm_awready[10]), .m_awaddr(axm_awaddr[10*40 +: 40]), .m_awid(axm_awid[10*4 +: 4]),
@@ -687,8 +727,18 @@ module titan_x_top (
         .m_arvalid(axm_arvalid[10]), .m_arready(axm_arready[10]), .m_araddr(axm_araddr[10*40 +: 40]), .m_arid(axm_arid[10*4 +: 4]),
         .m_rvalid(axm_rvalid[10]),   .m_rready(axm_rready[10]),   .m_rdata(axm_rdata[10*64 +: 64]),   .m_rresp(axm_rresp[10*2 +: 2]), .m_rlast(axm_rlast[10]),
         .paddr(paddr), .psel(psel_gem), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_gem), .pready(), .pslverr(),
-        .mac_irq(plic_irq[27]), .gmii_txd(), .gmii_tx_en(), .gmii_tx_er(), .gmii_rxd(8'h0), .gmii_rx_dv(1'b0), .gmii_rx_er(1'b0), .gmii_crs(1'b0), .gmii_col(1'b0)
+        .mac_irq(plic_irq[27]),
+        .gmii_txd(gmii_txd), .gmii_tx_en(gmii_tx_en), .gmii_tx_er(gmii_tx_er),
+        .gmii_rxd(safe_gmii_rxd), .gmii_rx_dv(safe_gmii_rx_dv), .gmii_rx_er(safe_gmii_rx_er),
+        .gmii_crs(safe_gmii_crs), .gmii_col(safe_gmii_col)
     );
+
+    wire [63:0] safe_pipe_rx_data     = (pipe_rx_data === 64'hxx || pipe_rx_data === 64'hzz) ? 64'h0 : pipe_rx_data;
+    wire [7:0]  safe_pipe_rx_datak    = (pipe_rx_datak === 8'hxx || pipe_rx_datak === 8'hzz) ? 8'h0 : pipe_rx_datak;
+    wire [3:0]  safe_pipe_rx_valid    = (pipe_rx_valid === 4'hx || pipe_rx_valid === 4'hz) ? 4'h0 : pipe_rx_valid;
+    wire [3:0]  safe_pipe_rx_elecidle = (pipe_rx_elecidle === 4'hx || pipe_rx_elecidle === 4'hz) ? 4'hF : pipe_rx_elecidle;
+    wire [11:0] safe_pipe_rx_status   = (pipe_rx_status === 12'hx || pipe_rx_status === 12'hz) ? 12'h0 : pipe_rx_status;
+    wire [3:0]  safe_pipe_phy_status  = (pipe_phy_status === 4'hx || pipe_phy_status === 4'hz) ? 4'h0 : pipe_phy_status;
 
     pcie_top u_pcie (
         .pcie_clk(clk), .pcie_rst_n(rst_n), .pipe_clk(pipe_clk),
@@ -697,9 +747,13 @@ module titan_x_top (
         .m_bvalid(axm_bvalid[11]),   .m_bready(axm_bready[11]),   .m_bresp(axm_bresp[11*2 +: 2]),     .m_bid(axm_bid[11*4 +: 4]),
         .m_arvalid(axm_arvalid[11]), .m_arready(axm_arready[11]), .m_araddr(axm_araddr[11*40 +: 40]), .m_arid(axm_arid[11*4 +: 4]),
         .m_rvalid(axm_rvalid[11]),   .m_rready(axm_rready[11]),   .m_rdata(axm_rdata[11*64 +: 64]),   .m_rresp(axm_rresp[11*2 +: 2]), .m_rlast(axm_rlast[11]), .m_rid(axm_rid[11*4 +: 4]),
-        .pipe_tx_data(), .pipe_tx_datak(), .pipe_tx_rate(), .pipe_tx_elecidle(), .pipe_tx_compliance(),
-        .pipe_rx_data(64'h0), .pipe_rx_datak(8'h0), .pipe_rx_polarity(), .pipe_power_down(), .pipe_rx_valid(4'b0), .pipe_rx_elecidle(4'b1111), .pipe_rx_status(12'h0), .pipe_phy_status(4'b0)
+        .pipe_tx_data(pipe_tx_data), .pipe_tx_datak(pipe_tx_datak), .pipe_tx_rate(pipe_tx_rate), .pipe_tx_elecidle(pipe_tx_elecidle), .pipe_tx_compliance(pipe_tx_compliance),
+        .pipe_rx_data(safe_pipe_rx_data), .pipe_rx_datak(safe_pipe_rx_datak), .pipe_rx_polarity(pipe_rx_polarity), .pipe_power_down(pipe_power_down),
+        .pipe_rx_valid(safe_pipe_rx_valid), .pipe_rx_elecidle(safe_pipe_rx_elecidle), .pipe_rx_status(safe_pipe_rx_status), .pipe_phy_status(safe_pipe_phy_status)
     );
+
+    wire safe_ulpi_dir = (ulpi_dir === 1'bx || ulpi_dir === 1'bz) ? 1'b0 : ulpi_dir;
+    wire safe_ulpi_nxt = (ulpi_nxt === 1'bx || ulpi_nxt === 1'bz) ? 1'b0 : ulpi_nxt;
 
     usb_otg u_usb (
         .clk(clk), .rst_n(rst_n), .ulpi_clk(ulpi_clk),
@@ -708,8 +762,93 @@ module titan_x_top (
         .m_bvalid(axm_bvalid[12]),   .m_bready(axm_bready[12]),   .m_bresp(axm_bresp[12*2 +: 2]),     .m_bid(axm_bid[12*4 +: 4]),
         .m_arvalid(axm_arvalid[12]), .m_arready(axm_arready[12]), .m_araddr(axm_araddr[12*40 +: 40]), .m_arid(axm_arid[12*4 +: 4]),
         .m_arlen(), .m_arsize(), .m_rvalid(axm_rvalid[12]), .m_rready(axm_rready[12]), .m_rdata(axm_rdata[12*64 +: 64]), .m_rresp(axm_rresp[12*2 +: 2]), .m_rlast(axm_rlast[12]), .m_rid(axm_rid[12*4 +: 4]),
-        .ulpi_data(), .ulpi_dir(1'b0), .ulpi_nxt(1'b0), .ulpi_stp(), .ulpi_reset(),
+        .ulpi_data(ulpi_data), .ulpi_dir(safe_ulpi_dir), .ulpi_nxt(safe_ulpi_nxt), .ulpi_stp(ulpi_stp), .ulpi_reset(ulpi_reset),
         .paddr(paddr), .psel(psel_usb), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_usb), .pready(), .pslverr(), .usb_irq(plic_irq[28])
+    );
+
+    // Master 13: SD/eMMC Storage Controller
+    wire mmc_irq;
+    mmc_controller #(
+        .AW(40), .DW(64), .IDW(4)
+    ) u_mmc (
+        .clk(clk), .rst_n(rst_n),
+        .m_awvalid(axm_awvalid[13]), .m_awready(axm_awready[13]), .m_awaddr(axm_awaddr[13*40 +: 40]), .m_awid(axm_awid[13*4 +: 4]),
+        .m_awlen(), .m_awsize(),
+        .m_wvalid(axm_wvalid[13]),   .m_wready(axm_wready[13]),   .m_wdata(axm_wdata[13*64 +: 64]),   .m_wstrb(axm_wstrb[13*8 +: 8]), .m_wlast(axm_wlast[13]),
+        .m_bvalid(axm_bvalid[13]),   .m_bready(axm_bready[13]),   .m_bresp(axm_bresp[13*2 +: 2]),     .m_bid(axm_bid[13*4 +: 4]),
+        .m_arvalid(axm_arvalid[13]), .m_arready(axm_arready[13]), .m_araddr(axm_araddr[13*40 +: 40]), .m_arid(axm_arid[13*4 +: 4]),
+        .m_arlen(), .m_arsize(),
+        .m_rvalid(axm_rvalid[13]),   .m_rready(axm_rready[13]),   .m_rdata(axm_rdata[13*64 +: 64]),   .m_rresp(axm_rresp[13*2 +: 2]), .m_rlast(axm_rlast[13]), .m_rid(axm_rid[13*4 +: 4]),
+        .paddr(paddr), .psel(psel_mmc), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_mmc), .pready(), .pslverr(),
+        .mmc_irq(mmc_irq),
+        .sd_clk(sd_clk), .sd_cmd(sd_cmd), .sd_dat(sd_dat), .sd_reset_n(sd_reset_n)
+    );
+
+    // Master 14: Video DMA Controller
+    wire        vdma_s2mm_tready;
+    wire [31:0] vdma_mm2s_tdata;
+    wire        vdma_mm2s_tvalid, vdma_mm2s_tuser, vdma_mm2s_tlast;
+
+    vdma u_vdma (
+        .clk(clk), .rst_n(rst_n),
+        .s_axis_s2mm_tdata(32'h0), .s_axis_s2mm_tvalid(1'b0), .s_axis_s2mm_tready(vdma_s2mm_tready), .s_axis_s2mm_tuser(1'b0), .s_axis_s2mm_tlast(1'b0),
+        .m_axis_mm2s_tdata(vdma_mm2s_tdata), .m_axis_mm2s_tvalid(vdma_mm2s_tvalid), .m_axis_mm2s_tready(1'b1), .m_axis_mm2s_tuser(vdma_mm2s_tuser), .m_axis_mm2s_tlast(vdma_mm2s_tlast),
+        .m_axi_awvalid(axm_awvalid[14]), .m_axi_awready(axm_awready[14]), .m_axi_awaddr(axm_awaddr[14*40 +: 40]), .m_axi_awlen(), .m_axi_awsize(),
+        .m_axi_wvalid(axm_wvalid[14]),   .m_axi_wready(axm_wready[14]),   .m_axi_wdata(axm_wdata[14*64 +: 64]),   .m_axi_wstrb(axm_wstrb[14*8 +: 8]), .m_axi_wlast(axm_wlast[14]),
+        .m_axi_bvalid(axm_bvalid[14]),   .m_axi_bready(axm_bready[14]),   .m_axi_bresp(axm_bresp[14*2 +: 2]),
+        .m_axi_arvalid(axm_arvalid[14]), .m_axi_arready(axm_arready[14]), .m_axi_araddr(axm_araddr[14*40 +: 40]), .m_axi_arlen(), .m_axi_arsize(),
+        .m_axi_rvalid(axm_rvalid[14]),   .m_axi_rready(axm_rready[14]),   .m_axi_rdata(axm_rdata[14*64 +: 64]),   .m_axi_rresp(axm_rresp[14*2 +: 2]), .m_axi_rlast(axm_rlast[14]),
+        .paddr(paddr), .psel(psel_vdma), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_vdma), .pready(), .pslverr()
+    );
+    assign axm_awid[14*4 +: 4] = 4'hE;
+    assign axm_arid[14*4 +: 4] = 4'hE;
+
+    // Quad-SPI Controller with XIP
+    qspi_controller #(
+        .AW(32), .DW(32)
+    ) u_qspi (
+        .clk(clk), .rst_n(rst_n),
+        .s_arvalid(1'b0), .s_arready(), .s_araddr(32'h0),
+        .s_rvalid(), .s_rready(1'b0), .s_rdata(), .s_rresp(),
+        .paddr(paddr), .psel(psel_qspi), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_qspi), .pready(), .pslverr(),
+        .qspi_sclk(qspi_sclk), .qspi_cs_n(qspi_cs_n), .qspi_io(qspi_io)
+    );
+
+    // MMU Page Table Walk Arbiter (5 PTWs -> 1 Memory Port)
+    wire [4:0]   mmu_ptw_arvalid = 5'b0;
+    wire [4:0]   mmu_ptw_arready;
+    wire [199:0] mmu_ptw_araddr = 200'b0;
+    wire [4:0]   mmu_ptw_rvalid;
+    wire [4:0]   mmu_ptw_rready = 5'b11111;
+    wire [319:0] mmu_ptw_rdata;
+    wire [9:0]   mmu_ptw_rresp;
+    wire         mmu_l2_arvalid;
+    wire         mmu_l2_arready = 1'b1;
+    wire [39:0]  mmu_l2_araddr;
+    wire         mmu_l2_rvalid = 1'b0;
+    wire         mmu_l2_rready;
+    wire [63:0]  mmu_l2_rdata = 64'b0;
+    wire [1:0]   mmu_l2_rresp = 2'b00;
+
+    mmu_arbiter #(
+        .N(5), .AW(40), .DW(64)
+    ) u_mmu_arbiter (
+        .clk(clk),
+        .rst_n(rst_n),
+        .s_arvalid(mmu_ptw_arvalid),
+        .s_arready(mmu_ptw_arready),
+        .s_araddr(mmu_ptw_araddr),
+        .s_rvalid(mmu_ptw_rvalid),
+        .s_rready(mmu_ptw_rready),
+        .s_rdata(mmu_ptw_rdata),
+        .s_rresp(mmu_ptw_rresp),
+        .m_arvalid(mmu_l2_arvalid),
+        .m_arready(mmu_l2_arready),
+        .m_araddr(mmu_l2_araddr),
+        .m_rvalid(mmu_l2_rvalid),
+        .m_rready(mmu_l2_rready),
+        .m_rdata(mmu_l2_rdata),
+        .m_rresp(mmu_l2_rresp)
     );
 
     // -------------------------------------------------------

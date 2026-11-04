@@ -35,11 +35,12 @@ module l2_cache_top (
     input  wire        m_bvalid,   output wire        m_bready,
 
     // L1 Snoop Interfaces (4 Application Cores)
-    output wire [3:0]  snoop_valid,
-    output wire [39:0] snoop_addr,
-    output wire [1:0]  snoop_type,
-    input  wire [3:0]  snoop_ack,
-    input  wire [3:0]  snoop_data_valid
+    output wire [3:0]   snoop_valid,
+    output wire [39:0]  snoop_addr,
+    output wire [1:0]   snoop_type,
+    input  wire [3:0]   snoop_ack,
+    input  wire [3:0]   snoop_data_valid,
+    input  wire [511:0] snoop_data
 );
     // -------------------------------------------------------
     // Cache Geometry: 2MB, 16-way, 64B lines

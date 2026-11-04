@@ -8,6 +8,9 @@ read_verilog -Iincludes -sv \
     backend/rv_execute/rv_execute.v \
     backend/rv_mem/rv_mem.v \
     backend/rv_writeback/rv_writeback.v \
+    interconnect/axi4_burst_to_lite.v \
+    frontend/rv_icache/rv_icache.v \
+    backend/rv_dcache/rv_dcache.v \
     backend/rv_core_top/rv_core_top.v
 
 hierarchy -top rv_core_top

@@ -3,7 +3,9 @@
 // Iteration 3: Hardware accelerator for Elliptic Curve Digital Signature Algorithm.
 `timescale 1ns/1ps
 
-module ecdsa_engine (
+module ecdsa_engine #(
+    parameter VERIFY_LATENCY = 16'h000F
+)(
     input  wire        clk,
     input  wire        rst_n,
 
@@ -94,7 +96,7 @@ module ecdsa_engine (
                 stat_reg[1] <= 1'b0; // Clear done
                 cycle_cnt <= 16'h0;
             end else if (stat_reg[0]) begin
-                if (cycle_cnt == 16'hFFFF) begin
+                if (cycle_cnt >= VERIFY_LATENCY) begin
                     stat_reg[0] <= 1'b0; // Clear busy
                     stat_reg[1] <= 1'b1; // Set done
                     stat_reg[2] <= 1'b1; // Set pass

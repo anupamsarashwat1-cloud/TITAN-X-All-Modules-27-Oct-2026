@@ -24,7 +24,8 @@
 
 module rv_core_top #(
     parameter HART_ID  = 0,
-    parameter RESET_PC = `RESET_PC
+    parameter RESET_PC = `RESET_PC,
+    parameter ENABLE_L1_CACHE = 0
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -108,39 +109,189 @@ module rv_core_top #(
     BUFX4 u_buf_flush4 ( .A(flush_raw), .Y(flush_de_4) );
 
     // -------------------------------------------------------
-    // Fetch Stage
+    // Fetch Stage & L1 I-Cache Datapath
     // -------------------------------------------------------
     wire [63:0] fe_pc, fe_imem_addr;
     wire [31:0] fe_instr;
     wire        fe_valid;
     wire        fe_rready;
+    wire        fe_fault;
+    wire [63:0] fe_fault_cause, fe_fault_tval;
+
+    wire        fe_imem_arvalid;
+    wire        fe_imem_arready;
+    wire [31:0] fe_imem_rdata;
+    wire        fe_imem_rvalid;
+    wire [1:0]  fe_imem_rresp;
 
     rv_fetch #(
         .RESET_PC (RESET_PC)
     ) u_fetch (
-        .clk           (clk),
-        .rst_n         (rst_n),
-        .stall         (stall),
-        .flush         (exception),          // branches redirect via branch_taken
-        .branch_taken  (branch_taken),
-        .branch_target (branch_target),
-        .imem_addr     (fe_imem_addr),
-        .imem_arvalid  (imem_arvalid),
-        .imem_arready  (imem_arready),
-        .imem_rdata    (imem_rdata[31:0]),   // I-side reads the low lane
-        .imem_rvalid   (imem_rvalid),
-        .imem_rready   (fe_rready),
-        .imem_rresp    (imem_rresp),
-        .pc_out        (fe_pc),
-        .instr_out     (fe_instr),
-        .valid_out     (fe_valid)
+        .clk             (clk),
+        .rst_n           (rst_n),
+        .stall           (stall),
+        .flush           (exception),          // branches redirect via branch_taken
+        .branch_taken    (branch_taken),
+        .branch_target   (branch_target),
+        .imem_addr       (fe_imem_addr),
+        .imem_arvalid    (fe_imem_arvalid),
+        .imem_arready    (fe_imem_arready),
+        .imem_rdata      (fe_imem_rdata),
+        .imem_rvalid     (fe_imem_rvalid),
+        .imem_rready     (fe_rready),
+        .imem_rresp      (fe_imem_rresp),
+        .pc_out          (fe_pc),
+        .instr_out       (fe_instr),
+        .valid_out       (fe_valid),
+        .fault_out       (fe_fault),
+        .fault_cause_out (fe_fault_cause),
+        .fault_tval_out  (fe_fault_tval)
     );
 
-    assign imem_rready = fe_rready;
-    assign imem_araddr = fe_imem_addr[39:0];
-    assign imem_arlen   = 8'h0;              // single beat
-    assign imem_arsize  = 3'd2;              // 4 bytes
-    assign imem_arburst = 2'b00;             // FIXED
+    // L1 I-Cache & Burst-to-Lite Shim
+    wire [31:0] icache_cpu_rdata;
+    wire        icache_cpu_valid;
+    wire        icache_cpu_stall;
+
+    reg ic_pending_r;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            ic_pending_r <= 1'b0;
+        else if (exception || branch_taken)
+            ic_pending_r <= 1'b0;
+        else if (fe_imem_arvalid && fe_imem_arready)
+            ic_pending_r <= 1'b1;
+        else if (fe_imem_rvalid && fe_rready)
+            ic_pending_r <= 1'b0;
+    end
+
+    wire icache_req = (fe_imem_arvalid || ic_pending_r);
+
+    wire        ic_b2l_arvalid, ic_b2l_arready;
+    wire [39:0] ic_b2l_araddr;
+    wire [7:0]  ic_b2l_arlen;
+    wire [2:0]  ic_b2l_arsize;
+    wire [1:0]  ic_b2l_arburst;
+    wire        ic_b2l_rvalid, ic_b2l_rready, ic_b2l_rlast;
+    wire [63:0] ic_b2l_rdata;
+    wire [1:0]  ic_b2l_rresp;
+
+    rv_icache #(
+        .WAYS(`L1I_WAYS),
+        .SETS(`L1I_SETS),
+        .LINE_BYTES(`L1I_LINE_BYTES),
+        .ADDR_W(40),
+        .DATA_W(64)
+    ) u_icache (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .cpu_addr   (fe_imem_addr[39:0]),
+        .cpu_req    (icache_req),
+        .cpu_rdata  (icache_cpu_rdata),
+        .cpu_valid  (icache_cpu_valid),
+        .cpu_stall  (icache_cpu_stall),
+        .invalidate (1'b0),
+        .m_arvalid  (ic_b2l_arvalid),
+        .m_arready  (ic_b2l_arready),
+        .m_araddr   (ic_b2l_araddr),
+        .m_arlen    (ic_b2l_arlen),
+        .m_arsize   (ic_b2l_arsize),
+        .m_arburst  (ic_b2l_arburst),
+        .m_rvalid   (ic_b2l_rvalid),
+        .m_rready   (ic_b2l_rready),
+        .m_rdata    (ic_b2l_rdata),
+        .m_rlast    (ic_b2l_rlast),
+        .m_rresp    (ic_b2l_rresp),
+        .ecc_1bit   (),
+        .ecc_2bit   ()
+    );
+
+    wire        ic_out_arvalid, ic_out_arready;
+    wire [39:0] ic_out_araddr;
+    wire [7:0]  ic_out_arlen;
+    wire [2:0]  ic_out_arsize;
+    wire [1:0]  ic_out_arburst;
+    wire        ic_out_rvalid, ic_out_rready, ic_out_rlast;
+    wire [63:0] ic_out_rdata;
+    wire [1:0]  ic_out_rresp;
+
+    axi4_burst_to_lite #(
+        .ADDR_W(40),
+        .DATA_W(64),
+        .MAX_BEATS(8)
+    ) u_icache_b2l (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .s_arvalid  (ic_b2l_arvalid),
+        .s_arready  (ic_b2l_arready),
+        .s_araddr   (ic_b2l_araddr),
+        .s_arlen    (ic_b2l_arlen),
+        .s_arsize   (ic_b2l_arsize),
+        .s_arburst  (ic_b2l_arburst),
+        .s_rvalid   (ic_b2l_rvalid),
+        .s_rready   (ic_b2l_rready),
+        .s_rdata    (ic_b2l_rdata),
+        .s_rlast    (ic_b2l_rlast),
+        .s_rresp    (ic_b2l_rresp),
+        .s_awvalid  (1'b0),
+        .s_awready  (),
+        .s_awaddr   (40'h0),
+        .s_awlen    (8'h0),
+        .s_awsize   (3'h0),
+        .s_awburst  (2'h0),
+        .s_wvalid   (1'b0),
+        .s_wready   (),
+        .s_wdata    (64'h0),
+        .s_wstrb    (8'h0),
+        .s_wlast    (1'b0),
+        .s_bvalid   (),
+        .s_bready   (1'b1),
+        .s_bresp    (),
+        .m_arvalid  (ic_out_arvalid),
+        .m_arready  (ic_out_arready),
+        .m_araddr   (ic_out_araddr),
+        .m_arlen    (ic_out_arlen),
+        .m_arsize   (ic_out_arsize),
+        .m_arburst  (ic_out_arburst),
+        .m_rvalid   (ic_out_rvalid),
+        .m_rready   (ic_out_rready),
+        .m_rdata    (ic_out_rdata),
+        .m_rlast    (ic_out_rlast),
+        .m_rresp    (ic_out_rresp),
+        .m_awvalid  (),
+        .m_awready  (1'b0),
+        .m_awaddr   (),
+        .m_awlen    (),
+        .m_awsize   (),
+        .m_awburst  (),
+        .m_wvalid   (),
+        .m_wready   (1'b0),
+        .m_wdata    (),
+        .m_wstrb    (),
+        .m_wlast    (),
+        .m_bvalid   (1'b0),
+        .m_bready   (),
+        .m_bresp    (2'b00)
+    );
+
+    // Mux between I-Cache and Direct Fetch
+    assign fe_imem_arready = ENABLE_L1_CACHE ? !icache_cpu_stall : imem_arready;
+    assign fe_imem_rvalid  = ENABLE_L1_CACHE ? icache_cpu_valid : imem_rvalid;
+    assign fe_imem_rdata   = ENABLE_L1_CACHE ? icache_cpu_rdata : imem_rdata[31:0];
+    assign fe_imem_rresp   = ENABLE_L1_CACHE ? 2'b00 : imem_rresp;
+
+    assign imem_arvalid = ENABLE_L1_CACHE ? ic_out_arvalid : fe_imem_arvalid;
+    assign imem_araddr  = ENABLE_L1_CACHE ? ic_out_araddr  : fe_imem_addr[39:0];
+    assign imem_arlen   = ENABLE_L1_CACHE ? ic_out_arlen   : 8'h0;
+    assign imem_arsize  = ENABLE_L1_CACHE ? ic_out_arsize  : 3'd2;
+    assign imem_arburst = ENABLE_L1_CACHE ? ic_out_arburst : 2'b00;
+    assign ic_out_arready = ENABLE_L1_CACHE ? imem_arready : 1'b0;
+
+    assign imem_rready   = ENABLE_L1_CACHE ? ic_out_rready : fe_rready;
+    assign ic_out_rvalid = ENABLE_L1_CACHE ? imem_rvalid   : 1'b0;
+    assign ic_out_rdata  = ENABLE_L1_CACHE ? imem_rdata    : 64'h0;
+    assign ic_out_rlast  = ENABLE_L1_CACHE ? imem_rlast    : 1'b0;
+    assign ic_out_rresp  = ENABLE_L1_CACHE ? imem_rresp    : 2'b00;
 
     // -------------------------------------------------------
     // Decode Stage
@@ -157,30 +308,33 @@ module rv_core_top #(
     wire [1:0]  de_csrop;
     wire        de_ecall, de_ebreak, de_mret;
     wire        de_illegal;
+    wire        de_fault;
+    wire [63:0] de_fault_cause, de_fault_tval;
 
-    // Writeback feedback into the register file — the path that was tied
-    // to zero in every previous iteration of this top.
+    // Writeback feedback into the register file
     wire [63:0] wb_data;
     wire [4:0]  wb_rd;
     wire        wb_we;
 
     rv_decode u_decode (
-        .clk       (clk),         .rst_n    (rst_n),
-        .stall     (stall),
-        .flush     (flush_de_1),
-        .pc_in     (fe_pc),       .instr_in (fe_instr),    .valid_in (fe_valid),
-        .wb_rd     (wb_rd),       .wb_data  (wb_data),     .wb_we    (wb_we),
-        .pc_out    (de_pc),       .instr_out(de_instr),    .rs1_data (de_rs1),      .rs2_data (de_rs2),
-        .imm       (de_imm),      .rd       (de_rd),
-        .rs1_addr  (de_rs1a),     .rs2_addr (de_rs2a),
-        .funct3    (de_f3),       .funct7   (de_f7),       .opcode   (de_op),
-        .alu_op    (de_aluop),    .mem_read (de_memr),     .mem_write(de_memw),
-        .reg_write (de_regw),     .branch   (de_branch),   .jal      (de_jal),
-        .jalr      (de_jalr),
-        .is_csr    (de_iscsr),    .csr_op   (de_csrop),
-        .is_ecall  (de_ecall),    .is_ebreak(de_ebreak),   .is_mret  (de_mret),
+        .clk          (clk),         .rst_n         (rst_n),
+        .stall        (stall),
+        .flush        (flush_de_1),
+        .pc_in        (fe_pc),       .instr_in      (fe_instr),    .valid_in (fe_valid),
+        .fault_in     (fe_fault),    .fault_cause_in(fe_fault_cause), .fault_tval_in(fe_fault_tval),
+        .wb_rd        (wb_rd),       .wb_data       (wb_data),     .wb_we    (wb_we),
+        .pc_out       (de_pc),       .instr_out     (de_instr),    .rs1_data (de_rs1),      .rs2_data (de_rs2),
+        .imm          (de_imm),      .rd            (de_rd),
+        .rs1_addr     (de_rs1a),     .rs2_addr      (de_rs2a),
+        .funct3       (de_f3),       .funct7        (de_f7),       .opcode   (de_op),
+        .alu_op       (de_aluop),    .mem_read      (de_memr),     .mem_write(de_memw),
+        .reg_write    (de_regw),     .branch        (de_branch),   .jal      (de_jal),
+        .jalr         (de_jalr),
+        .is_csr       (de_iscsr),    .csr_op        (de_csrop),
+        .is_ecall     (de_ecall),    .is_ebreak     (de_ebreak),   .is_mret  (de_mret),
         .illegal_instr(de_illegal),
-        .valid_out(de_valid)
+        .fault_out    (de_fault),    .fault_cause_out(de_fault_cause), .fault_tval_out(de_fault_tval),
+        .valid_out    (de_valid)
     );
 
     // -------------------------------------------------------
@@ -192,10 +346,6 @@ module rv_core_top #(
     wire [6:0]  ex_op;
     wire        ex_memr, ex_memw, ex_regw, ex_valid;
     wire        mul_div_stall;
-    // Execute qualifies its M-ext engine start with !stall — so it must
-    // NOT see the global net (which contains its own mul_div_stall; that
-    // self-referential loop is exactly what deadlocked MUL/DIV in the
-    // old scheme). Memory/halt stalls only.
     wire        stall_ex;
 
     // Forwarding network
@@ -221,9 +371,9 @@ module rv_core_top #(
         .is_mret      (de_mret),
         .illegal_in   (de_illegal),
         .instr_in     (de_instr),
-        .fe_fault_in  (1'b0),
-        .fe_fault_cause_in (64'h0),
-        .fe_fault_tval_in  (64'h0),
+        .fe_fault_in  (de_fault),
+        .fe_fault_cause_in (de_fault_cause),
+        .fe_fault_tval_in  (de_fault_tval),
         .mem_fault_in (mem_fault),
         .mem_fault_cause_in(mem_fault_cause),
         .mem_fault_tval_in (mem_fault_tval),
@@ -252,16 +402,29 @@ module rv_core_top #(
     );
 
     // -------------------------------------------------------
-    // Memory Stage (AXI-Lite master, single beat)
+    // Memory Stage & L1 D-Cache Datapath
     // -------------------------------------------------------
     wire [63:0] mem_result;
     wire [4:0]  mem_rd;
     wire        mem_regw, mem_valid, mem_stall;
 
+    wire        pipe_dmem_awvalid, pipe_dmem_awready;
+    wire [39:0] pipe_dmem_awaddr;
+    wire        pipe_dmem_wvalid,  pipe_dmem_wready;
+    wire [63:0] pipe_dmem_wdata;
+    wire [7:0]  pipe_dmem_wstrb;
+    wire        pipe_dmem_bvalid,  pipe_dmem_bready;
+    wire [1:0]  pipe_dmem_bresp;
+    wire        pipe_dmem_arvalid, pipe_dmem_arready;
+    wire [39:0] pipe_dmem_araddr;
+    wire        pipe_dmem_rvalid,  pipe_dmem_rready;
+    wire [63:0] pipe_dmem_rdata;
+    wire [1:0]  pipe_dmem_rresp;
+
     rv_mem u_mem (
         .clk          (clk),
         .rst_n        (rst_n),
-        .flush        (1'b0),            // older-than-branch instrs must complete
+        .flush        (1'b0),
         .alu_result   (ex_alures),
         .rs2_data     (ex_rs2),
         .rd_in        (ex_rd),
@@ -271,17 +434,17 @@ module rv_core_top #(
         .mem_write    (ex_memw),
         .reg_write    (ex_regw),
         .valid_in     (ex_valid),
-        .dmem_awvalid (dmem_awvalid),  .dmem_awready(dmem_awready),
-        .dmem_awaddr  (dmem_awaddr),
-        .dmem_wvalid  (dmem_wvalid),   .dmem_wready (dmem_wready),
-        .dmem_wdata   (dmem_wdata),    .dmem_wstrb  (dmem_wstrb),
-        .dmem_bvalid  (dmem_bvalid),   .dmem_bready (dmem_bready),
-        .dmem_arvalid (dmem_arvalid),  .dmem_arready(dmem_arready),
-        .dmem_araddr  (dmem_araddr),
-        .dmem_rvalid  (dmem_rvalid),   .dmem_rready (dmem_rready),
-        .dmem_rdata   (dmem_rdata),    .dmem_rresp  (dmem_rresp),
+        .dmem_awvalid (pipe_dmem_awvalid),  .dmem_awready(pipe_dmem_awready),
+        .dmem_awaddr  (pipe_dmem_awaddr),
+        .dmem_wvalid  (pipe_dmem_wvalid),   .dmem_wready (pipe_dmem_wready),
+        .dmem_wdata   (pipe_dmem_wdata),    .dmem_wstrb  (pipe_dmem_wstrb),
+        .dmem_bvalid  (pipe_dmem_bvalid),   .dmem_bready (pipe_dmem_bready),
+        .dmem_arvalid (pipe_dmem_arvalid),  .dmem_arready(pipe_dmem_arready),
+        .dmem_araddr  (pipe_dmem_araddr),
+        .dmem_rvalid  (pipe_dmem_rvalid),   .dmem_rready (pipe_dmem_rready),
+        .dmem_rdata   (pipe_dmem_rdata),    .dmem_rresp  (pipe_dmem_rresp),
         .pc_in        (ex_pc),
-        .dmem_bresp   (dmem_bresp),
+        .dmem_bresp   (pipe_dmem_bresp),
         .result       (mem_result),
         .rd_out       (mem_rd),
         .reg_write_out(mem_regw),
@@ -296,14 +459,267 @@ module rv_core_top #(
         .mem_stall    (mem_stall)
     );
 
-    assign dmem_awlen   = 8'h0;              // single beat
-    assign dmem_awsize  = 3'b011;            // 8 bytes
-    assign dmem_awburst = 2'b00;             // FIXED
+    // MMIO Detection
+    wire [39:0] cur_mem_addr = pipe_dmem_arvalid ? pipe_dmem_araddr : pipe_dmem_awaddr;
+    wire is_mmio = (cur_mem_addr >= 40'h0_0200_0000 && cur_mem_addr < 40'h0_0201_0000) ||
+                   (cur_mem_addr >= 40'h0_0C00_0000 && cur_mem_addr < 40'h0_1000_0000) ||
+                   (cur_mem_addr >= 40'h0_4000_0000 && cur_mem_addr < 40'h0_5000_0000);
+
+    // L1 D-Cache & Burst-to-Lite Shim
+    wire [63:0] dcache_cpu_rdata;
+    wire        dcache_cpu_valid;
+    wire        dcache_cpu_stall;
+
+    reg dc_rd_pending, dc_wr_pending;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            dc_rd_pending <= 1'b0;
+            dc_wr_pending <= 1'b0;
+        end else begin
+            if (pipe_dmem_arvalid && !is_mmio && !dcache_cpu_valid)
+                dc_rd_pending <= 1'b1;
+            else if (dcache_cpu_valid && !pipe_dmem_awvalid)
+                dc_rd_pending <= 1'b0;
+
+            if (pipe_dmem_awvalid && pipe_dmem_wvalid && !is_mmio && !dcache_cpu_valid)
+                dc_wr_pending <= 1'b1;
+            else if (dcache_cpu_valid && (pipe_dmem_awvalid || dc_wr_pending))
+                dc_wr_pending <= 1'b0;
+        end
+    end
+
+    wire dcache_req = ENABLE_L1_CACHE && !is_mmio &&
+                      (pipe_dmem_arvalid || pipe_dmem_awvalid || dc_rd_pending || dc_wr_pending);
+    wire dcache_wr  = (pipe_dmem_awvalid || dc_wr_pending);
+
+    wire        dc_b2l_arvalid, dc_b2l_arready;
+    wire [39:0] dc_b2l_araddr;
+    wire [7:0]  dc_b2l_arlen;
+    wire [2:0]  dc_b2l_arsize;
+    wire [1:0]  dc_b2l_arburst;
+    wire        dc_b2l_rvalid, dc_b2l_rready, dc_b2l_rlast;
+    wire [63:0] dc_b2l_rdata;
+    wire [1:0]  dc_b2l_rresp;
+    wire        dc_b2l_awvalid, dc_b2l_awready;
+    wire [39:0] dc_b2l_awaddr;
+    wire [7:0]  dc_b2l_awlen;
+    wire [2:0]  dc_b2l_awsize;
+    wire [1:0]  dc_b2l_awburst;
+    wire        dc_b2l_wvalid, dc_b2l_wready, dc_b2l_wlast;
+    wire [63:0] dc_b2l_wdata;
+    wire [7:0]  dc_b2l_wstrb;
+    wire        dc_b2l_bvalid, dc_b2l_bready;
+    wire [1:0]  dc_b2l_bresp;
+
+    wire        dc_snoop_ack;
+    wire        dc_snoop_data_valid;
+    wire [511:0] dc_snoop_data;
+
+    rv_dcache #(
+        .WAYS(`L1D_WAYS),
+        .SETS(`L1D_SETS),
+        .LINE_BYTES(`L1D_LINE_BYTES),
+        .ADDR_W(40),
+        .DATA_W(64)
+    ) u_dcache (
+        .clk              (clk),
+        .rst_n            (rst_n),
+        .cpu_addr         ({cur_mem_addr[39:3], 3'b000}),
+        .cpu_wdata        (pipe_dmem_wdata),
+        .cpu_wstrb        (pipe_dmem_wstrb),
+        .cpu_req          (dcache_req),
+        .cpu_wr           (dcache_wr),
+        .cpu_size         (3'b011),
+        .cpu_rdata        (dcache_cpu_rdata),
+        .cpu_valid        (dcache_cpu_valid),
+        .cpu_stall        (dcache_cpu_stall),
+        .is_lr            (1'b0),
+        .is_sc            (1'b0),
+        .lr_addr_in       (40'h0),
+        .lr_valid_in      (1'b0),
+        .sc_success       (),
+        .flush_all        (1'b0),
+        .flush_addr_en    (1'b0),
+        .flush_addr       (40'h0),
+        .flush_busy       (),
+        .m_arvalid        (dc_b2l_arvalid),
+        .m_arready        (dc_b2l_arready),
+        .m_araddr         (dc_b2l_araddr),
+        .m_arlen          (dc_b2l_arlen),
+        .m_arsize         (dc_b2l_arsize),
+        .m_arburst        (dc_b2l_arburst),
+        .m_arlock         (),
+        .m_rvalid         (dc_b2l_rvalid),
+        .m_rready         (dc_b2l_rready),
+        .m_rdata          (dc_b2l_rdata),
+        .m_rlast          (dc_b2l_rlast),
+        .m_rresp          (dc_b2l_rresp),
+        .m_awvalid        (dc_b2l_awvalid),
+        .m_awready        (dc_b2l_awready),
+        .m_awaddr         (dc_b2l_awaddr),
+        .m_awlen          (dc_b2l_awlen),
+        .m_awsize         (dc_b2l_awsize),
+        .m_awburst        (dc_b2l_awburst),
+        .m_wvalid         (dc_b2l_wvalid),
+        .m_wready         (dc_b2l_wready),
+        .m_wdata          (dc_b2l_wdata),
+        .m_wstrb          (dc_b2l_wstrb),
+        .m_wlast          (dc_b2l_wlast),
+        .m_bvalid         (dc_b2l_bvalid),
+        .m_bready         (dc_b2l_bready),
+        .m_bresp          (dc_b2l_bresp),
+        .snoop_valid      (snoop_valid),
+        .snoop_addr       (snoop_addr),
+        .snoop_type       (snoop_type),
+        .snoop_ack        (dc_snoop_ack),
+        .snoop_data_valid (dc_snoop_data_valid),
+        .snoop_data       (dc_snoop_data),
+        .ecc_1bit         (),
+        .ecc_2bit         ()
+    );
+
+    wire        dc_out_arvalid, dc_out_arready;
+    wire [39:0] dc_out_araddr;
+    wire [7:0]  dc_out_arlen;
+    wire [2:0]  dc_out_arsize;
+    wire [1:0]  dc_out_arburst;
+    wire        dc_out_rvalid, dc_out_rready, dc_out_rlast;
+    wire [63:0] dc_out_rdata;
+    wire [1:0]  dc_out_rresp;
+    wire        dc_out_awvalid, dc_out_awready;
+    wire [39:0] dc_out_awaddr;
+    wire [7:0]  dc_out_awlen;
+    wire [2:0]  dc_out_awsize;
+    wire [1:0]  dc_out_awburst;
+    wire        dc_out_wvalid, dc_out_wready, dc_out_wlast;
+    wire [63:0] dc_out_wdata;
+    wire [7:0]  dc_out_wstrb;
+    wire        dc_out_bvalid, dc_out_bready;
+    wire [1:0]  dc_out_bresp;
+
+    axi4_burst_to_lite #(
+        .ADDR_W(40),
+        .DATA_W(64),
+        .MAX_BEATS(8)
+    ) u_dcache_b2l (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .s_arvalid  (dc_b2l_arvalid),
+        .s_arready  (dc_b2l_arready),
+        .s_araddr   (dc_b2l_araddr),
+        .s_arlen    (dc_b2l_arlen),
+        .s_arsize   (dc_b2l_arsize),
+        .s_arburst  (dc_b2l_arburst),
+        .s_rvalid   (dc_b2l_rvalid),
+        .s_rready   (dc_b2l_rready),
+        .s_rdata    (dc_b2l_rdata),
+        .s_rlast    (dc_b2l_rlast),
+        .s_rresp    (dc_b2l_rresp),
+        .s_awvalid  (dc_b2l_awvalid),
+        .s_awready  (dc_b2l_awready),
+        .s_awaddr   (dc_b2l_awaddr),
+        .s_awlen    (dc_b2l_awlen),
+        .s_awsize   (dc_b2l_awsize),
+        .s_awburst  (dc_b2l_awburst),
+        .s_wvalid   (dc_b2l_wvalid),
+        .s_wready   (dc_b2l_wready),
+        .s_wdata    (dc_b2l_wdata),
+        .s_wstrb    (dc_b2l_wstrb),
+        .s_wlast    (dc_b2l_wlast),
+        .s_bvalid   (dc_b2l_bvalid),
+        .s_bready   (dc_b2l_bready),
+        .s_bresp    (dc_b2l_bresp),
+        .m_arvalid  (dc_out_arvalid),
+        .m_arready  (dc_out_arready),
+        .m_araddr   (dc_out_araddr),
+        .m_arlen    (dc_out_arlen),
+        .m_arsize   (dc_out_arsize),
+        .m_arburst  (dc_out_arburst),
+        .m_rvalid   (dc_out_rvalid),
+        .m_rready   (dc_out_rready),
+        .m_rdata    (dc_out_rdata),
+        .m_rlast    (dc_out_rlast),
+        .m_rresp    (dc_out_rresp),
+        .m_awvalid  (dc_out_awvalid),
+        .m_awready  (dc_out_awready),
+        .m_awaddr   (dc_out_awaddr),
+        .m_awlen    (dc_out_awlen),
+        .m_awsize   (dc_out_awsize),
+        .m_awburst  (dc_out_awburst),
+        .m_wvalid   (dc_out_wvalid),
+        .m_wready   (dc_out_wready),
+        .m_wdata    (dc_out_wdata),
+        .m_wstrb    (dc_out_wstrb),
+        .m_wlast    (dc_out_wlast),
+        .m_bvalid   (dc_out_bvalid),
+        .m_bready   (dc_out_bready),
+        .m_bresp    (dc_out_bresp)
+    );
+
+    // Mux between D-Cache, MMIO Bypass, and Direct Mode
+    assign pipe_dmem_awready = !ENABLE_L1_CACHE ? dmem_awready :
+                               is_mmio          ? dmem_awready : dcache_cpu_valid;
+    assign pipe_dmem_wready  = !ENABLE_L1_CACHE ? dmem_wready  :
+                               is_mmio          ? dmem_wready  : dcache_cpu_valid;
+    assign pipe_dmem_bvalid  = !ENABLE_L1_CACHE ? dmem_bvalid  :
+                               is_mmio          ? dmem_bvalid  : dcache_cpu_valid;
+    assign pipe_dmem_bresp   = !ENABLE_L1_CACHE ? dmem_bresp   :
+                               is_mmio          ? dmem_bresp   : 2'b00;
+
+    assign pipe_dmem_arready = !ENABLE_L1_CACHE ? dmem_arready :
+                               is_mmio          ? dmem_arready : dcache_cpu_valid;
+    assign pipe_dmem_rvalid  = !ENABLE_L1_CACHE ? dmem_rvalid  :
+                               is_mmio          ? dmem_rvalid  : dcache_cpu_valid;
+    assign pipe_dmem_rdata   = !ENABLE_L1_CACHE ? dmem_rdata   :
+                               is_mmio          ? dmem_rdata   : dcache_cpu_rdata;
+    assign pipe_dmem_rresp   = !ENABLE_L1_CACHE ? dmem_rresp   :
+                               is_mmio          ? dmem_rresp   : 2'b00;
+
+    assign dmem_awvalid = !ENABLE_L1_CACHE ? pipe_dmem_awvalid :
+                          is_mmio          ? pipe_dmem_awvalid : dc_out_awvalid;
+    assign dmem_awaddr  = !ENABLE_L1_CACHE ? pipe_dmem_awaddr  :
+                          is_mmio          ? pipe_dmem_awaddr  : dc_out_awaddr;
+    assign dmem_awlen   = !ENABLE_L1_CACHE ? 8'h0 :
+                          is_mmio          ? 8'h0 : dc_out_awlen;
+    assign dmem_awsize  = !ENABLE_L1_CACHE ? 3'b011 :
+                          is_mmio          ? 3'b011 : dc_out_awsize;
+    assign dmem_awburst = !ENABLE_L1_CACHE ? 2'b00 :
+                          is_mmio          ? 2'b00 : dc_out_awburst;
+
+    assign dmem_wvalid  = !ENABLE_L1_CACHE ? pipe_dmem_wvalid :
+                          is_mmio          ? pipe_dmem_wvalid : dc_out_wvalid;
+    assign dmem_wdata   = !ENABLE_L1_CACHE ? pipe_dmem_wdata  :
+                          is_mmio          ? pipe_dmem_wdata  : dc_out_wdata;
+    assign dmem_wstrb   = !ENABLE_L1_CACHE ? pipe_dmem_wstrb  :
+                          is_mmio          ? pipe_dmem_wstrb  : dc_out_wstrb;
     assign dmem_wlast   = 1'b1;
-    assign dmem_arlen   = 8'h0;              // single beat
-    assign dmem_arsize  = 3'b011;            // 8 bytes
-    assign dmem_arburst = 2'b00;             // FIXED
+
+    assign dmem_bready  = !ENABLE_L1_CACHE ? pipe_dmem_bready :
+                          is_mmio          ? pipe_dmem_bready : dc_out_bready;
+    assign dc_out_bvalid = (ENABLE_L1_CACHE && !is_mmio) ? dmem_bvalid : 1'b0;
+    assign dc_out_bresp  = dmem_bresp;
+    assign dc_out_awready= (ENABLE_L1_CACHE && !is_mmio) ? dmem_awready : 1'b0;
+    assign dc_out_wready = (ENABLE_L1_CACHE && !is_mmio) ? dmem_wready  : 1'b0;
+
+    assign dmem_arvalid = !ENABLE_L1_CACHE ? pipe_dmem_arvalid :
+                          is_mmio          ? pipe_dmem_arvalid : dc_out_arvalid;
+    assign dmem_araddr  = !ENABLE_L1_CACHE ? pipe_dmem_araddr  :
+                          is_mmio          ? pipe_dmem_araddr  : dc_out_araddr;
+    assign dmem_arlen   = !ENABLE_L1_CACHE ? 8'h0 :
+                          is_mmio          ? 8'h0 : dc_out_arlen;
+    assign dmem_arsize  = !ENABLE_L1_CACHE ? 3'b011 :
+                          is_mmio          ? 3'b011 : dc_out_arsize;
+    assign dmem_arburst = !ENABLE_L1_CACHE ? 2'b00 :
+                          is_mmio          ? 2'b00 : dc_out_arburst;
     assign dmem_arlock  = 1'b0;
+
+    assign dmem_rready  = !ENABLE_L1_CACHE ? pipe_dmem_rready :
+                          is_mmio          ? pipe_dmem_rready : dc_out_rready;
+    assign dc_out_arready = (ENABLE_L1_CACHE && !is_mmio) ? dmem_arready : 1'b0;
+    assign dc_out_rvalid  = (ENABLE_L1_CACHE && !is_mmio) ? dmem_rvalid  : 1'b0;
+    assign dc_out_rdata   = dmem_rdata;
+    assign dc_out_rlast   = dmem_rlast;
+    assign dc_out_rresp   = dmem_rresp;
 
     // -------------------------------------------------------
     // Writeback Stage
@@ -326,11 +742,8 @@ module rv_core_top #(
     // -------------------------------------------------------
     // Hazard / stall / debug
     // -------------------------------------------------------
-    // mem_stall freezes the pipe while a load/store is on the bus; this is
-    // what makes load-use hazards correct (consumer waits in EX, then takes
-    // the value through the MEM forwarding path).
     assign stall = mul_div_stall || mem_stall || halt_req;
-    assign stall_ex = mem_stall || halt_req;   // execute's view: no self-loop
+    assign stall_ex = mem_stall || halt_req;
 
     // Active snoop acknowledgement for L2 snoop filter
     reg snoop_ack_r;
@@ -340,9 +753,10 @@ module rv_core_top #(
         else
             snoop_ack_r <= snoop_valid;
     end
-    assign snoop_ack        = snoop_ack_r;
-    assign snoop_data_valid = 1'b0;
-    assign snoop_data       = 512'h0;
+
+    assign snoop_ack        = ENABLE_L1_CACHE ? dc_snoop_ack        : snoop_ack_r;
+    assign snoop_data_valid = ENABLE_L1_CACHE ? dc_snoop_data_valid : 1'b0;
+    assign snoop_data       = ENABLE_L1_CACHE ? dc_snoop_data       : 512'h0;
 
     assign hart_halted = halt_req;
     assign hart_running = !halt_req;

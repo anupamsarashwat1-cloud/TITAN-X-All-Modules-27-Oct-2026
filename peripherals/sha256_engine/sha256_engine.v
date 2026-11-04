@@ -74,8 +74,8 @@ module sha256_engine (
 
     // Message schedule: σ0 and σ1
     assign sig0   = rotr32(W[1],7) ^ rotr32(W[1],18) ^ (W[1]>>3);
-    assign sig1   = rotr32(W[9],17) ^ rotr32(W[9],19) ^ (W[9]>>10);
-    assign w_sched= W[0] + sig0 + W[4] + sig1;  // Wt = W[t-16]+σ0[W[t-15]]+W[t-7]+σ1[W[t-2]]
+    assign sig1   = rotr32(W[14],17) ^ rotr32(W[14],19) ^ (W[14]>>10);
+    assign w_sched= W[0] + sig0 + W[9] + sig1;  // Wt = W[t-16]+σ0[W[t-15]]+W[t-7]+σ1[W[t-2]]
     // Simplified indexing: use shift-register window
 
     always @(posedge clk or negedge rst_n) begin
@@ -119,10 +119,14 @@ module sha256_engine (
                 end
                 round <= round + 6'h1;
                 if (round == 6'd63) begin
-                    hash[0] <= hash[0] + a; hash[1] <= hash[1] + b;
-                    hash[2] <= hash[2] + c; hash[3] <= hash[3] + d;
-                    hash[4] <= hash[4] + e; hash[5] <= hash[5] + f;
-                    hash[6] <= hash[6] + g; hash[7] <= hash[7] + h;
+                    hash[0] <= hash[0] + (T1 + T2);
+                    hash[1] <= hash[1] + a;
+                    hash[2] <= hash[2] + b;
+                    hash[3] <= hash[3] + c;
+                    hash[4] <= hash[4] + (d + T1);
+                    hash[5] <= hash[5] + e;
+                    hash[6] <= hash[6] + f;
+                    hash[7] <= hash[7] + g;
                     active <= 1'b0;
                     done   <= 1'b1;
                 end

@@ -44,16 +44,17 @@ module l2_snoop_filter #(
     // Here we model a 64-set × 8-way directory per core (or unified).
     // Unified array: 64 sets × 32 ways (8 ways * 4 cores)
     // -------------------------------------------------------
+    reg [ADDR_W-1:0] req_addr_saved;
 `ifdef FORMAL
     localparam DIR_SETS = 2;
     localparam DIR_WAYS = 2;
-    wire [0:0] index = req_addr[6];
+    wire [0:0] index = req_addr_saved[6];
 `else
     localparam DIR_SETS = 64;
     localparam DIR_WAYS = 32;
-    wire [INDEX_W-1:0] index = req_addr[11:6];
+    wire [INDEX_W-1:0] index = req_addr_saved[11:6];
 `endif
-    wire [TAG_W-1:0]   tag   = req_addr[39:12];
+    wire [TAG_W-1:0]   tag   = req_addr_saved[39:12];
 
     // State encoding (MESI)
     localparam ST_I = 2'b00; // Invalid
@@ -126,6 +127,7 @@ module l2_snoop_filter #(
             line_state <= ST_I;
             req_core_saved <= 2'h0;
             req_type_saved <= 2'h0;
+            req_addr_saved <= {ADDR_W{1'b0}};
             target_snoop_mask <= 4'h0;
             for (integer s=0; s<DIR_SETS; s=s+1) begin
                 for (integer w=0; w<DIR_WAYS; w=w+1) begin
@@ -141,6 +143,7 @@ module l2_snoop_filter #(
                     if (req_valid) begin
                         req_core_saved <= req_core;
                         req_type_saved <= req_type;
+                        req_addr_saved <= req_addr;
                         state <= LOOKUP;
                     end
                 end
