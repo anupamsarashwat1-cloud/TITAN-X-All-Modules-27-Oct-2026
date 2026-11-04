@@ -173,7 +173,7 @@ module l2_snoop_filter #(
                                 // It's us, no snoop needed
                                 resp_valid <= 1'b1;
                                 resp_hit <= 1'b1;
-                                resp_dirty <= (combo_line_state == ST_M);
+                                resp_dirty <= 1'b0;
                                 resp_owner <= req_core_saved;
                                 state <= UPDATE;
                             end
