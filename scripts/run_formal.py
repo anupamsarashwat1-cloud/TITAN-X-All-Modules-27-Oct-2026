@@ -61,6 +61,21 @@ PROOFS = [
             "Master-to-slave channel routing guarantees forward progress (no deadlock)",
             "Read data routing preserves master transaction ID integrity"
         ]
+    },
+    {
+        "id": "FORMAL-05",
+        "name": "Secure Boot Root-of-Trust & Reset Invariants",
+        "module": "secure_boot",
+        "sva": "formal/sva/secure_boot_formal.sv",
+        "smt2": "formal/proofs/secure_boot.smt2",
+        "depth": 20,
+        "properties": [
+            "Mutual exclusion of boot_pass and boot_fail invariants",
+            "Active reset unconditionally locks processor in reset (boot_pass=0, boot_fail=0)",
+            "Security fault halt state is irreversibly latched until hardware reset",
+            "Authenticated success state holds boot_pass high and prevents spurious fail",
+            "APB telemetry status register accurately mirrors internal FSM state"
+        ]
     }
 ]
 

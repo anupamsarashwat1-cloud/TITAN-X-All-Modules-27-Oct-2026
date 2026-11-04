@@ -1,18 +1,19 @@
 # TITAN X Bounded Model Checking & Formal Verification Report
 
-- **Verification Date:** 2026-11-04 05:20:05 UTC
+- **Verification Date:** 2026-11-04 05:40:16 UTC
 - **Solver Engine:** Z3 Theorem Prover via `yosys-smtbmc` (Yosys 0.33)
-- **Total Proofs Executed:** 4
-- **Proofs Proved Safe:** 4 / 4 (100.0%)
+- **Total Proofs Executed:** 5
+- **Proofs Proved Safe:** 5 / 5 (100.0%)
 
 ## Formal Proof Matrix
 
 | Proof ID | Module | Assertion Scope | BMC Bound | Solver Time | Status |
 |:---|:---|:---|:---:|:---:|:---:|
-| **FORMAL-01** | `rv_regfile` | Register File Invariants (x0 Read-Zero & Bypass) | 20 steps | 8.16s | ✅ **PASSED** |
-| **FORMAL-02** | `rv_fetch` | Instruction Fetch Control (PC Alignment & Handshake) | 20 steps | 2.31s | ✅ **PASSED** |
-| **FORMAL-03** | `l2_snoop_filter` | L2 Coherence Snoop Filter (MESI Protocol Validity) | 20 steps | 0.91s | ✅ **PASSED** |
-| **FORMAL-04** | `axi4_crossbar` | AXI4 Crossbar Interconnect (Arbitration & Mutual Exclusion) | 5 steps | 8.77s | ✅ **PASSED** |
+| **FORMAL-01** | `rv_regfile` | Register File Invariants (x0 Read-Zero & Bypass) | 20 steps | 8.50s | ✅ **PASSED** |
+| **FORMAL-02** | `rv_fetch` | Instruction Fetch Control (PC Alignment & Handshake) | 20 steps | 2.54s | ✅ **PASSED** |
+| **FORMAL-03** | `l2_snoop_filter` | L2 Coherence Snoop Filter (MESI Protocol Validity) | 20 steps | 0.71s | ✅ **PASSED** |
+| **FORMAL-04** | `axi4_crossbar` | AXI4 Crossbar Interconnect (Arbitration & Mutual Exclusion) | 5 steps | 17.88s | ✅ **PASSED** |
+| **FORMAL-05** | `secure_boot` | Secure Boot Root-of-Trust & Reset Invariants | 20 steps | 0.78s | ✅ **PASSED** |
 
 ## Detailed Proof Specifications & Invariants
 
@@ -21,7 +22,7 @@
 - **SVA Source:** `formal/sva/rv_regfile_formal.sv`
 - **SMT-LIB2 Model:** `formal/proofs/rv_regfile.smt2`
 - **BMC Exploration Bound:** 20 clock cycles
-- **Execution Time:** 8.16 seconds
+- **Execution Time:** 8.50 seconds
 - **Proved Assertions:**
   - ✓ x0 is unconditionally hardwired to 64'h0 on read port 1
   - ✓ x0 is unconditionally hardwired to 64'h0 on read port 2
@@ -32,7 +33,7 @@
 - **SVA Source:** `formal/sva/rv_fetch_formal.sv`
 - **SMT-LIB2 Model:** `formal/proofs/rv_fetch.smt2`
 - **BMC Exploration Bound:** 20 clock cycles
-- **Execution Time:** 2.31 seconds
+- **Execution Time:** 2.54 seconds
 - **Proved Assertions:**
   - ✓ PC reset value strictly equals boot vector (PC_RESET = 64'h0000_0000_8000_0000)
   - ✓ PC lower bits [1:0] strictly zero (32-bit instruction alignment invariant)
@@ -43,7 +44,7 @@
 - **SVA Source:** `formal/sva/l2_snoop_filter_formal.sv`
 - **SMT-LIB2 Model:** `formal/proofs/l2_snoop_filter.smt2`
 - **BMC Exploration Bound:** 20 clock cycles
-- **Execution Time:** 0.91 seconds
+- **Execution Time:** 0.71 seconds
 - **Proved Assertions:**
   - ✓ Snoop request generates valid response within bounded cycles
   - ✓ Exclusive ownership claims mutually exclusive across cores
@@ -54,11 +55,24 @@
 - **SVA Source:** `formal/sva/axi4_crossbar_formal.sv`
 - **SMT-LIB2 Model:** `formal/proofs/axi4_crossbar.smt2`
 - **BMC Exploration Bound:** 5 clock cycles
-- **Execution Time:** 8.77 seconds
+- **Execution Time:** 17.88 seconds
 - **Proved Assertions:**
   - ✓ Address decoding mutually exclusive across all 4 slave ports
   - ✓ Master-to-slave channel routing guarantees forward progress (no deadlock)
   - ✓ Read data routing preserves master transaction ID integrity
+
+### FORMAL-05: Secure Boot Root-of-Trust & Reset Invariants
+- **Target Module:** `secure_boot`
+- **SVA Source:** `formal/sva/secure_boot_formal.sv`
+- **SMT-LIB2 Model:** `formal/proofs/secure_boot.smt2`
+- **BMC Exploration Bound:** 20 clock cycles
+- **Execution Time:** 0.78 seconds
+- **Proved Assertions:**
+  - ✓ Mutual exclusion of boot_pass and boot_fail invariants
+  - ✓ Active reset unconditionally locks processor in reset (boot_pass=0, boot_fail=0)
+  - ✓ Security fault halt state is irreversibly latched until hardware reset
+  - ✓ Authenticated success state holds boot_pass high and prevents spurious fail
+  - ✓ APB telemetry status register accurately mirrors internal FSM state
 
 ## Formal Qualification Statement
 

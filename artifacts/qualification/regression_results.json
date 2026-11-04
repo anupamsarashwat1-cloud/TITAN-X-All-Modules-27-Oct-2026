@@ -1071,10 +1071,10 @@
     "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/tb_secure_boot.v",
     "verdict": "PASS",
     "tail": [
-      "SECURE_BOOT VERDICT: \u2705 PASS \u2014 All 5 security scenarios verified",
+      "SECURE_BOOT VERDICT: \u2705 PASS \u2014 All 9 security scenarios verified",
       "REGRESS_RESULT: PASS",
       "==================================================================",
-      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/tb_secure_boot.v:233: $finish called at 2605000 (1ps)"
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/tb_secure_boot.v:334: $finish called at 3105000 (1ps)"
     ]
   },
   {

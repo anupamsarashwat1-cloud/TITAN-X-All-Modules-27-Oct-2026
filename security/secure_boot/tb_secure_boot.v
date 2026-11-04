@@ -220,10 +220,111 @@ module tb_secure_boot();
             errors = errors + 1;
         end
 
+        // ---------------------------------------------------------------
+        // TEST 6: NEGATIVE TEST — Zero-Length Firmware Image
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 6: Negative Test (Zero-Length Firmware) ---");
+        envm_mem[0] = 32'h5449544E; // Valid magic
+        envm_mem[1] = 32'h00000000; // Zero length
+        envm_mem[2] = 32'h08687AC0;
+        envm_mem[3] = 32'hCAFE_F00D;
+
+        reset_dut();
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_fail && !boot_pass) begin
+            $display("PASS [Scenario 6]: Zero-length firmware rejected (boot_fail=1)");
+        end else begin
+            $display("FAIL [Scenario 6]: Zero-length firmware produced boot_pass=%b", boot_pass);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 7: NEGATIVE TEST — Out-of-Bounds Image Length (>1024 words)
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 7: Negative Test (Out-of-Bounds Image Length) ---");
+        envm_mem[0] = 32'h5449544E; // Valid magic
+        envm_mem[1] = 32'd2048;     // Exceeds 1024-word hardware limit
+        envm_mem[2] = 32'h08687AC0;
+        envm_mem[3] = 32'hCAFE_F00D;
+
+        reset_dut();
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_fail && !boot_pass) begin
+            $display("PASS [Scenario 7]: Oversized image rejected (boot_fail=1)");
+        end else begin
+            $display("FAIL [Scenario 7]: Oversized image produced boot_pass=%b", boot_pass);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 8: NEGATIVE TEST — Hash Digest Mismatch
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 8: Negative Test (Digest Mismatch) ---");
+        envm_mem[0] = 32'h5449544E; // Valid magic
+        envm_mem[1] = 32'd4;        // 4 words
+        envm_mem[2] = 32'hBAD0_D16E; // Corrupted expected hash
+        envm_mem[3] = 32'hCAFE_F00D; // Valid key
+        envm_mem[4] = 32'hDEAD_BEEF;
+        envm_mem[5] = 32'h1234_5678;
+        envm_mem[6] = 32'hCAFE_BABE;
+        envm_mem[7] = 32'h0000_0000;
+
+        reset_dut();
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_fail && !boot_pass) begin
+            $display("PASS [Scenario 8]: Digest mismatch rejected (boot_fail=1)");
+        end else begin
+            $display("FAIL [Scenario 8]: Digest mismatch produced boot_pass=%b", boot_pass);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 9: POSITIVE RECOVERY — Reset Recovery with Authentic Image
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 9: Reset Recovery Test (Post-Fault Hardware Reset) ---");
+        // Restore authentic image
+        envm_mem[0] = 32'h5449544E; // Magic: "TITN"
+        envm_mem[1] = 32'd4;        // Length: 4 payload words
+        envm_mem[2] = 32'h08687AC0; // Expected Rolling Hash for payload
+        envm_mem[3] = 32'hCAFE_F00D; // Authorized Root Public Key ID
+        envm_mem[4] = 32'hDEAD_BEEF;
+        envm_mem[5] = 32'h1234_5678;
+        envm_mem[6] = 32'hCAFE_BABE;
+        envm_mem[7] = 32'h0000_0000;
+
+        reset_dut();
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 200) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_pass && !boot_fail) begin
+            $display("PASS [Scenario 9]: Clean recovery after hardware reset (boot_pass=1, boot_fail=0)");
+        end else begin
+            $display("FAIL [Scenario 9]: Failed to recover after reset: boot_pass=%b, boot_fail=%b", boot_pass, boot_fail);
+            errors = errors + 1;
+        end
+
         // Final Scorecard
         $display("\n==================================================================");
         if (errors == 0) begin
-            $display("SECURE_BOOT VERDICT: ✅ PASS — All 5 security scenarios verified");
+            $display("SECURE_BOOT VERDICT: ✅ PASS — All 9 security scenarios verified");
             $display("REGRESS_RESULT: PASS");
         end else begin
             $display("SECURE_BOOT VERDICT: ❌ FAIL — %0d security test failures", errors);

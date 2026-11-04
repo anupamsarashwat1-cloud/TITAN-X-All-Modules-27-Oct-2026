@@ -61,18 +61,26 @@ module titan_x_top (
 
     assign sw_irq = 5'h0;
     assign plic_irq[4:0] = 5'h0;
-    assign plic_irq[9:5] = 5'h0;
-    assign plic_irq[19:12] = 8'h0;
+    assign plic_irq[7:5] = 3'h0;
+    // plic_irq[8] = TRNG
+    // plic_irq[9] = ECDSA
+    // plic_irq[10] = DRBG
+    // plic_irq[11] = AES
+    // plic_irq[12] = SHA256
+    assign plic_irq[19:13] = 7'h0;
     assign plic_irq[31:29] = 3'h0;
 
     // Platform-Level Interrupt Controller (PLIC)
     wire [185:0] plic_sources;
     wire [9:0]   plic_targets;
 
-    assign plic_sources[9:0]     = 10'h0;
+    assign plic_sources[7:0]     = 8'h0;
+    assign plic_sources[8]       = plic_irq[8];  // TRNG
+    assign plic_sources[9]       = plic_irq[9];  // ECDSA
     assign plic_sources[10]      = plic_irq[10]; // DRBG
     assign plic_sources[11]      = plic_irq[11]; // AES
-    assign plic_sources[19:12]   = 8'h0;
+    assign plic_sources[12]      = plic_irq[12]; // SHA256
+    assign plic_sources[19:13]   = 7'h0;
     assign plic_sources[24:20]   = plic_irq[24:20]; // UART0-4
     assign plic_sources[26:25]   = plic_irq[26:25]; // CAN0-1
     assign plic_sources[27]      = plic_irq[27]; // GEM
@@ -497,30 +505,37 @@ module titan_x_top (
     wire psel_boot  = psel && (paddr[31:12] == 20'h400A0 || paddr[31:12] == 20'h20030);
     wire psel_can0  = psel && (paddr[31:12] == 20'h400B0 || paddr[31:12] == 20'h30000);
     wire psel_can1  = psel && (paddr[31:12] == 20'h400C0 || paddr[31:12] == 20'h30001);
+    wire psel_trng  = psel && (paddr[31:12] == 20'h400D0 || paddr[31:12] == 20'h20040);
+    wire psel_sha256= psel && (paddr[31:12] == 20'h400E0 || paddr[31:12] == 20'h20050);
+    wire psel_ecdsa = psel && (paddr[31:12] == 20'h400F0 || paddr[31:12] == 20'h20060);
     assign psel_plic = psel && (paddr[31:24] == 8'h0C || paddr[31:20] == 12'h40D);
 
     wire [31:0] prdata_uart0, prdata_uart1, prdata_uart2, prdata_uart3, prdata_uart4;
     wire [31:0] prdata_rtc, prdata_gem, prdata_usb, prdata_mipi, prdata_isp, prdata_hdmi;
     wire [31:0] prdata_drbg, prdata_aes, prdata_envm, prdata_boot, prdata_can0, prdata_can1;
+    wire [31:0] prdata_trng, prdata_sha256, prdata_ecdsa;
 
-    assign prdata_mux = psel_uart0 ? {32'h0, prdata_uart0} :
-                        psel_uart1 ? {32'h0, prdata_uart1} :
-                        psel_uart2 ? {32'h0, prdata_uart2} :
-                        psel_uart3 ? {32'h0, prdata_uart3} :
-                        psel_uart4 ? {32'h0, prdata_uart4} :
-                        psel_rtc   ? {32'h0, prdata_rtc} :
-                        psel_gem   ? {32'h0, prdata_gem} :
-                        psel_usb   ? {32'h0, prdata_usb} :
-                        psel_mipi  ? {32'h0, prdata_mipi} :
-                        psel_isp   ? {32'h0, prdata_isp} :
-                        psel_hdmi  ? {32'h0, prdata_hdmi} :
-                        psel_drbg  ? {32'h0, prdata_drbg} :
-                        psel_aes   ? {32'h0, prdata_aes} :
-                        psel_envm  ? {32'h0, prdata_envm} :
-                        psel_boot  ? {32'h0, prdata_boot} :
-                        psel_can0  ? {32'h0, prdata_can0} :
-                        psel_can1  ? {32'h0, prdata_can1} :
-                        psel_plic  ? {32'h0, prdata_plic} : 64'h0;
+    assign prdata_mux = psel_uart0  ? {32'h0, prdata_uart0} :
+                        psel_uart1  ? {32'h0, prdata_uart1} :
+                        psel_uart2  ? {32'h0, prdata_uart2} :
+                        psel_uart3  ? {32'h0, prdata_uart3} :
+                        psel_uart4  ? {32'h0, prdata_uart4} :
+                        psel_rtc    ? {32'h0, prdata_rtc} :
+                        psel_gem    ? {32'h0, prdata_gem} :
+                        psel_usb    ? {32'h0, prdata_usb} :
+                        psel_mipi   ? {32'h0, prdata_mipi} :
+                        psel_isp    ? {32'h0, prdata_isp} :
+                        psel_hdmi   ? {32'h0, prdata_hdmi} :
+                        psel_drbg   ? {32'h0, prdata_drbg} :
+                        psel_aes    ? {32'h0, prdata_aes} :
+                        psel_envm   ? {32'h0, prdata_envm} :
+                        psel_boot   ? {32'h0, prdata_boot} :
+                        psel_can0   ? {32'h0, prdata_can0} :
+                        psel_can1   ? {32'h0, prdata_can1} :
+                        psel_trng   ? {32'h0, prdata_trng} :
+                        psel_sha256 ? {32'h0, prdata_sha256} :
+                        psel_ecdsa  ? {32'h0, prdata_ecdsa} :
+                        psel_plic   ? {32'h0, prdata_plic} : 64'h0;
 
     // -------------------------------------------------------
     // DMA Peripherals (Masters 10, 11, 12)
@@ -560,13 +575,19 @@ module titan_x_top (
     );
 
     // -------------------------------------------------------
-    // Security Block
+    // Security Subsystem & Root of Trust
     // -------------------------------------------------------
-    wire trng_seed_valid;
-    wire [255:0] trng_seed;
+    wire [255:0] trng_entropy;
+    wire         trng_valid;
+    wire         trng_ready;
 
-    assign trng_seed_valid = 1'b0;
-    assign trng_seed = 256'h0;
+    trng u_trng (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_trng), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_trng), .pready(), .pslverr(),
+        .trng_entropy(trng_entropy), .trng_valid(trng_valid), .trng_ready(trng_ready),
+        .trng_irq(plic_irq[8])
+    );
 
     wire [16:0] envm_addr;
     wire        envm_req;
@@ -583,7 +604,8 @@ module titan_x_top (
 
     secure_boot u_secure_boot (
         .clk(clk), .rst_n(rst_n),
-        .paddr(paddr), .psel(psel_boot), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_boot), .pready(), .pslverr(),
+        .paddr(paddr), .psel(psel_boot), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_boot), .pready(), .pslverr(),
         .envm_addr(envm_addr), .envm_req(envm_req), .envm_rdata(envm_rdata), .envm_valid(envm_valid),
         .boot_pass(boot_pass), .boot_fail(boot_fail)
     );
@@ -591,20 +613,37 @@ module titan_x_top (
     envm_ctrl u_envm (
         .clk(clk), .rst_n(rst_n),
         .s_arvalid(1'b0), .s_arready(), .s_araddr(32'h0), .s_rvalid(), .s_rready(1'b0), .s_rdata(), .s_rresp(),
-        .paddr(paddr), .psel(psel_envm), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_envm), .pready(), .pslverr(),
+        .paddr(paddr), .psel(psel_envm), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_envm), .pready(), .pslverr(),
         .envm_clk(), .envm_ce_n(), .envm_we_n(), .envm_addr(), .envm_wdata(), .envm_rdata(32'h0), .envm_ready(1'b1)
     );
 
     drbg u_drbg (
         .clk(clk), .rst_n(rst_n),
-        .paddr(paddr), .psel(psel_drbg), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_drbg), .pready(), .pslverr(),
-        .trng_entropy(trng_seed), .trng_valid(trng_seed_valid), .trng_ready(),
+        .paddr(paddr), .psel(psel_drbg), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_drbg), .pready(), .pslverr(),
+        .trng_entropy(trng_entropy), .trng_valid(trng_valid), .trng_ready(trng_ready),
         .drbg_irq(plic_irq[10])
+    );
+
+    sha256_engine u_sha256 (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_sha256), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[7:0]), .pwdata(pwdata), .prdata(prdata_sha256), .pready(),
+        .irq(plic_irq[12])
+    );
+
+    ecdsa_engine u_ecdsa (
+        .clk(clk), .rst_n(rst_n),
+        .paddr(paddr), .psel(psel_ecdsa), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_ecdsa), .pready(), .pslverr(),
+        .ecdsa_irq(plic_irq[9])
     );
 
     aes_engine u_aes (
         .clk(clk), .rst_n(rst_n),
-        .paddr(paddr), .psel(psel_aes), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_aes), .pready(), .pslverr(),
+        .paddr(paddr), .psel(psel_aes), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
+        .prdata(prdata_aes), .pready(), .pslverr(),
         .s_axis_tdata(32'h0), .s_axis_tvalid(1'b0), .s_axis_tready(), .s_axis_tlast(1'b0),
         .m_axis_tdata(), .m_axis_tvalid(), .m_axis_tready(1'b0), .m_axis_tlast(),
         .aes_irq(plic_irq[11])
