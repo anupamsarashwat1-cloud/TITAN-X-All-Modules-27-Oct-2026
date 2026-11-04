@@ -70,11 +70,11 @@ module plic #(
     // APB register access
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            for (i = 0; i < NUM_SOURCES; i = i+1) priority_reg[i] <= 3'h1;
+            for (i = 0; i < NUM_SOURCES; i = i+1) priority_reg[i] = 3'h1;
             for (i = 0; i < NUM_TARGETS; i = i+1) begin
-                enable[i]    <= {NUM_SOURCES{1'b0}};
-                threshold[i] <= 3'h0;
-                claim[i]     <= 8'h0;
+                enable[i]    = {NUM_SOURCES{1'b0}};
+                threshold[i] = 3'h0;
+                claim[i]     = 8'h0;
             end
             prdata <= 32'h0;
         end else if (psel && penable) begin

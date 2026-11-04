@@ -131,7 +131,7 @@ module l2_snoop_filter #(
             target_snoop_mask <= 4'h0;
             for (integer s=0; s<DIR_SETS; s=s+1) begin
                 for (integer w=0; w<DIR_WAYS; w=w+1) begin
-                    dir_state[s][w] <= ST_I;
+                    dir_state[s][w] = ST_I;
                 end
             end
         end else begin

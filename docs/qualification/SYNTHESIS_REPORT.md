@@ -6,7 +6,7 @@
 - **Include Paths:** `-Iincludes -Icommon`
 - **Script:** `scripts/synth_rv_core_direct.tcl` / `scripts/run_synth.py`
 - **Optimization Level:** Generic technology-independent synthesis (`synth -top rv_core_top`) + Technology-Independent ABC Mapping
-- **Total Generic Cells:** **81,072 cells**
+- **Total Generic Cells:** **83,402 cells**
 
 ---
 
@@ -14,13 +14,13 @@
 
 Generic technology-independent logic synthesis was executed for the canonical `rv_core_top` processor core using Yosys 0.33. The synthesis script completed cleanly without errors and without unresolved blackboxes (aside from standard clock buffer primitives `BUFX4`).
 
-The resulting technology-independent netlist comprises exactly **81,072 cells**:
-- **Sequential Cells (DFFs):** **4,102 flip-flops**
-- **Combinational Logic Cells:** **76,970 logic gates**
-- **Peak Memory During Synthesis:** 455.09 MB
-- **Synthesis Elapsed Time:** 53.16 seconds CPU time
+The resulting technology-independent netlist comprises exactly **83,402 cells**:
+- **Sequential Cells (DFFs):** **4,553 flip-flops**
+- **Combinational Logic Cells:** **78,849 logic gates**
+- **Peak Memory During Synthesis:** 571.03 MB
+- **Synthesis Elapsed Time:** 70.21 seconds user CPU time
 
-This reconciliation reflects the remediated core architecture implemented during Phase 15, which incorporates strict M-mode privilege hardwiring in `rv_csr`, architectural zero hardwiring on register `x0` in `rv_regfile`, pipeline hazard resolution, and signed 64-bit arithmetic operations.
+This reconciliation reflects the fully remediated core architecture, which incorporates clean L1 cache interface generate blocks, strict M-mode privilege hardwiring in `rv_csr`, architectural zero hardwiring on register `x0` in `rv_regfile`, 2-state synthesizable memory alignment in `rv_mem`, pipeline hazard resolution, and signed 64-bit arithmetic operations.
 
 ---
 
@@ -28,22 +28,22 @@ This reconciliation reflects the remediated core architecture implemented during
 
 | Cell Primitive | Function / Description | Cell Count | Percentage |
 |:---|:---|:---:|:---:|
-| `$_ANDNOT_` | Logic AND with inverted input | 26,031 | 32.1% |
-| `$_XOR_` | Exclusive OR (ALU arithmetic & parity) | 13,659 | 16.8% |
-| `$_OR_` | Logic OR (bus & multiplexing) | 11,245 | 13.9% |
-| `$_XNOR_` | Equality / Comparator logic | 5,844 | 7.2% |
-| `$_MUX_` | 2-to-1 Multiplexer primitive | 4,857 | 6.0% |
-| `$_AND_` | Logic AND | 4,751 | 5.9% |
-| `$_DFFE_PN0P_` | Positive-edge DFF with negative reset, positive enable | 3,953 | 4.9% |
-| `$_NOR_` | Logic NOR | 3,628 | 4.5% |
-| `$_NOT_` | Inverter | 2,820 | 3.5% |
-| `$_NAND_` | Logic NAND | 2,243 | 2.8% |
-| `$_ORNOT_` | Logic OR with inverted input | 1,892 | 2.3% |
+| `$_ANDNOT_` | Logic AND with inverted input | 26,486 | 31.8% |
+| `$_XOR_` | Exclusive OR (ALU arithmetic & parity) | 13,659 | 16.4% |
+| `$_OR_` | Logic OR (bus & multiplexing) | 11,413 | 13.7% |
+| `$_XNOR_` | Equality / Comparator logic | 5,844 | 7.0% |
+| `$_MUX_` | 2-to-1 Multiplexer primitive | 5,450 | 6.5% |
+| `$_AND_` | Logic AND | 4,780 | 5.7% |
+| `$_DFFE_PN0P_` | Positive-edge DFF with negative reset, positive enable | 4,217 | 5.1% |
+| `$_NOR_` | Logic NOR | 3,616 | 4.3% |
+| `$_NOT_` | Inverter | 3,155 | 3.8% |
+| `$_NAND_` | Logic NAND | 2,342 | 2.8% |
+| `$_ORNOT_` | Logic OR with inverted input | 2,104 | 2.5% |
+| `$_DFFE_PN0N_` | Positive-edge DFF with negative reset, negative enable | 193 | 0.2% |
 | `$_DFF_PN0_` | Positive-edge DFF with negative reset | 136 | 0.2% |
-| `$_DFFE_PN0N_` | Positive-edge DFF with negative reset, negative enable | 6 | <0.1% |
 | `$_DFFE_PN1P_` | Positive-edge DFF with positive preset, positive enable | 6 | <0.1% |
 | `$_DFF_PN1_` | Positive-edge DFF with positive preset | 1 | <0.1% |
-| **TOTAL** | **All Generic Cell Primitives** | **81,072** | **100.0%** |
+| **TOTAL** | **All Generic Cell Primitives** | **83,402** | **100.0%** |
 
 ---
 
@@ -53,15 +53,15 @@ Synthesis of `rv_core_top` reveals the distribution of cells across individual p
 
 | Pipeline Stage / Module | Function Description | Cells | Sequential DFFs | Combinational Gates | % of Core Area |
 |:---|:---|:---:|:---:|:---:|:---:|
-| `rv_execute` | ALU, 64-bit Multiplier, Divider, Branch Calc | 65,239 | 831 | 64,408 | 80.5% |
-| `rv_regfile` | 32 × 64-bit Dual-Read, Single-Write Register File | 10,352 | 1,984 | 8,368 | 12.8% |
-| `rv_csr` (within EX) | RISC-V Privileged CSR File (mstatus, mie, mip, etc.) | 2,023 | 449 | 1,574 | 2.5% |
-| `rv_decode` | Instruction Decoder & Hazard Interlock | 1,278 | 307 | 971 | 1.6% |
-| `rv_mem` | Memory Alignment, Sign Extension & Handshake | 1,191 | 231 | 960 | 1.5% |
-| `rv_fetch` | PC Generation, Branch Target Mux, Alignment | 917 | 229 | 688 | 1.1% |
+| `rv_execute` | ALU, 64-bit Multiplier, Divider, Branch Calc | 65,229 | 831 | 64,398 | 78.2% |
+| `rv_regfile` | 32 × 64-bit Dual-Read, Single-Write Register File | 10,388 | 1,984 | 8,404 | 12.5% |
+| `rv_mem` | Memory Alignment, Sign Extension & Handshake | 2,816 | 488 | 2,328 | 3.4% |
+| `rv_csr` (within EX) | RISC-V Privileged CSR File (mstatus, mie, mip, etc.) | 2,026 | 449 | 1,577 | 2.4% |
+| `rv_decode` | Instruction Decoder & Hazard Interlock | 1,665 | 436 | 1,229 | 2.0% |
+| `rv_fetch` | PC Generation, Branch Target Mux, Alignment | 1,218 | 260 | 958 | 1.5% |
 | `rv_writeback` | Register Retirement & Bypass Stage | 76 | 70 | 6 | 0.1% |
 | `rv_core_top` (glue) | Top-level inter-stage routing & clock buffering | 14 | 1 | 13 | <0.1% |
-| **TOTAL** | **Full In-Order 5-Stage RV64IM Core** | **81,072** | **4,102** | **76,970** | **100.0%** |
+| **TOTAL** | **Full In-Order 5-Stage RV64IM Core** | **83,402** | **4,553** | **78,849** | **100.0%** |
 
 ---
 

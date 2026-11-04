@@ -1,5 +1,665 @@
 [
   {
+    "name": "tb_BUFX4",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/BUFX4/tb_BUFX4.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "BUFX4 VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/BUFX4/tb_BUFX4.v:55: $finish called at 40000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_aes_engine",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/aes_engine/tb_aes_engine.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "AES_ENGINE VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/aes_engine/tb_aes_engine.v:167: $finish called at 488000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_ahb_to_apb",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/ahb_to_apb/tb_ahb_to_apb.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "AHB-to-APB VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/ahb_to_apb/tb_ahb_to_apb.v:193: $finish called at 586800 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_apb_bridge",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/apb_bridge/tb_apb_bridge.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "APB_BRIDGE VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/apb_bridge/tb_apb_bridge.v:142: $finish called at 255000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_axi4_burst_to_lite",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/tb_axi4_burst_to_lite.v",
+    "verdict": "PASS",
+    "tail": [
+      "AXI4_BURST_TO_LITE VERDICT: \u2705 PASS \u2014 all checks green",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/tb_axi4_burst_to_lite.v:356: $finish called at 1946000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_axi4_crossbar",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_crossbar/tb_axi4_crossbar.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "AXI4_CROSSBAR VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_crossbar/tb_axi4_crossbar.v:215: $finish called at 186000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_axi4_to_ahb",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_to_ahb/tb_axi4_to_ahb.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "AXI4_TO_AHB VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/axi4_to_ahb/tb_axi4_to_ahb.v:135: $finish called at 255000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_axi_rom",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/axi_rom/tb_axi_rom.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "AXI_ROM VERDICT: \u2705 PASS \u2014 All 11 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/axi_rom/tb_axi_rom.v:149: $finish called at 196000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_bfm_ddr4",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_ddr4.v",
+    "verdict": "PASS",
+    "tail": [
+      "========================================",
+      "BFM_DDR4 VERDICT: PASS",
+      "========================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_ddr4.v:155: $finish called at 403275000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_bfm_gmii",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_gmii.v",
+    "verdict": "PASS",
+    "tail": [
+      "========================================",
+      "BFM_GMII VERDICT: PASS",
+      "========================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_gmii.v:152: $finish called at 2735000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_bfm_mipi",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_mipi.v",
+    "verdict": "PASS",
+    "tail": [
+      "========================================",
+      "BFM_MIPI VERDICT: PASS",
+      "========================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_mipi.v:112: $finish called at 35307000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_bfm_pcie",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_pcie.v",
+    "verdict": "PASS",
+    "tail": [
+      "========================================",
+      "BFM_PCIE VERDICT: PASS",
+      "========================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_bfm_pcie.v:97: $finish called at 2800000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_can_controller",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/can_controller/tb_can_controller.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "CAN VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/can_controller/tb_can_controller.v:190: $finish called at 1249200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_cdc_sync",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/cdc_sync/tb_cdc_sync.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "CDC_SYNC VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/cdc_sync/tb_cdc_sync.v:121: $finish called at 1536000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_clint",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/clint/tb_clint.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "CLINT VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/clint/tb_clint.v:138: $finish called at 427000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_ddr_ctrl_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_ctrl_top/tb_ddr_ctrl_top.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "DDR_CTRL_TOP VERDICT: \u2705 PASS \u2014 Completed (no crash)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_ctrl_top/tb_ddr_ctrl_top.v:156: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_ddr_phy_if",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_phy_if/tb_ddr_phy_if.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "DDR_PHY_IF VERDICT: \u2705 PASS \u2014 Completed (no crash)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_phy_if/tb_ddr_phy_if.v:116: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_ddr_scheduler",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_scheduler/tb_ddr_scheduler.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "DDR_SCHEDULER VERDICT: \u2705 PASS \u2014 Completed (no crash)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/ddr_scheduler/tb_ddr_scheduler.v:102: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_drbg",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/drbg/tb_drbg.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "DRBG VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/drbg/tb_drbg.v:253: $finish called at 579600 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_ecdsa_engine",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/ecdsa_engine/tb_ecdsa_engine.v",
+    "verdict": "PASS",
+    "tail": [
+      "ECDSA_ENGINE VERDICT: \u2705 PASS \u2014 All 6 genuine crypto scenarios verified",
+      "REGRESS_RESULT: PASS",
+      "==================================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/ecdsa_engine/tb_ecdsa_engine.v:238: $finish called at 47117000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_envm_ctrl",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/envm_ctrl/tb_envm_ctrl.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "ENVM_CTRL VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/envm_ctrl/tb_envm_ctrl.v:181: $finish called at 327600 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fifo_async",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_async/tb_fifo_async.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "FIFO_ASYNC VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_async/tb_fifo_async.v:241: $finish called at 9338500 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fifo_sync",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_sync/tb_fifo_sync.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "FIFO_SYNC VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/fifo_sync/tb_fifo_sync.v:232: $finish called at 5236000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_clint",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/clint/tb_fresh_clint.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/clint/tb_fresh_clint.v:199: unknown format $display<% >.",
+      "[ALL TESTS PASSED] clint 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/clint/tb_fresh_clint.v:203: $finish called at 526000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_plic",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/plic/tb_fresh_plic.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/plic/tb_fresh_plic.v:209: unknown format $display<% >.",
+      "[ALL TESTS PASSED] plic 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/plic/tb_fresh_plic.v:213: $finish called at 427000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_bpu",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_bpu/tb_fresh_rv_bpu.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 6",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_bpu 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_bpu/tb_fresh_rv_bpu.v:184: $finish called at 176000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_core_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_fresh_rv_core_top.v",
+    "verdict": "PASS",
+    "tail": [
+      " Total Failed: 0",
+      "=======================================================",
+      "[ALL TESTS PASSED] rv_core_top 100% verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_fresh_rv_core_top.v:461: $finish called at 686000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_csr",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/tb_fresh_rv_csr.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 6",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_csr 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/tb_fresh_rv_csr.v:260: $finish called at 218000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_dcache",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_dcache/tb_fresh_rv_dcache.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_dcache/tb_fresh_rv_dcache.v:393: unknown format $display<% >.",
+      "[ALL TESTS PASSED] rv_dcache 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_dcache/tb_fresh_rv_dcache.v:397: $finish called at 5706000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_debug",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_debug/tb_fresh_rv_debug.v",
+    "verdict": "PASS",
+    "tail": [
+      " Total Failed: 0",
+      "=======================================================",
+      "[ALL TESTS PASSED] rv_debug 100% verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_debug/tb_fresh_rv_debug.v:328: $finish called at 20326000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_decode",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/tb_fresh_rv_decode.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/tb_fresh_rv_decode.v:343: unknown format $display<% >.",
+      "[ALL TESTS PASSED] rv_decode 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/tb_fresh_rv_decode.v:347: $finish called at 436000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_execute",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_execute/tb_fresh_rv_execute.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 9",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_execute 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_execute/tb_fresh_rv_execute.v:503: $finish called at 946000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_fetch",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_fetch/tb_fresh_rv_fetch.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_fetch/tb_fresh_rv_fetch.v:276: unknown format $display<% >.",
+      "[ALL TESTS PASSED] rv_fetch 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_fetch/tb_fresh_rv_fetch.v:280: $finish called at 326000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_fpu",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu/tb_fresh_rv_fpu.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 14",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_fpu 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu/tb_fresh_rv_fpu.v:422: $finish called at 676000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_icache",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_icache/tb_fresh_rv_icache.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_icache/tb_fresh_rv_icache.v:236: unknown format $display<% >.",
+      "[ALL TESTS PASSED] rv_icache 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_icache/tb_fresh_rv_icache.v:240: $finish called at 546000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_mem",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/tb_fresh_rv_mem.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 6",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_mem 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/tb_fresh_rv_mem.v:275: $finish called at 176000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_mmu",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu/tb_fresh_rv_mmu.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu/tb_fresh_rv_mmu.v:265: unknown format $display<% >.",
+      "[ALL TESTS PASSED] rv_mmu 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu/tb_fresh_rv_mmu.v:269: $finish called at 406000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_monitor_core",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/tb_fresh_rv_monitor_core.v",
+    "verdict": "PASS",
+    "tail": [
+      " Total Failed: 0",
+      "=======================================================",
+      "[ALL TESTS PASSED] rv_monitor_core 100% verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/tb_fresh_rv_monitor_core.v:358: $finish called at 356000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_pmp",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_pmp/tb_fresh_rv_pmp.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 8",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_pmp 100% VERIFIED (RISC-V Word Address Compliant)",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_pmp/tb_fresh_rv_pmp.v:294: $finish called at 64000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_ptw",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_ptw/tb_fresh_rv_ptw.v",
+    "verdict": "PASS",
+    "tail": [
+      "=======================================================",
+      "WARNING: /home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_ptw/tb_fresh_rv_ptw.v:274: unknown format $display<% >.",
+      "[ALL TESTS PASSED] rv_ptw 100<% >verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_ptw/tb_fresh_rv_ptw.v:278: $finish called at 476000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_regfile",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_regfile/tb_fresh_rv_regfile.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 6",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_regfile 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_regfile/tb_fresh_rv_regfile.v:173: $finish called at 486000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_tlb",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_tlb/tb_fresh_rv_tlb.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 6",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_tlb 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_tlb/tb_fresh_rv_tlb.v:248: $finish called at 110000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_rv_writeback",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_writeback/tb_fresh_rv_writeback.v",
+    "verdict": "PASS",
+    "tail": [
+      "Total Tests Executed: 6",
+      "Total Errors: 0",
+      "ALL TESTS PASSED: rv_writeback 100% VERIFIED",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_writeback/tb_fresh_rv_writeback.v:156: $finish called at 126000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_fresh_titan_x_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_fresh_titan_x_top.v",
+    "verdict": "PASS",
+    "tail": [
+      " Total Failed: 0",
+      "=======================================================",
+      "[ALL TESTS PASSED] titan_x_top 100% verified.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_fresh_titan_x_top.v:256: $finish called at 16726000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_gem_ethernet",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_ethernet/tb_gem_ethernet.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "GEM_ETHERNET VERDICT: \u2705 PASS \u2014 All 9 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_ethernet/tb_gem_ethernet.v:241: $finish called at 385000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_gem_sgmii_pcs",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_sgmii_pcs/tb_gem_sgmii_pcs.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "GEM_SGMII_PCS VERDICT: \u2705 PASS \u2014 All 7 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gem_sgmii_pcs/tb_gem_sgmii_pcs.v:130: $finish called at 158000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_gpio_ctrl",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gpio_ctrl/tb_gpio_ctrl.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "GPIO_CTRL VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/gpio_ctrl/tb_gpio_ctrl.v:152: $finish called at 365600 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_hdmi_ctrl",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/hdmi_ctrl/tb_hdmi_ctrl.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "HDMI_CTRL VERDICT: \u2705 PASS \u2014 All 7 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/hdmi_ctrl/tb_hdmi_ctrl.v:171: $finish called at 7023562 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_i2c_master",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/i2c_master/tb_i2c_master.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "I2C VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/i2c_master/tb_i2c_master.v:177: $finish called at 29329200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_integ_memory_hierarchy",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_memory_hierarchy.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "MEM_HIER: 28 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_memory_hierarchy.v:200: $finish called at 402005000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_integ_multicore_mesi",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_integ_multicore_mesi.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "MULTICORE_MESI: 19 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_integ_multicore_mesi.v:430: $finish called at 406045000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_integ_peripheral_bus",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_peripheral_bus.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "INTEG_PERIPHERAL_BUS VERDICT: \u2705 PASS \u2014 AXI\u2192AHB\u2192APB\u2192UART/RTC path functional",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_peripheral_bus.v:207: $finish called at 6025000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_integ_peripherals",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_integ_peripherals.v",
+    "verdict": "PASS",
+    "tail": [
+      "  PERIPHERAL QUALIFICATION VERDICT: 11 PASSED, 0 FAILED",
+      "  REGRESS_RESULT: PASS",
+      "==================================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_integ_peripherals.v:394: $finish called at 16335130 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_integ_security_chain",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_security_chain.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "SEC_CHAIN: 15 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_security_chain.v:225: $finish called at 16295000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_integ_video_pipeline",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_video_pipeline.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "INTEG_VIDEO_PIPELINE VERDICT: \u2705 PASS \u2014 MIPI\u2192ISP\u2192HDMI path functional",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_video_pipeline.v:138: $finish called at 3687000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_integ_xbar_concurrency",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_xbar_concurrency.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "XBAR_CONC: 154 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_integ_xbar_concurrency.v:258: $finish called at 2625000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_interconnect_mpu",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/interconnect_mpu/tb_interconnect_mpu.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "INTERCONNECT_MPU VERDICT: \u2705 PASS \u2014 Region config + W-drain + APB check done",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/interconnect_mpu/tb_interconnect_mpu.v:326: $finish called at 377200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_isp_pipeline",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/isp_pipeline/tb_isp_pipeline.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "ISP_PIPELINE VERDICT: \u2705 PASS \u2014 All 10 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/isp_pipeline/tb_isp_pipeline.v:209: $finish called at 286000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_l2_cache_ctrl",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_ctrl/tb_l2_cache_ctrl.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "tb_l2_cache_ctrl: 172 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_ctrl/tb_l2_cache_ctrl.v:538: $finish called at 5355000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_l2_cache_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top/tb_l2_cache_top.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "tb_l2_cache_top: 75 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_cache_top/tb_l2_cache_top.v:475: $finish called at 9015000 (1ps)"
+    ]
+  },
+  {
     "name": "tb_l2_data_array",
     "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_data_array/tb_l2_data_array.v",
     "verdict": "PASS",
@@ -8,6 +668,611 @@
       "L2_DATA_ARRAY VERDICT: \u2705 PASS \u2014 Completed (no crash)",
       "==============================",
       "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_data_array/tb_l2_data_array.v:74: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_l2_snoop_filter",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_snoop_filter/tb_l2_snoop_filter.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "L2_SNOOP_FILTER VERDICT: \u2705 PASS \u2014 Completed (no crash)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_snoop_filter/tb_l2_snoop_filter.v:84: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_l2_tag_array",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_tag_array/tb_l2_tag_array.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "L2_TAG_ARRAY VERDICT: \u2705 PASS \u2014 Completed (no crash)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/l2_tag_array/tb_l2_tag_array.v:66: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_mipi_csi2_rx",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/mipi_csi2_rx/tb_mipi_csi2_rx.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "MIPI_CSI2_RX VERDICT: \u2705 PASS \u2014 All 10 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/mipi_csi2_rx/tb_mipi_csi2_rx.v:201: $finish called at 235000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_mmc_controller",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/mmc_controller/tb_mmc_controller.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "MMC_CONTROLLER VERDICT: \u2705 PASS \u2014 All 9 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/mmc_controller/tb_mmc_controller.v:226: $finish called at 315000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_mmu_arbiter",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/mmu_arbiter/tb_mmu_arbiter.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "MMU_ARBITER VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/mmu_arbiter/tb_mmu_arbiter.v:124: $finish called at 266000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_multicore_coherence",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_multicore_coherence.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "MULTICORE_COHERENCE: 13 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/integration/tb_multicore_coherence.v:317: $finish called at 403585000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_pcie_pipe_if",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_pipe_if/tb_pcie_pipe_if.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "PCIE_PIPE_IF VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_pipe_if/tb_pcie_pipe_if.v:155: $finish called at 50600 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_pcie_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_top/tb_pcie_top.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "PCIE_TOP VERDICT: \u2705 PASS \u2014 All 8 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/pcie_top/tb_pcie_top.v:255: $finish called at 38000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_plic",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/plic/tb_plic.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "PLIC VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/plic/tb_plic.v:123: $finish called at 406000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_power_aware_clock_gate",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/verification/coverage/tb_power_aware_clock_gate.v",
+    "verdict": "PASS",
+    "tail": [
+      "[PASS] Test 4: Dynamic re-gating confirmed (sleep power state re-entered)",
+      "==============================================",
+      ">>> POWER-AWARE VERIFICATION PASSED (0 ERRORS) <<<",
+      "=============================================="
+    ]
+  },
+  {
+    "name": "tb_qos_controller",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/qos_controller/tb_qos_controller.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "QoS VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/qos_controller/tb_qos_controller.v:199: $finish called at 1767600 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_qspi_controller",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/qspi_controller/tb_qspi_controller.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "QSPI_CONTROLLER VERDICT: \u2705 PASS \u2014 All 10 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/qspi_controller/tb_qspi_controller.v:194: $finish called at 825000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_reset_sync",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/reset_sync/tb_reset_sync.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RESET_SYNC VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/common/reset_sync/tb_reset_sync.v:75: $finish called at 96000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rtc",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/rtc/tb_rtc.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RTC VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/rtc/tb_rtc.v:172: $finish called at 442738800 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_bpu",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_bpu/tb_rv_bpu.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_BPU VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_bpu/tb_rv_bpu.v:127: $finish called at 246000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_compliance",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_compliance.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_COMPLIANCE VERDICT: \u2705 PASS \u2014 program retired correctly",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_compliance.v:394: $finish called at 432097200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_csr",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_csr.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_CSR VERDICT: \u2705 PASS \u2014 program retired correctly",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_csr.v:394: $finish called at 216097200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_exception",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_exception.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_EXCEPTION VERDICT: \u2705 PASS \u2014 All privileged exception contracts verified",
+      "REGRESS_RESULT: PASS",
+      "========================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_exception.v:377: $finish called at 36111600 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_irq",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_IRQ VERDICT: \u2705 PASS \u2014 program retired correctly",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_irq.v:416: $finish called at 216097200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_l1_cache",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_l1_cache.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_L1_CACHE VERDICT: \u2705 PASS \u2014 All 13 scenarios fully qualified",
+      "REGRESS_RESULT: PASS",
+      "==================================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_l1_cache.v:619: $finish called at 8025000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_mext",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_mext.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_MEXT VERDICT: \u2705 PASS \u2014 M-extension program retired correctly",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_mext.v:374: $finish called at 1800097200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_top.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_TOP VERDICT: \u2705 PASS \u2014 program retired correctly",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_top.v:397: $finish called at 216097200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_traps_comprehensive",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_traps_comprehensive.v",
+    "verdict": "PASS",
+    "tail": [
+      "  TITAN X TRAPS VERDICT: 23 PASSED, 0 FAILED",
+      "  REGRESS_RESULT: PASS",
+      "==================================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_traps_comprehensive.v:423: $finish called at 1895000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_core_wops",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_wops.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CORE_WOPS VERDICT: \u2705 PASS \u2014 W-op program retired correctly",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_core_top/tb_rv_core_wops.v:352: $finish called at 216097200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_csr",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/tb_rv_csr.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_CSR VERDICT: \u2705 PASS \u2014 CSR file matches spec contract",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_csr/tb_rv_csr.v:200: $finish called at 331000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_dcache",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_dcache/tb_rv_dcache.v",
+    "verdict": "PASS",
+    "tail": [
+      "RV_DCACHE VERDICT: \u2705 PASS \u2014 all data checks green",
+      "REGRESS_RESULT: PASS",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_dcache/tb_rv_dcache.v:373: $finish called at 11745000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_debug",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_debug/tb_rv_debug.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_DEBUG VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_debug/tb_rv_debug.v:241: $finish called at 18165000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_decode",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/tb_rv_decode.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_DECODE VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_decode/tb_rv_decode.v:163: $finish called at 176000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_execute",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_execute/tb_rv_execute.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_EXECUTE VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_execute/tb_rv_execute.v:172: $finish called at 176000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_fetch",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_fetch/tb_rv_fetch.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_FETCH VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_fetch/tb_rv_fetch.v:178: $finish called at 416000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_fpu",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu/tb_rv_fpu.v",
+    "verdict": "PASS",
+    "tail": [
+      "  BUG-FPU-002: FMINMAX \u2014 uses combinational fp_src not pipeline reg",
+      "RV_FPU VERDICT: \u2705 PASS \u2014 No infrastructure failures (0 known RTL bugs)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_fpu/tb_rv_fpu.v:201: $finish called at 646000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_icache",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_icache/tb_rv_icache.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_ICACHE VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/frontend/rv_icache/tb_rv_icache.v:155: $finish called at 485000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_mem",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/tb_rv_mem.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_MEM VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mem/tb_rv_mem.v:221: $finish called at 386000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_mmu",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu/tb_rv_mmu.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_MMU VERDICT: \u2705 PASS \u2014 Completed (no crash)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_mmu/tb_rv_mmu.v:126: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_monitor_core",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/tb_rv_monitor_core.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_MONITOR_CORE VERDICT: \u2705 PASS \u2014 Completed (no crash)",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_monitor_core/tb_rv_monitor_core.v:158: $finish called at 6130000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_pmp",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_pmp/tb_rv_pmp.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_PMP VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_pmp/tb_rv_pmp.v:111: $finish called at 166000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_ptw",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_ptw/tb_rv_ptw.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_PTW VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_ptw/tb_rv_ptw.v:183: $finish called at 236000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_regfile",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_regfile/tb_rv_regfile.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_REGFILE VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_regfile/tb_rv_regfile.v:139: $finish called at 30115000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_tlb",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_tlb/tb_rv_tlb.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_TLB VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_tlb/tb_rv_tlb.v:110: $finish called at 206000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_rv_writeback",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_writeback/tb_rv_writeback.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "RV_WRITEBACK VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/backend/rv_writeback/tb_rv_writeback.v:107: $finish called at 176000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_secure_boot",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/tb_secure_boot.v",
+    "verdict": "PASS",
+    "tail": [
+      "SECURE BOOT VERDICT: \u2705 PASS \u2014 All 5 security scenarios verified",
+      "REGRESS_RESULT: PASS",
+      "==================================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/tb_secure_boot.v:289: $finish called at 42335000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_secure_boot_crypto",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/tb_secure_boot_crypto.v",
+    "verdict": "PASS",
+    "tail": [
+      "  SECURE BOOT CRYPTO VERDICT: 6 PASSED, 0 FAILED",
+      "  REGRESS_RESULT: PASS",
+      "==================================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/security/secure_boot/tb_secure_boot_crypto.v:291: $finish called at 58235000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_sha256_engine",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/sha256_engine/tb_sha256_engine.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "SHA256_ENGINE VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/sha256_engine/tb_sha256_engine.v:167: $finish called at 1126800 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_spi_master",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/spi_master/tb_spi_master.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "SPI_MASTER VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/spi_master/tb_spi_master.v:157: $finish called at 14672000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_sram_32x64_180nm",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_32x64_180nm/tb_sram_32x64_180nm.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "SRAM_32x64 VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_32x64_180nm/tb_sram_32x64_180nm.v:129: $finish called at 458200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_sram_512kx8_180nm",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_512kx8_180nm/tb_sram_512kx8_180nm.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "SRAM_512Kx8 VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/memory/sram_512kx8_180nm/tb_sram_512kx8_180nm.v:131: $finish called at 458200 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_stdcell_stubs",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/includes/tb_stdcell_stubs.v",
+    "verdict": "PASS",
+    "tail": [
+      "========================================================",
+      " VERDICT: \u2705 PASS \u2014 ALL 11 CHECKS PASSED WITH 0 ERRORS",
+      "========================================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/includes/tb_stdcell_stubs.v:67: $finish called at 85000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_titan_x_performance",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/verification/performance/tb_titan_x_performance.v",
+    "verdict": "PASS",
+    "tail": [
+      " Total Verification Failed: 0",
+      "=========================================================================================================",
+      "[PHASE 6 SIGN-OFF: SUCCESS] Performance verification and multi-core firmware boot 100% complete.",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/verification/performance/tb_titan_x_performance.v:360: $finish called at 31066000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_titan_x_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_titan_x_top.v",
+    "verdict": "PASS",
+    "tail": [
+      "========================================",
+      "TITAN-X SoC VERDICT: \u2705 PASS \u2014 All integration checks passed",
+      "========================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_titan_x_top.v:171: $finish called at 9420400 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_trng",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/trng/tb_trng.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "TRNG VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/trng/tb_trng.v:198: $finish called at 15166800 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_uart_16550",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/uart_16550/tb_uart_16550.v",
+    "verdict": "PASS",
+    "tail": [
+      "NOTE: TX serializer and IRQ logic are RTL stubs (not implemented).",
+      "      Functional verification limited to register file correctness.",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/uart_16550/tb_uart_16550.v:215: $finish called at 831600 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_unit_apb_bridge",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/apb_bridge/tb_unit_apb_bridge.v",
+    "verdict": "PASS",
+    "tail": [
+      "------------------------------------------------",
+      "APB_BRIDGE: 14 checks, 0 errors",
+      "REGRESS_RESULT: PASS",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/interconnect/apb_bridge/tb_unit_apb_bridge.v:195: $finish called at 1045000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_usb_otg",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/usb_otg/tb_usb_otg.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "USB_OTG VERDICT: \u2705 PASS \u2014 All 12 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/storage/usb_otg/tb_usb_otg.v:251: $finish called at 407000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_vdma",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/vdma/tb_vdma.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "VDMA VERDICT: \u2705 PASS \u2014 All 9 tests green",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/video/vdma/tb_vdma.v:243: $finish called at 365000 (1ps)"
+    ]
+  },
+  {
+    "name": "tb_watchdog_timer",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/watchdog_timer/tb_watchdog_timer.v",
+    "verdict": "PASS",
+    "tail": [
+      "==============================",
+      "WDT VERDICT: \u2705 PASS \u2014 All tests passed",
+      "==============================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/peripherals/watchdog_timer/tb_watchdog_timer.v:162: $finish called at 509600 (1ps)"
     ]
   }
 ]

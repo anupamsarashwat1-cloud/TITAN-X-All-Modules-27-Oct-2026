@@ -14,8 +14,8 @@ Every signal path, module instantiation, interface connection, constant tie-off,
 directly from the synthesizable Verilog source without assuming documentation correctness.
 
 - **Total Synthesizable Modules in Codebase:** 268
-- **Active Modules Instantiated in Top-Level Hierarchy:** 53
-- **Synthesizable Modules Omitted from Top-Level Hierarchy:** 214
+- **Active Modules Instantiated in Top-Level Hierarchy:** 52
+- **Synthesizable Modules Omitted from Top-Level Hierarchy:** 215
 
 ---
 

@@ -61,9 +61,9 @@ module rv_mem (
     reg [63:0] pc_q;
     reg [39:0] store_addr_q;
 
-    wire [1:0]  clean_bresp = (dmem_bresp === 2'bzz || dmem_bresp === 2'bxx) ? 2'b00 : dmem_bresp;
-    wire [1:0]  clean_rresp = (dmem_rresp === 2'bzz || dmem_rresp === 2'bxx) ? 2'b00 : dmem_rresp;
-    wire [63:0] clean_pc_in = (pc_in === 64'bx || pc_in === 64'bz) ? 64'h0 : pc_in;
+    wire [1:0]  clean_bresp = dmem_bresp;
+    wire [1:0]  clean_rresp = dmem_rresp;
+    wire [63:0] clean_pc_in = pc_in;
 
     assign mem_stall  = mem_active && (mstate != MS_DONE);
     assign fwd_mem_data  = result;

@@ -494,8 +494,8 @@ module tb_rv_core_l1_cache();
         if (imem_read_beats != 8) begin
             $display("FAIL [Scenario 2]: External instruction read beats asserted during line hit! (beats=%0d)", imem_read_beats);
             errors = errors + 1;
-        end else if (uut.u_icache.cache_hit) begin
-            $display("PASS [Scenario 2]: Subsequent instruction accesses hit in L1 I-Cache without external bus transactions (cache_hit=%b)", uut.u_icache.cache_hit);
+        end else if (uut.gen_icache.u_icache.cache_hit) begin
+            $display("PASS [Scenario 2]: Subsequent instruction accesses hit in L1 I-Cache without external bus transactions (cache_hit=%b)", uut.gen_icache.u_icache.cache_hit);
         end else begin
             $display("PASS [Scenario 2]: Instruction cache hit verified");
         end
@@ -574,8 +574,8 @@ module tb_rv_core_l1_cache();
         $display("\n--- SCENARIO 12: Reset During Outstanding Transaction ---");
         rst_n = 0;
         repeat(5) @(posedge clk);
-        if (uut.u_dcache.state != 3'd0) begin
-            $display("FAIL [Scenario 12]: u_dcache did not return to D_IDLE on reset (state=%0d)", uut.u_dcache.state);
+        if (uut.gen_dcache.u_dcache.state != 3'd0) begin
+            $display("FAIL [Scenario 12]: u_dcache did not return to D_IDLE on reset (state=%0d)", uut.gen_dcache.u_dcache.state);
             errors = errors + 1;
         end else if (uut.u_mem.mstate != 2'd0) begin
             $display("FAIL [Scenario 12]: u_mem did not return to MS_IDLE on reset (mstate=%0d)", uut.u_mem.mstate);

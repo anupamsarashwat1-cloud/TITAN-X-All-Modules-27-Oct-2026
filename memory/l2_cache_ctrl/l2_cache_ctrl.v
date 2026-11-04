@@ -212,13 +212,13 @@ module l2_cache_ctrl #(
             read_word_latched <= {DATA_W{1'b0}};
 
             for (s_i = 0; s_i < SETS; s_i = s_i + 1) begin
-                replace_ptr[s_i] <= 4'd0;
+                replace_ptr[s_i] = 4'd0;
                 for (w_i = 0; w_i < WAYS; w_i = w_i + 1) begin
-                    valid_mem[s_i][w_i] <= 1'b0;
-                    dirty_mem[s_i][w_i] <= 1'b0;
-                    tag_mem[s_i][w_i]   <= {TAG_W{1'b0}};
+                    valid_mem[s_i][w_i] = 1'b0;
+                    dirty_mem[s_i][w_i] = 1'b0;
+                    tag_mem[s_i][w_i]   = {TAG_W{1'b0}};
                     for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
-                        data_mem[s_i][w_i][b_i] <= {DATA_W{1'b0}};
+                        data_mem[s_i][w_i][b_i] = {DATA_W{1'b0}};
                     end
                 end
             end

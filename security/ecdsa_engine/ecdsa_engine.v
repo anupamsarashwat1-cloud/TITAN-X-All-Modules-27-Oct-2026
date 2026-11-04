@@ -315,20 +315,26 @@ module ecdsa_engine (
                         begin : straus_step
                             reg [255:0] nx, ny, nz;
                             reg [255:0] tx, ty, tz;
+                            reg [255:0] res_x, res_y, res_z;
                             reg b1, b2;
                             jac_double(rx_reg, ry_reg, rz_reg, nx, ny, nz);
                             b1 = u1_val[straus_idx - 1];
                             b2 = u2_val[straus_idx - 1];
                             if (b1 == 1'b1 && b2 == 1'b0) begin
-                                jac_add_aff(nx, ny, nz, GX, GY, rx_reg, ry_reg, rz_reg);
+                                jac_add_aff(nx, ny, nz, GX, GY, res_x, res_y, res_z);
                             end else if (b1 == 1'b0 && b2 == 1'b1) begin
-                                jac_add_aff(nx, ny, nz, qx_val, qy_val, rx_reg, ry_reg, rz_reg);
+                                jac_add_aff(nx, ny, nz, qx_val, qy_val, res_x, res_y, res_z);
                             end else if (b1 == 1'b1 && b2 == 1'b1) begin
                                 jac_add_aff(nx, ny, nz, GX, GY, tx, ty, tz);
-                                jac_add_aff(tx, ty, tz, qx_val, qy_val, rx_reg, ry_reg, rz_reg);
+                                jac_add_aff(tx, ty, tz, qx_val, qy_val, res_x, res_y, res_z);
                             end else begin
-                                rx_reg <= nx; ry_reg <= ny; rz_reg <= nz;
+                                res_x = nx;
+                                res_y = ny;
+                                res_z = nz;
                             end
+                            rx_reg <= res_x;
+                            ry_reg <= res_y;
+                            rz_reg <= res_z;
                         end
                     end else begin
                         if (rz_reg == 256'd0) begin
