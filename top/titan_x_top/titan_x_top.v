@@ -58,16 +58,29 @@ module titan_x_top (
     wire [31:0] plic_irq;
     wire [4:0]  timer_irq;
     wire [4:0]  sw_irq;
+    wire [4:0]  rtc_timer_irq;
+    wire [4:0]  clint_msip;
+    wire [4:0]  clint_mtip;
 
-    assign sw_irq = 5'h0;
-    assign plic_irq[4:0] = 5'h0;
-    assign plic_irq[7:5] = 3'h0;
+    assign sw_irq    = clint_msip;
+    assign timer_irq = clint_mtip | rtc_timer_irq;
+
+    assign plic_irq[4:0]   = 5'h0;
+    assign plic_irq[7:5]   = 3'h0;
     // plic_irq[8] = TRNG
     // plic_irq[9] = ECDSA
     // plic_irq[10] = DRBG
     // plic_irq[11] = AES
     // plic_irq[12] = SHA256
-    assign plic_irq[19:13] = 7'h0;
+    // plic_irq[13] = GPIO
+    // plic_irq[14] = WDT
+    // plic_irq[15] = SPI
+    // plic_irq[16] = I2C
+    assign plic_irq[19:17] = 3'h0;
+    // plic_irq[24:20] = UART0-4
+    // plic_irq[26:25] = CAN0-1
+    // plic_irq[27] = GEM
+    // plic_irq[28] = USB
     assign plic_irq[31:29] = 3'h0;
 
     // Platform-Level Interrupt Controller (PLIC)
@@ -80,7 +93,11 @@ module titan_x_top (
     assign plic_sources[10]      = plic_irq[10]; // DRBG
     assign plic_sources[11]      = plic_irq[11]; // AES
     assign plic_sources[12]      = plic_irq[12]; // SHA256
-    assign plic_sources[19:13]   = 7'h0;
+    assign plic_sources[13]      = plic_irq[13]; // GPIO
+    assign plic_sources[14]      = plic_irq[14]; // Watchdog Timer
+    assign plic_sources[15]      = plic_irq[15]; // SPI Master
+    assign plic_sources[16]      = plic_irq[16]; // I2C Master
+    assign plic_sources[19:17]   = 3'h0;
     assign plic_sources[24:20]   = plic_irq[24:20]; // UART0-4
     assign plic_sources[26:25]   = plic_irq[26:25]; // CAN0-1
     assign plic_sources[27]      = plic_irq[27]; // GEM
@@ -328,6 +345,11 @@ module titan_x_top (
     wire [3:0]   l2_snoop_ack;
     wire [3:0]   l2_snoop_data_valid;
 
+    wire [4:0]   dbg_halt_req;
+    wire [4:0]   dbg_resume_req;
+    wire [4:0]   dbg_hart_halted;
+    wire [4:0]   dbg_hart_running;
+
     genvar c;
     generate
         for (c = 0; c < 4; c = c + 1) begin : gen_cores
@@ -370,8 +392,8 @@ module titan_x_top (
                 .dmem_rresp(axm_rresp[(c+4)*2 +: 2]), .dmem_rlast(axm_rlast[c+4]),
                 .snoop_valid(l2_snoop_valid[c]), .snoop_addr(l2_snoop_addr), .snoop_type(l2_snoop_type),
                 .snoop_ack(l2_snoop_ack[c]), .snoop_data_valid(l2_snoop_data_valid[c]), .snoop_data(),
-                .halt_req(1'b0), .resume_req(1'b0),
-                .hart_halted(), .hart_running()
+                .halt_req(dbg_halt_req[c]), .resume_req(dbg_resume_req[c]),
+                .hart_halted(dbg_hart_halted[c]), .hart_running(dbg_hart_running[c])
             );
             assign axm_arid[c*4 +: 4] = c[3:0];
             assign axm_awid[(c+4)*4 +: 4] = c[3:0] + 4'd4;
@@ -412,7 +434,40 @@ module titan_x_top (
         .dmem_arlen(), .dmem_arsize(), .dmem_arburst(),
         .dmem_rvalid(axm_rvalid[9]), .dmem_rready(axm_rready[9]), .dmem_rdata(axm_rdata[9*64 +: 64]),
         .dmem_rlast(), .dmem_rresp(axm_rresp[9*2 +: 2]),
-        .halt_req(1'b0), .resume_req(1'b0)
+        .halt_req(dbg_halt_req[4]), .resume_req(dbg_resume_req[4]),
+        .hart_halted(dbg_hart_halted[4]), .hart_running(dbg_hart_running[4])
+    );
+
+    // -------------------------------------------------------
+    // RISC-V Debug Module (JTAG 0.13 DM)
+    // -------------------------------------------------------
+    rv_debug #(
+        .NUM_HARTS(5),
+        .PROGBUF_SIZE(16)
+    ) u_debug (
+        .clk(clk),
+        .rst_n(rst_n),
+        .tck(1'b0),
+        .tms(1'b0),
+        .tdi(1'b0),
+        .tdo(),
+        .halt_req(dbg_halt_req),
+        .resume_req(dbg_resume_req),
+        .hart_halted(dbg_hart_halted),
+        .hart_running(dbg_hart_running),
+        .hart_unavail(5'b0),
+        .reg_sel(),
+        .reg_wr(),
+        .reg_wdata(),
+        .reg_rdata(64'h0),
+        .cmd_exec(),
+        .cmd_done(1'b1),
+        .cmd_err(1'b0),
+        .sb_arvalid(), .sb_arready(1'b0), .sb_araddr(),
+        .sb_rvalid(1'b0), .sb_rready(), .sb_rdata(64'h0), .sb_rresp(2'b0),
+        .sb_awvalid(), .sb_awready(1'b0), .sb_awaddr(),
+        .sb_wvalid(), .sb_wready(1'b0), .sb_wdata(), .sb_wstrb(), .sb_wlast(),
+        .sb_bvalid(1'b0), .sb_bready()
     );
 
     // DDR4 static pin control
@@ -577,6 +632,11 @@ module titan_x_top (
     wire psel_trng  = psel && (paddr[31:12] == 20'h400D0 || paddr[31:12] == 20'h20040);
     wire psel_sha256= psel && (paddr[31:12] == 20'h400E0 || paddr[31:12] == 20'h20050);
     wire psel_ecdsa = psel && (paddr[31:12] == 20'h400F0 || paddr[31:12] == 20'h20060);
+    wire psel_clint = psel && (paddr[31:16] == 16'h0200 || paddr[31:12] == 20'h40015);
+    wire psel_gpio  = psel && (paddr[31:12] == 20'h40011);
+    wire psel_wdt   = psel && (paddr[31:12] == 20'h40012);
+    wire psel_spi   = psel && (paddr[31:12] == 20'h40013);
+    wire psel_i2c   = psel && (paddr[31:12] == 20'h40014);
     assign psel_mpu = psel && (paddr[31:16] == 16'h4010);
     assign psel_qos = psel && (paddr[31:16] == 16'h4011);
     assign psel_plic = psel && (paddr[31:24] == 8'h0C || paddr[31:20] == 12'h40D);
@@ -585,6 +645,7 @@ module titan_x_top (
     wire [31:0] prdata_rtc, prdata_gem, prdata_usb, prdata_mipi, prdata_isp, prdata_hdmi;
     wire [31:0] prdata_drbg, prdata_aes, prdata_envm, prdata_boot, prdata_can0, prdata_can1;
     wire [31:0] prdata_trng, prdata_sha256, prdata_ecdsa;
+    wire [31:0] prdata_clint, prdata_gpio, prdata_wdt, prdata_spi, prdata_i2c;
 
     assign prdata_mux = psel_uart0  ? {32'h0, prdata_uart0} :
                         psel_uart1  ? {32'h0, prdata_uart1} :
@@ -592,6 +653,11 @@ module titan_x_top (
                         psel_uart3  ? {32'h0, prdata_uart3} :
                         psel_uart4  ? {32'h0, prdata_uart4} :
                         psel_rtc    ? {32'h0, prdata_rtc} :
+                        psel_clint  ? {32'h0, prdata_clint} :
+                        psel_gpio   ? {32'h0, prdata_gpio} :
+                        psel_wdt    ? {32'h0, prdata_wdt} :
+                        psel_spi    ? {32'h0, prdata_spi} :
+                        psel_i2c    ? {32'h0, prdata_i2c} :
                         psel_gem    ? {32'h0, prdata_gem} :
                         psel_usb    ? {32'h0, prdata_usb} :
                         psel_mipi   ? {32'h0, prdata_mipi} :
@@ -728,7 +794,65 @@ module titan_x_top (
         .clk(clk), .rtc_clk(rtc_clk), .rst_n(rst_n),
         .paddr(paddr), .psel(psel_rtc), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
         .prdata(prdata_rtc), .pready(), .pslverr(),
-        .timer_irq(timer_irq)
+        .timer_irq(rtc_timer_irq)
+    );
+
+    // Core-Local Interruptor (CLINT: mtime, mtimecmp, msip)
+    clint #(
+        .NUM_HARTS(5)
+    ) u_clint (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_clint), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[15:0]), .pwdata(pwdata),
+        .prdata(prdata_clint), .pready(),
+        .msip(clint_msip),
+        .mtip(clint_mtip)
+    );
+
+    // General Purpose I/O Controller
+    wire [31:0] gpio_io;
+    gpio_ctrl u_gpio (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_gpio), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_gpio), .pready(),
+        .gpio_pad(gpio_io),
+        .irq(plic_irq[13])
+    );
+
+    // Watchdog Timer
+    wire wdt_reset_n;
+    watchdog_timer u_wdt (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_wdt), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_wdt), .pready(),
+        .wdt_reset_n(wdt_reset_n),
+        .irq(plic_irq[14])
+    );
+
+    // SPI Master Controller
+    wire       spi_clk_out, spi_mosi_out;
+    wire [3:0] spi_csn_out;
+    spi_master u_spi (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_spi), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_spi), .pready(),
+        .spi_clk(spi_clk_out), .spi_mosi(spi_mosi_out), .spi_miso(1'b0),
+        .spi_csn(spi_csn_out),
+        .irq(plic_irq[15])
+    );
+
+    // I2C Master Controller
+    wire i2c_scl_io, i2c_sda_io;
+    i2c_master u_i2c (
+        .clk(clk), .rst_n(rst_n),
+        .psel(psel_i2c), .penable(penable), .pwrite(pwrite),
+        .paddr(paddr[3:0]), .pwdata(pwdata),
+        .prdata(prdata_i2c), .pready(),
+        .scl_pad(i2c_scl_io), .sda_pad(i2c_sda_io),
+        .irq(plic_irq[16])
     );
 
     uart_16550 u_uart0 (.clk(clk), .rst_n(rst_n), .paddr(paddr), .psel(psel_uart0), .penable(penable), .pwrite(pwrite), .pwdata(pwdata), .prdata(prdata_uart0), .pready(), .pslverr(), .uart_irq(plic_irq[20]), .rxd(uart_rx[0]), .txd(uart_tx[0]), .irda_tx(), .irda_rx(1'b0), .lin_tx(), .lin_rx(1'b1));
