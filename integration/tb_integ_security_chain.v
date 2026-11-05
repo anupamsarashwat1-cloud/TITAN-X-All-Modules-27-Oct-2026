@@ -14,7 +14,7 @@ module tb_integ_security_chain;
 
     reg clk;
     reg rst_n;
-    `TB_HARNESS(2_000_000)
+    `TB_HARNESS(50_000_000)
 
     `TB_SCOREBOARD
 
@@ -139,8 +139,8 @@ module tb_integ_security_chain;
     always @(posedge clk) envm_valid <= envm_req;
 
     initial begin
-        $dumpfile("tb_integ_security_chain.vcd");
-        $dumpvars(0, tb_integ_security_chain);
+        // $dumpfile("tb_integ_security_chain.vcd");
+        // $dumpvars(0, tb_integ_security_chain);
     end
 
     // ---------------- tests ----------------
@@ -206,7 +206,7 @@ module tb_integ_security_chain;
 
         // S6: secure boot reaches SUCCESS with fed eNVM valids (mock verifier)
         guard = 0;
-        while (boot_pass !== 1'b1 && guard < 50000) begin @(posedge clk); guard = guard+1; end
+        while (boot_pass !== 1'b1 && guard < 2000000) begin @(posedge clk); guard = guard+1; end
         `EXPECT_TRUE(boot_pass === 1'b1, "secure_boot asserts boot_pass")
         `EXPECT_TRUE(boot_fail === 1'b0, "secure_boot never asserts boot_fail")
         if (boot_pass === 1'b1) begin

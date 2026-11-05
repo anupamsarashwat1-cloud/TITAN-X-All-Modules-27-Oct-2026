@@ -145,7 +145,7 @@ module secure_boot (
     reg [31:0] computed_hash [0:7];
     reg [31:0] payload_word;
 
-    reg [11:0] timeout_cnt;
+    reg [23:0] timeout_cnt;
     reg        hdr_valid;
     reg        auth_fail;
     reg [15:0] payload_idx;
@@ -207,7 +207,7 @@ module secure_boot (
             word_addr     <= 17'h0;
             img_len       <= 32'h0;
             pubkey_id     <= 32'h0;
-            timeout_cnt   <= 12'h0;
+            timeout_cnt   <= 24'h0;
             hdr_valid     <= 1'b0;
             auth_fail     <= 1'b0;
             payload_idx   <= 16'h0;
@@ -240,7 +240,7 @@ module secure_boot (
                     word_addr     <= 17'h0;
                     hdr_valid     <= 1'b0;
                     auth_fail     <= 1'b0;
-                    timeout_cnt   <= 12'h0;
+                    timeout_cnt   <= 24'h0;
                     payload_idx   <= 16'h0;
                     block_word_idx<= 4'h0;
                     first_block   <= 1'b1;
@@ -502,7 +502,7 @@ module secure_boot (
 
                 S_START_ECDSA_ACCESS: begin
                     ecdsa_penable <= 1'b1;
-                    timeout_cnt   <= 12'h0;
+                    timeout_cnt   <= 24'h0;
                     state         <= S_WAIT_ECDSA;
                 end
 
@@ -510,9 +510,9 @@ module secure_boot (
                     ecdsa_psel    <= 1'b0;
                     ecdsa_penable <= 1'b0;
                     ecdsa_pwrite  <= 1'b0;
-                    timeout_cnt   <= timeout_cnt + 12'd1;
+                    timeout_cnt   <= timeout_cnt + 24'd1;
 
-                    if (timeout_cnt >= 12'd3500) begin
+                    if (timeout_cnt >= 24'd2000000) begin
                         auth_fail <= 1'b1;
                         state     <= S_HALT;
                     end else if (ecdsa_irq) begin

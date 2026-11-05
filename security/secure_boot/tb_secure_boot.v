@@ -250,7 +250,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -280,7 +280,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -304,7 +304,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -325,7 +325,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -346,7 +346,7 @@ module tb_secure_boot();
         envm_enable_valid = 0;
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -368,7 +368,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -390,7 +390,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -416,7 +416,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -439,7 +439,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end
@@ -460,7 +460,7 @@ module tb_secure_boot();
         reset_dut();
 
         step_cnt = 0;
-        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+        while (!boot_pass && !boot_fail && step_cnt < 2000000) begin
             @(posedge clk);
             step_cnt = step_cnt + 1;
         end

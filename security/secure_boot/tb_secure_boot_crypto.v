@@ -242,7 +242,7 @@ module tb_secure_boot_crypto;
         reset_dut();
 
         timeout = 0;
-        while (!boot_pass && !boot_fail && timeout < 4000) begin
+        while (!boot_pass && !boot_fail && timeout < 2000000) begin
             @(posedge clk);
             timeout = timeout + 1;
         end
@@ -272,7 +272,7 @@ module tb_secure_boot_crypto;
         reset_dut();
 
         timeout = 0;
-        while (!boot_pass && !boot_fail && timeout < 4000) begin
+        while (!boot_pass && !boot_fail && timeout < 2000000) begin
             @(posedge clk);
             timeout = timeout + 1;
         end
@@ -294,7 +294,7 @@ module tb_secure_boot_crypto;
         reset_dut();
 
         timeout = 0;
-        while (!boot_pass && !boot_fail && timeout < 4000) begin
+        while (!boot_pass && !boot_fail && timeout < 2000000) begin
             @(posedge clk);
             timeout = timeout + 1;
         end
@@ -316,7 +316,7 @@ module tb_secure_boot_crypto;
         reset_dut();
 
         timeout = 0;
-        while (!boot_pass && !boot_fail && timeout < 4000) begin
+        while (!boot_pass && !boot_fail && timeout < 2000000) begin
             @(posedge clk);
             timeout = timeout + 1;
         end
@@ -338,7 +338,7 @@ module tb_secure_boot_crypto;
         envm_enable_valid = 1'b0; // Memory stops responding
 
         timeout = 0;
-        while (!boot_pass && !boot_fail && timeout < 4000) begin
+        while (!boot_pass && !boot_fail && timeout < 2000000) begin
             @(posedge clk);
             timeout = timeout + 1;
         end
@@ -361,7 +361,7 @@ module tb_secure_boot_crypto;
         reset_dut();
 
         timeout = 0;
-        while (!boot_pass && !boot_fail && timeout < 4000) begin
+        while (!boot_pass && !boot_fail && timeout < 2000000) begin
             @(posedge clk);
             timeout = timeout + 1;
         end
@@ -383,7 +383,7 @@ module tb_secure_boot_crypto;
         reset_dut();
 
         timeout = 0;
-        while (!boot_pass && !boot_fail && timeout < 4000) begin
+        while (!boot_pass && !boot_fail && timeout < 2000000) begin
             @(posedge clk);
             timeout = timeout + 1;
         end

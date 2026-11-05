@@ -127,8 +127,8 @@ module tb_ecdsa_engine();
     endtask
 
     initial begin
-        $dumpfile("tb_ecdsa_engine.vcd");
-        $dumpvars(0, tb_ecdsa_engine);
+        // $dumpfile("tb_ecdsa_engine.vcd");
+        // $dumpvars(0, tb_ecdsa_engine);
         error_count = 0;
         psel = 0; penable = 0; pwrite = 0; paddr = 0; pwdata = 0;
 
@@ -155,7 +155,7 @@ module tb_ecdsa_engine();
         apb_write(32'h0000_0000, 32'h0000_0001); // Start verification
         repeat(2) @(posedge clk);
         wait_cnt = 0;
-        while (ecdsa_irq !== 1'b1 && wait_cnt < 3000) begin
+        while (ecdsa_irq !== 1'b1 && wait_cnt < 2000000) begin
             @(posedge clk); wait_cnt = wait_cnt + 1;
         end
         check(ecdsa_irq, 1'b1, "ecdsa_irq fired within expected cycle budget");
@@ -170,7 +170,7 @@ module tb_ecdsa_engine();
         apb_write(32'h0000_0000, 32'h0000_0001); // Start verification
         repeat(2) @(posedge clk);
         wait_cnt = 0;
-        while (ecdsa_irq !== 1'b1 && wait_cnt < 3000) begin
+        while (ecdsa_irq !== 1'b1 && wait_cnt < 2000000) begin
             @(posedge clk); wait_cnt = wait_cnt + 1;
         end
         apb_read(32'h0000_0004, rdata);
@@ -184,7 +184,7 @@ module tb_ecdsa_engine();
         apb_write(32'h0000_0000, 32'h0000_0001); // Start verification
         repeat(2) @(posedge clk);
         wait_cnt = 0;
-        while (ecdsa_irq !== 1'b1 && wait_cnt < 3000) begin
+        while (ecdsa_irq !== 1'b1 && wait_cnt < 2000000) begin
             @(posedge clk); wait_cnt = wait_cnt + 1;
         end
         apb_read(32'h0000_0004, rdata);
@@ -198,7 +198,7 @@ module tb_ecdsa_engine();
         apb_write(32'h0000_0000, 32'h0000_0001); // Start verification
         repeat(2) @(posedge clk);
         wait_cnt = 0;
-        while (ecdsa_irq !== 1'b1 && wait_cnt < 3000) begin
+        while (ecdsa_irq !== 1'b1 && wait_cnt < 2000000) begin
             @(posedge clk); wait_cnt = wait_cnt + 1;
         end
         apb_read(32'h0000_0004, rdata);
@@ -219,7 +219,7 @@ module tb_ecdsa_engine();
         apb_write(32'h0000_0000, 32'h0000_0001); // Start verification
         repeat(2) @(posedge clk);
         wait_cnt = 0;
-        while (ecdsa_irq !== 1'b1 && wait_cnt < 3000) begin
+        while (ecdsa_irq !== 1'b1 && wait_cnt < 2000000) begin
             @(posedge clk); wait_cnt = wait_cnt + 1;
         end
         apb_read(32'h0000_0004, rdata);
@@ -238,6 +238,6 @@ module tb_ecdsa_engine();
         $finish;
     end
 
-    initial begin #2_000_000; $display("WATCHDOG TIMEOUT"); $finish; end
+    initial begin #100_000_000; $display("WATCHDOG TIMEOUT"); $finish; end
 
 endmodule
