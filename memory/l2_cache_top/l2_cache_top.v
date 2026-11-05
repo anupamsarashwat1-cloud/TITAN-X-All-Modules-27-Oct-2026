@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SMVDU-TITAN-X SoC — L2 Cache Top (512KB, 16-way, 64B lines)
+// SMVDU-TITAN-X SoC — L2 Cache Top (Default 64KB, Scalable to 512KB/2MB, 16-way, 64B lines)
 // Integrates 16-Way l2_cache_ctrl, l2_snoop_filter (MESI directory), and axi4_burst_to_lite.
 `timescale 1ns/1ps
 `include "params.vh"
@@ -90,13 +90,19 @@ module l2_cache_top #(
     wire [1:0]  ctrl_bresp;
 
     // -------------------------------------------------------
+    // Dynamic Geometry Parameters (DEF-ARCH-03)
+    // -------------------------------------------------------
+    localparam IDX_W = $clog2(SETS);
+    localparam TAG_W = 40 - 6 - IDX_W;
+
+    // -------------------------------------------------------
     // 16-Way Set-Associative L2 Cache Controller
     // -------------------------------------------------------
     l2_cache_ctrl #(
         .ADDR_W(40),
         .DATA_W(64),
-        .TAG_W(28),
-        .IDX_W(6),
+        .TAG_W(TAG_W),
+        .IDX_W(IDX_W),
         .OFF_W(6),
         .WAYS(WAYS),
         .SETS(SETS)
@@ -166,7 +172,7 @@ module l2_cache_top #(
     );
 
     // -------------------------------------------------------
-    // MESI Snoop Filter (Coherence Directory)
+    // MESI Snoop Filter (Coherence Directory for L1 D-Caches)
     // -------------------------------------------------------
     l2_snoop_filter #(
         .NUM_CORES(4),

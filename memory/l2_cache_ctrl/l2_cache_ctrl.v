@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 // SMVDU-TITAN-X SoC — L2 Cache Controller
 // 16-Way Set-Associative, 64-byte line, Burst Refill & Writeback, MESI Dirty Intervention
+// Refactored to integrate banked foundry SRAM macros (DEF-ARCH-04) and scale geometry (DEF-ARCH-03).
 `timescale 1ns/1ps
 
 module l2_cache_ctrl #(
     parameter ADDR_W = 40,
     parameter DATA_W = 64,
-    parameter TAG_W  = 28,  // 40 - 6(index) - 6(offset)
-    parameter IDX_W  = 6,   // 64 sets
     parameter OFF_W  = 6,   // 64B lines (8 beats of 64 bits)
     parameter WAYS   = 16,  // 16-way set-associative
-    parameter SETS   = 64
+    parameter SETS   = 64,
+    parameter IDX_W  = $clog2(SETS),
+    parameter TAG_W  = ADDR_W - OFF_W - IDX_W
 ) (
     input  wire              clk,
     input  wire              rst_n,
@@ -22,7 +23,7 @@ module l2_cache_ctrl #(
     input  wire [3:0]        s_arid,
     output reg               s_rvalid,
     input  wire              s_rready,
-    output reg  [DATA_W-1:0] s_rdata,
+    output wire [DATA_W-1:0] s_rdata,
     output reg  [1:0]        s_rresp,
 
     input  wire              s_awvalid,
@@ -90,6 +91,8 @@ module l2_cache_ctrl #(
     localparam ST_REFILL_R   = 4'd7;
     localparam ST_RESP_R     = 4'd8;
     localparam ST_RESP_W     = 4'd9;
+    localparam ST_READ_HIT   = 4'd10;
+    localparam ST_EVICT_BUF  = 4'd11;
 
     reg [3:0] state;
 
@@ -114,8 +117,41 @@ module l2_cache_ctrl #(
     reg              dirty_mem   [0:SETS-1][0:WAYS-1];
     reg [3:0]        replace_ptr [0:SETS-1];
 
-    // Data array: SETS × WAYS × 8 beats (64-bit words)
-    reg [DATA_W-1:0] data_mem    [0:SETS-1][0:WAYS-1][0:7];
+    // Data array: Banked SRAM macro storage (DEF-ARCH-04)
+    localparam ARRAY_ADDR_W = IDX_W + $clog2(WAYS) + 3;
+
+    reg                     sram_cs;
+    reg                     sram_we;
+    reg  [7:0]              sram_wmask;
+    reg  [ARRAY_ADDR_W-1:0] sram_addr;
+    reg  [DATA_W-1:0]       sram_din;
+    wire [DATA_W-1:0]       sram_dout;
+    wire                    sram_dout_valid;
+
+    l2_data_array #(
+        .DATA_W(DATA_W),
+        .DEPTH(SETS * WAYS * 8),
+        .ADDR_W(ARRAY_ADDR_W)
+    ) u_data_array (
+        .clk(clk),
+        .rst_n(rst_n),
+        .cs(sram_cs),
+        .we(sram_we),
+        .wmask(sram_wmask),
+        .addr(sram_addr),
+        .din(sram_din),
+        .dout(sram_dout),
+        .dout_valid(sram_dout_valid)
+    );
+
+    reg [DATA_W-1:0] s_rdata_reg;
+    reg              read_hit_flag;
+    assign s_rdata = read_hit_flag ? sram_dout : s_rdata_reg;
+
+    reg [DATA_W-1:0] evict_buffer [0:7];
+    reg [3:0]        evict_cnt;
+    reg [2:0]        intervene_cnt;
+    reg [511:0]      snoop_line_latched;
 
     wire [TAG_W-1:0] req_tag     = req_addr[ADDR_W-1 : OFF_W+IDX_W];
     wire [IDX_W-1:0] req_index   = req_addr[OFF_W+IDX_W-1 : OFF_W];
@@ -152,7 +188,6 @@ module l2_cache_ctrl #(
 
     // Refill & Eviction counters and registers
     reg [2:0]        refill_cnt;
-    reg [2:0]        evict_cnt;
     reg [3:0]        target_way;
     reg [3:0]        evict_way;
     reg [DATA_W-1:0] read_word_latched;
@@ -166,7 +201,8 @@ module l2_cache_ctrl #(
             s_awready         <= 1'b1;
             s_wready          <= 1'b1;
             s_rvalid          <= 1'b0;
-            s_rdata           <= {DATA_W{1'b0}};
+            s_rdata_reg       <= {DATA_W{1'b0}};
+            read_hit_flag     <= 1'b0;
             s_rresp           <= 2'b00;
             s_bvalid          <= 1'b0;
             s_bresp           <= 2'b00;
@@ -194,6 +230,14 @@ module l2_cache_ctrl #(
             sf_req_type       <= 2'b00;
             sf_req_core       <= 2'b00;
 
+            sram_cs           <= 1'b0;
+            sram_we           <= 1'b0;
+            sram_wmask        <= 8'h00;
+            sram_addr         <= {ARRAY_ADDR_W{1'b0}};
+            sram_din          <= {DATA_W{1'b0}};
+            intervene_cnt     <= 3'd0;
+            snoop_line_latched<= 512'h0;
+
             req_addr          <= {ADDR_W{1'b0}};
             req_id            <= 4'h0;
             req_wdata         <= {DATA_W{1'b0}};
@@ -206,10 +250,14 @@ module l2_cache_ctrl #(
             aw_pend           <= 1'b0;
             w_pend            <= 1'b0;
             refill_cnt        <= 3'd0;
-            evict_cnt         <= 3'd0;
+            evict_cnt         <= 4'd0;
             target_way        <= 4'd0;
             evict_way         <= 4'd0;
             read_word_latched <= {DATA_W{1'b0}};
+
+            for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
+                evict_buffer[b_i] <= {DATA_W{1'b0}};
+            end
 
             for (s_i = 0; s_i < SETS; s_i = s_i + 1) begin
                 replace_ptr[s_i] = 4'd0;
@@ -217,9 +265,6 @@ module l2_cache_ctrl #(
                     valid_mem[s_i][w_i] = 1'b0;
                     dirty_mem[s_i][w_i] = 1'b0;
                     tag_mem[s_i][w_i]   = {TAG_W{1'b0}};
-                    for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
-                        data_mem[s_i][w_i][b_i] = {DATA_W{1'b0}};
-                    end
                 end
             end
         end else begin
@@ -230,6 +275,8 @@ module l2_cache_ctrl #(
                 // IDLE: Accept incoming Read or Write requests
                 // ----------------------------------------------------
                 ST_IDLE: begin
+                    sram_cs <= 1'b0;
+                    sram_we <= 1'b0;
                     if (!aw_pend && !w_pend && s_arvalid && s_arready) begin
                         req_addr     <= s_araddr;
                         req_id       <= s_arid;
@@ -304,50 +351,31 @@ module l2_cache_ctrl #(
                             // its dirty line directly via snoop channel.
                             // Bypasses stale DDR completely!
                             // ----------------------------------------
-                            target_way <= line_hit_comb ? hit_way_comb : alloc_way_comb;
-
-                            for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
-                                data_mem[req_index][line_hit_comb ? hit_way_comb : alloc_way_comb][b_i] <= snoop_data[b_i*64 +: 64];
-                            end
+                            target_way         <= line_hit_comb ? hit_way_comb : alloc_way_comb;
                             tag_mem[req_index][line_hit_comb ? hit_way_comb : alloc_way_comb]   <= req_tag;
                             valid_mem[req_index][line_hit_comb ? hit_way_comb : alloc_way_comb] <= 1'b1;
-
-                            if (!req_wr) begin
-                                // Read served directly from snoop line
-                                dirty_mem[req_index][line_hit_comb ? hit_way_comb : alloc_way_comb] <= 1'b0;
-                                s_rdata  <= snoop_data[word_offset*64 +: 64];
-                                s_rvalid <= 1'b1;
-                                s_rresp  <= 2'b00;
-                                state    <= ST_RESP_R;
-                            end else begin
-                                // Write merges new data into intervened line
-                                for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
-                                    if (req_wstrb[b_i])
-                                        data_mem[req_index][line_hit_comb ? hit_way_comb : alloc_way_comb][word_offset][b_i*8 +: 8] <= req_wdata[b_i*8 +: 8];
-                                end
-                                dirty_mem[req_index][line_hit_comb ? hit_way_comb : alloc_way_comb] <= 1'b1;
-                                s_bvalid <= 1'b1;
-                                s_bresp  <= 2'b00;
-                                state    <= ST_RESP_W;
-                            end
+                            snoop_line_latched <= snoop_data;
+                            intervene_cnt      <= 3'd0;
+                            state              <= ST_INTERVENE;
                         end else if (line_hit_comb) begin
                             // ----------------------------------------
                             // L2 CACHE HIT (Clean or existing dirty)
                             // ----------------------------------------
                             if (!req_wr) begin
-                                s_rdata  <= data_mem[req_index][hit_way_comb][word_offset];
-                                s_rvalid <= 1'b1;
-                                s_rresp  <= 2'b00;
-                                state    <= ST_RESP_R;
+                                sram_cs   <= 1'b1;
+                                sram_we   <= 1'b0;
+                                sram_addr <= {req_index, hit_way_comb, word_offset};
+                                state     <= ST_READ_HIT;
                             end else begin
-                                for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
-                                    if (req_wstrb[b_i])
-                                        data_mem[req_index][hit_way_comb][word_offset][b_i*8 +: 8] <= req_wdata[b_i*8 +: 8];
-                                end
+                                sram_cs    <= 1'b1;
+                                sram_we    <= 1'b1;
+                                sram_wmask <= req_wstrb;
+                                sram_addr  <= {req_index, hit_way_comb, word_offset};
+                                sram_din   <= req_wdata;
                                 dirty_mem[req_index][hit_way_comb] <= 1'b1;
-                                s_bvalid <= 1'b1;
-                                s_bresp  <= 2'b00;
-                                state    <= ST_RESP_W;
+                                s_bvalid   <= 1'b1;
+                                s_bresp    <= 2'b00;
+                                state      <= ST_RESP_W;
                             end
                         end else begin
                             // ----------------------------------------
@@ -356,14 +384,13 @@ module l2_cache_ctrl #(
                             // ----------------------------------------
                             target_way <= alloc_way_comb;
                             if (valid_mem[req_index][alloc_way_comb] && dirty_mem[req_index][alloc_way_comb]) begin
-                                // Victim is dirty: 8-beat writeback burst
-                                evict_way <= alloc_way_comb;
-                                m_awvalid <= 1'b1;
-                                m_awaddr  <= {tag_mem[req_index][alloc_way_comb], req_index, 6'b000000};
-                                m_awlen   <= 8'd7;    // 8 beats
-                                m_awsize  <= 3'b011;  // 8 bytes
-                                m_awburst <= 2'b01;   // INCR
-                                state     <= ST_EVICT_AW;
+                                // Victim is dirty: read 8 beats from SRAM into evict_buffer
+                                evict_way  <= alloc_way_comb;
+                                evict_cnt  <= 4'd0;
+                                sram_cs    <= 1'b1;
+                                sram_we    <= 1'b0;
+                                sram_addr  <= {req_index, alloc_way_comb, 3'd0};
+                                state      <= ST_EVICT_BUF;
                             end else begin
                                 // Victim clean/invalid: direct 8-beat read refill burst
                                 m_arvalid  <= 1'b1;
@@ -379,14 +406,89 @@ module l2_cache_ctrl #(
                 end
 
                 // ----------------------------------------------------
+                // READ HIT: Synchronous SRAM read latency cycle
+                // ----------------------------------------------------
+                ST_READ_HIT: begin
+                    sram_cs       <= 1'b0;
+                    read_hit_flag <= 1'b1;
+                    s_rvalid      <= 1'b1;
+                    s_rresp       <= 2'b00;
+                    state         <= ST_RESP_R;
+                end
+
+                // ----------------------------------------------------
+                // INTERVENE: Write intervened dirty snoop line to SRAM
+                // ----------------------------------------------------
+                ST_INTERVENE: begin
+                    sram_cs    <= 1'b1;
+                    sram_we    <= 1'b1;
+                    sram_addr  <= {req_index, target_way, intervene_cnt};
+                    sram_wmask <= 8'hFF;
+
+                    if (req_wr && (intervene_cnt == word_offset)) begin
+                        for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
+                            sram_din[b_i*8 +: 8] <= req_wstrb[b_i] ? req_wdata[b_i*8 +: 8] : snoop_line_latched[intervene_cnt*64 + b_i*8 +: 8];
+                        end
+                    end else begin
+                        sram_din <= snoop_line_latched[intervene_cnt*64 +: 64];
+                    end
+
+                    if (intervene_cnt == 3'd7) begin
+                        sram_cs <= 1'b0;
+                        sram_we <= 1'b0;
+                        if (!req_wr) begin
+                            dirty_mem[req_index][target_way] <= 1'b0;
+                            s_rdata_reg   <= snoop_line_latched[word_offset*64 +: 64];
+                            read_hit_flag <= 1'b0;
+                            s_rvalid      <= 1'b1;
+                            s_rresp       <= 2'b00;
+                            state         <= ST_RESP_R;
+                        end else begin
+                            dirty_mem[req_index][target_way] <= 1'b1;
+                            s_bvalid <= 1'b1;
+                            s_bresp  <= 2'b00;
+                            state    <= ST_RESP_W;
+                        end
+                    end else begin
+                        intervene_cnt <= intervene_cnt + 3'd1;
+                    end
+                end
+
+                // ----------------------------------------------------
+                // EVICT BUF: Sequentially read 8 words from SRAM into buffer
+                // ----------------------------------------------------
+                ST_EVICT_BUF: begin
+                    evict_cnt <= evict_cnt + 4'd1;
+                    if (evict_cnt > 4'd0) begin
+                        evict_buffer[evict_cnt - 4'd1] <= sram_dout;
+                    end
+                    if (evict_cnt < 4'd7) begin
+                        sram_cs   <= 1'b1;
+                        sram_we   <= 1'b0;
+                        sram_addr <= {req_index, evict_way, evict_cnt[2:0] + 3'd1};
+                    end else begin
+                        sram_cs   <= 1'b0;
+                    end
+                    if (evict_cnt == 4'd8) begin
+                        evict_buffer[7] <= sram_dout;
+                        m_awvalid       <= 1'b1;
+                        m_awaddr        <= {tag_mem[req_index][evict_way], req_index, 6'b000000};
+                        m_awlen         <= 8'd7;   // 8 beats
+                        m_awsize        <= 3'b011; // 8 bytes
+                        m_awburst       <= 2'b01;  // INCR
+                        state           <= ST_EVICT_AW;
+                    end
+                end
+
+                // ----------------------------------------------------
                 // EVICT AW: Emit writeback address to DDR
                 // ----------------------------------------------------
                 ST_EVICT_AW: begin
                     if (m_awvalid && m_awready) begin
                         m_awvalid <= 1'b0;
-                        evict_cnt <= 3'd0;
+                        evict_cnt <= 4'd0;
                         m_wvalid  <= 1'b1;
-                        m_wdata   <= data_mem[req_index][evict_way][0];
+                        m_wdata   <= evict_buffer[0];
                         m_wstrb   <= 8'hFF;
                         m_wlast   <= 1'b0;
                         state     <= ST_EVICT_W;
@@ -398,17 +500,17 @@ module l2_cache_ctrl #(
                 // ----------------------------------------------------
                 ST_EVICT_W: begin
                     if (m_wvalid && m_wready) begin
-                        if (evict_cnt == 3'd7) begin
+                        if (evict_cnt == 4'd7) begin
                             m_wvalid <= 1'b0;
                             m_wlast  <= 1'b0;
                             m_bready <= 1'b1;
                             state    <= ST_EVICT_B;
                         end else begin
-                            evict_cnt <= evict_cnt + 3'd1;
+                            evict_cnt <= evict_cnt + 4'd1;
                             m_wvalid  <= 1'b1;
-                            m_wdata   <= data_mem[req_index][evict_way][evict_cnt + 3'd1];
+                            m_wdata   <= evict_buffer[evict_cnt + 4'd1];
                             m_wstrb   <= 8'hFF;
-                            m_wlast   <= (evict_cnt + 3'd1 == 3'd7);
+                            m_wlast   <= (evict_cnt + 4'd1 == 4'd7);
                         end
                     end
                 end
@@ -445,14 +547,19 @@ module l2_cache_ctrl #(
                 // REFILL R: Collect 8 beats and assemble line
                 // ----------------------------------------------------
                 ST_REFILL_R: begin
+                    sram_cs <= 1'b0;
+                    sram_we <= 1'b0;
                     if (m_rvalid && m_rready) begin
+                        sram_cs    <= 1'b1;
+                        sram_we    <= 1'b1;
+                        sram_addr  <= {req_index, target_way, refill_cnt};
+                        sram_wmask <= 8'hFF;
                         if (req_wr && (refill_cnt == word_offset)) begin
                             for (b_i = 0; b_i < 8; b_i = b_i + 1) begin
-                                data_mem[req_index][target_way][refill_cnt][b_i*8 +: 8] <=
-                                    req_wstrb[b_i] ? req_wdata[b_i*8 +: 8] : m_rdata[b_i*8 +: 8];
+                                sram_din[b_i*8 +: 8] <= req_wstrb[b_i] ? req_wdata[b_i*8 +: 8] : m_rdata[b_i*8 +: 8];
                             end
                         end else begin
-                            data_mem[req_index][target_way][refill_cnt] <= m_rdata;
+                            sram_din <= m_rdata;
                         end
 
                         if (!req_wr && (refill_cnt == word_offset)) begin
@@ -468,12 +575,12 @@ module l2_cache_ctrl #(
                             replace_ptr[req_index]           <= replace_ptr[req_index] + 4'd1;
 
                             if (!req_wr) begin
-                                // Read miss satisfied
                                 dirty_mem[req_index][target_way] <= 1'b0;
-                                s_rdata  <= (refill_cnt == word_offset) ? m_rdata : read_word_latched;
-                                s_rvalid <= 1'b1;
-                                s_rresp  <= 2'b00;
-                                state    <= ST_RESP_R;
+                                s_rdata_reg   <= (refill_cnt == word_offset) ? m_rdata : read_word_latched;
+                                read_hit_flag <= 1'b0;
+                                s_rvalid      <= 1'b1;
+                                s_rresp       <= 2'b00;
+                                state         <= ST_RESP_R;
                             end else begin
                                 dirty_mem[req_index][target_way] <= 1'b1;
                                 s_bvalid <= 1'b1;
@@ -490,12 +597,15 @@ module l2_cache_ctrl #(
                 // RESP R: Deliver read data to requesting core
                 // ----------------------------------------------------
                 ST_RESP_R: begin
+                    sram_cs <= 1'b0;
+                    sram_we <= 1'b0;
                     if (s_rvalid && s_rready) begin
-                        s_rvalid  <= 1'b0;
-                        s_arready <= 1'b1;
-                        s_awready <= 1'b1;
-                        s_wready  <= 1'b1;
-                        state     <= ST_IDLE;
+                        s_rvalid      <= 1'b0;
+                        read_hit_flag <= 1'b0;
+                        s_arready     <= 1'b1;
+                        s_awready     <= 1'b1;
+                        s_wready      <= 1'b1;
+                        state         <= ST_IDLE;
                     end
                 end
 
@@ -503,6 +613,8 @@ module l2_cache_ctrl #(
                 // RESP W: Deliver write response to requesting core
                 // ----------------------------------------------------
                 ST_RESP_W: begin
+                    sram_cs <= 1'b0;
+                    sram_we <= 1'b0;
                     if (s_bvalid && s_bready) begin
                         s_bvalid  <= 1'b0;
                         s_arready <= 1'b1;
