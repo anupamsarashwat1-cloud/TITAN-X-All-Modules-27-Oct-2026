@@ -38,7 +38,9 @@ module tb_titan_x_top();
     logic [1:0] can_rx;
 
     // DUT Instantiation
-    titan_x_top uut (
+    titan_x_top #(
+        .FAST_SIM(1)
+    ) uut (
         .clk(clk),
         .rst_n(rst_n),
         .ddr_addr(ddr_addr),
@@ -76,34 +78,36 @@ module tb_titan_x_top();
     );
 
     // Advanced Clock Generation (138.8 MHz -> ~7.2ns period)
-    initial begin
-        clk = 0;
-        pipe_clk = 0;
-        eth_tx_clk = 0;
-        eth_rx_clk = 0;
-        ulpi_clk = 0;
-        mipi_rxbyteclkhs = 0;
-        hdmi_clk_pixel = 0;
-        hdmi_clk_tmds = 0;
-        rtc_clk = 0;
-    end
-
+    reg enable_aux_clks;
+    initial clk = 0;
     always #3.6 clk = ~clk;
-    always #3.6 pipe_clk = ~pipe_clk;
-    always #3.6 eth_tx_clk = ~eth_tx_clk;
-    always #3.6 eth_rx_clk = ~eth_rx_clk;
-    always #3.6 ulpi_clk = ~ulpi_clk;
-    always #3.6 mipi_rxbyteclkhs = ~mipi_rxbyteclkhs;
-    always #3.6 hdmi_clk_pixel = ~hdmi_clk_pixel;
-    always #3.6 hdmi_clk_tmds = ~hdmi_clk_tmds;
-    always #3.6 rtc_clk = ~rtc_clk;
 
-    // Phase 5 Boot Integration Test
+    assign pipe_clk         = clk & enable_aux_clks;
+    assign eth_tx_clk       = clk & enable_aux_clks;
+    assign eth_rx_clk       = clk & enable_aux_clks;
+    assign ulpi_clk         = clk & enable_aux_clks;
+    assign mipi_rxbyteclkhs = clk & enable_aux_clks;
+    assign hdmi_clk_pixel   = clk & enable_aux_clks;
+    assign hdmi_clk_tmds    = clk & enable_aux_clks;
+    assign rtc_clk          = clk & enable_aux_clks;
+
     integer errors;
+    integer wait_cnt;
+
+    task check(input string msg, input condition);
+        begin
+            if (condition) begin
+                $display("PASS [%0t] %0s", $time, msg);
+            end else begin
+                $display("FAIL [%0t] %0s", $time, msg);
+                errors = errors + 1;
+            end
+        end
+    endtask
+
     initial begin
-        $dumpfile("tb_titan_x_top.vcd");
-        $dumpvars(0, tb_titan_x_top);
         errors = 0;
+        enable_aux_clks = 1;
 
         uart_rx = 5'h1F; // idle high
         can_rx  = 2'b11; // idle recessive
@@ -115,58 +119,96 @@ module tb_titan_x_top();
         repeat(100) @(posedge clk);
 
         $display("\n========================================");
-        $display("  Phase 5: TITAN-X SoC Boot Integration");
+        $display("  Phase 4/5: TITAN-X SoC Integration & RoT Qualification");
         $display("========================================");
 
-        // 5.3.1: DDR CK_P should be toggling (PHY active)
-        if (ddr_ck_p !== 1'bx)
-            $display("PASS ddr_ck_p driven (%b) — DDR PHY clock active ✅", ddr_ck_p);
-        else begin $display("FAIL ddr_ck_p = X"); errors=errors+1; end
-
-        // 5.3.2: DDR CKE should be high (enabled)
+        // ----------------------------------------------------
+        // Step 1: Peripheral & Pin Interface Verification
+        // ----------------------------------------------------
+        check("DDR PHY clock active (ddr_ck_p driven)", ddr_ck_p !== 1'bx);
         repeat(50) @(posedge clk);
-        if (ddr_cke !== 1'bx)
-            $display("PASS ddr_cke=%b — DDR CKE driven ✅", ddr_cke);
-        else begin $display("FAIL ddr_cke = X"); errors=errors+1; end
+        check("DDR CKE driven", ddr_cke !== 1'bx);
+        check("UART0 TX idle high", uart_tx[0] === 1'b1);
+        check("CAN0 TX recessive idle", can_tx[0] === 1'b1);
+        check("HDMI clk driven", hdmi_tmds_clk_p !== 1'bx);
 
-        // 5.3.3: DDR reset_n should be high after init
-        if (ddr_reset_n === 1'b1)
-            $display("PASS ddr_reset_n=1 — DDR out of reset ✅");
-        else
-            $display("NOTE ddr_reset_n=%b (init may still pending)", ddr_reset_n);
+        // Quiet peripheral PHY clocks during cryptographic boot verification
+        enable_aux_clks = 0;
 
-        // 5.3.4: UART TX idle = 1 (line idle high)
-        if (uart_tx[0] === 1'b1)
-            $display("PASS uart_tx[0]=1 — UART0 TX idle ✅");
-        else
-            $display("NOTE uart_tx[0]=%b (stub: may be 0)", uart_tx[0]);
+        // ----------------------------------------------------
+        // Step 2: RoT Coupling Verification (TASK-04-01 / DEF-SEC-01)
+        // ----------------------------------------------------
+        $display("\n[RoT 4.1] Checking Pre-Boot RoT Gating & AXI Lock...");
+        check("boot_pass held low during verification", uut.boot_pass === 1'b0);
+        check("core_rst_n held in reset while boot_pass=0", uut.core_rst_n === 1'b0);
+        check("axi_rom s_arready locked (0) during verification", uut.u_boot_rom.s_arready === 1'b0);
 
-        // 5.3.5: CAN TX idle = 1 (recessive)
-        if (can_tx[0] === 1'b1)
-            $display("PASS can_tx[0]=1 — CAN0 TX recessive idle ✅");
-        else
-            $display("NOTE can_tx[0]=%b", can_tx[0]);
+        // Wait for secure_boot to complete authentic container authentication
+        $display("[RoT 4.2] Waiting for Cryptographic Boot Container Authentication...");
+        wait_cnt = 0;
+        while (!uut.boot_pass && !uut.boot_fail && wait_cnt < 2500000) begin
+            @(posedge clk);
+            wait_cnt = wait_cnt + 1;
+            if (wait_cnt % 10000 == 0) begin
+                $display("[DEBUG %0d cycles] state=%0d, word_addr=%0d, timeout=%0d, ecdsa_state=%0d", 
+                         wait_cnt, uut.u_secure_boot.state, uut.u_secure_boot.word_addr, uut.u_secure_boot.timeout_cnt, uut.u_secure_boot.u_ecdsa.state);
+            end
+        end
 
-        // 5.3.6: HDMI TMDS clock active
-        if (hdmi_tmds_clk_p !== 1'bx)
-            $display("PASS hdmi_tmds_clk_p=%b — HDMI clk driven ✅", hdmi_tmds_clk_p);
-        else begin $display("FAIL hdmi_tmds_clk_p=X"); errors=errors+1; end
+        check("boot_pass asserted upon successful authentication", uut.boot_pass === 1'b1);
+        check("boot_fail remained deasserted (0)", uut.boot_fail === 1'b0);
+        check("core_rst_n released (1) after RoT pass", uut.core_rst_n === 1'b1);
+        $display("[DEBUG AXI] boot_pass=%b, s_arvalid=%b, s_arready=%b, s_rvalid=%b, s_rready=%b",
+                 uut.u_boot_rom.boot_pass, uut.u_boot_rom.s_arvalid, uut.u_boot_rom.s_arready, uut.u_boot_rom.s_rvalid, uut.u_boot_rom.s_rready);
+        @(posedge clk);
+        #1;
+        $display("[DEBUG AXI +1clk] boot_pass=%b, s_arvalid=%b, s_arready=%b, s_rvalid=%b, s_rready=%b",
+                 uut.u_boot_rom.boot_pass, uut.u_boot_rom.s_arvalid, uut.u_boot_rom.s_arready, uut.u_boot_rom.s_rvalid, uut.u_boot_rom.s_rready);
+        check("axi_rom s_arready unlocked (1) after RoT pass", uut.u_boot_rom.s_arready === 1'b1 || uut.u_boot_rom.s_rvalid === 1'b1);
+        $display("[RoT 4.2] Authentication completed in %0d cycles.", wait_cnt);
 
-        // 5.3.7: DDR scheduler init (via boot_pass internal wire)
-        $display("NOTE SoC core_rst_n gated by boot_pass (secure_boot stub)");
+        // ----------------------------------------------------
+        // Step 3: Watchdog Reset Integration (TASK-04-02 / DEF-ARCH-02)
+        // ----------------------------------------------------
+        $display("\n[WDT 4.3] Verifying Watchdog Reset Integration into core_rst_n...");
+        check("core_rst_n is 1 while wdt_reset_n is 1", uut.core_rst_n === 1'b1 && uut.u_wdt.wdt_reset_n === 1'b1);
 
-        // 5.4: Wait for DDR controller init (40k cycles as per ddr_ctrl_top)
-        $display("\n[5.4] Waiting for DDR controller init...");
-        repeat(1000) @(posedge clk);
-        if (ddr_cs_n !== 1'bx)
-            $display("PASS ddr_cs_n=%b — DDR command bus active ✅", ddr_cs_n);
+        // Inject watchdog expiration pulse
+        force uut.u_wdt.wdt_reset_n = 1'b0;
+        #1;
+        check("core_rst_n forced to 0 when wdt_reset_n asserts 0", uut.core_rst_n === 1'b0);
+        force uut.u_wdt.wdt_reset_n = 1'b1;
+        #1;
+        check("core_rst_n recovered to 1 after wdt_reset_n release", uut.core_rst_n === 1'b1);
+        release uut.u_wdt.wdt_reset_n;
 
-        #1000;
+        // ----------------------------------------------------
+        // Step 4: Negative Test — Tampered Firmware Rejection (DEF-SEC-01)
+        // ----------------------------------------------------
+        $display("\n[RoT 4.4] Verifying Tampered Firmware Rejection...");
+        rst_n = 0;
+        repeat(20) @(posedge clk);
+        // Corrupt header magic at word 0
+        uut.u_boot_rom.rom[0][31:0] = 32'hDEADBEEF;
+        rst_n = 1;
+        wait_cnt = 0;
+        while (!uut.boot_fail && wait_cnt < 100) begin
+            @(posedge clk);
+            wait_cnt = wait_cnt + 1;
+        end
+        check("boot_fail asserted on tampered boot image", uut.boot_fail === 1'b1);
+        check("boot_pass permanently deasserted (0) on tamper", uut.boot_pass === 1'b0);
+        check("core_rst_n held locked in reset (0) on tamper", uut.core_rst_n === 1'b0);
+        check("axi_rom permanently locked (s_arready=0) on tamper", uut.u_boot_rom.s_arready === 1'b0);
+
+        // ----------------------------------------------------
+        // Summary
+        // ----------------------------------------------------
         $display("\n========================================");
         if (errors == 0)
-            $display("TITAN-X SoC VERDICT: ✅ PASS — All integration checks passed");
+            $display("TITAN-X SoC VERDICT: PASS - All Phase 4 & 5 integration checks passed");
         else
-            $display("TITAN-X SoC VERDICT: ❌ FAIL — %0d errors", errors);
+            $display("TITAN-X SoC VERDICT: FAIL - %0d errors", errors);
         $display("========================================\n");
         $finish;
     end

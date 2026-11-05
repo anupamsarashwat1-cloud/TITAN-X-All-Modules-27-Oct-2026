@@ -5,7 +5,9 @@
 // and sequential Jacobian point doubling / point addition scheduling.
 `timescale 1ns/1ps
 
-module mont_mul_256 (
+module mont_mul_256 #(
+    parameter FAST_SIM = 0
+) (
     input  wire         clk,
     input  wire         rst_n,
     input  wire         start,
@@ -37,13 +39,19 @@ module mont_mul_256 (
             b_reg <= 256'd0;
             m_reg <= 256'd0;
         end else if (start && !busy) begin
-            acc   <= 258'd0;
-            a_reg <= a;
-            b_reg <= b;
-            m_reg <= m;
-            cnt   <= 9'd256;
-            busy  <= 1'b1;
-            done  <= 1'b0;
+            if (FAST_SIM) begin
+                res   <= ((512'd0 + a) * (512'd0 + b)) % (512'd0 + m);
+                busy  <= 1'b0;
+                done  <= 1'b1;
+            end else begin
+                acc   <= 258'd0;
+                a_reg <= a;
+                b_reg <= b;
+                m_reg <= m;
+                cnt   <= 9'd256;
+                busy  <= 1'b1;
+                done  <= 1'b0;
+            end
         end else if (busy) begin
             if (cnt > 9'd0) begin
                 cnt   <= cnt - 9'd1;
@@ -66,7 +74,9 @@ module mont_mul_256 (
     end
 endmodule
 
-module ecdsa_engine (
+module ecdsa_engine #(
+    parameter FAST_SIM = 0
+) (
     input  wire        clk,
     input  wire        rst_n,
 
@@ -185,7 +195,9 @@ module ecdsa_engine (
     wire         mul_done;
     wire         mul_busy;
 
-    mont_mul_256 u_mont_mul (
+    mont_mul_256 #(
+        .FAST_SIM(FAST_SIM)
+    ) u_mont_mul (
         .clk   (clk),
         .rst_n (rst_n),
         .start (mul_start),

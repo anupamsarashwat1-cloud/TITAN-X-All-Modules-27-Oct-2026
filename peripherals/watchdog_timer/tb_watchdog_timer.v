@@ -153,6 +153,32 @@ module tb_watchdog_timer();
         apb_read (4'hC, rdata);
         check(rdata[0], 1'b0, "wdt_en=0 after disable");
 
+        // TEST 10: Second expiry without kick asserts wdt_reset_n=0 (DEF-ARCH-02 qualification)
+        $display("\n--- TEST 10: Second expiry asserts system reset (wdt_reset_n=0) ---");
+        apb_write(4'h0, 32'h1ACC_E551);  // Unlock
+        apb_write(4'h4, 32'h0000_0008);  // load_val = 8 cycles
+        apb_write(4'hC, 32'h0000_0003);  // wdt_en=1, int_en=1
+        apb_write(4'h8, 32'h0000_00E5);  // kick to reload count to 8
+        // Wait for first expiry (interrupt)
+        wait_cnt = 0;
+        while (irq !== 1'b1 && wait_cnt < 200) begin
+            @(posedge clk); wait_cnt = wait_cnt + 1;
+        end
+        check(irq, 1'b1, "First expiry asserted irq=1");
+        check(wdt_reset_n, 1'b1, "wdt_reset_n still 1 after first expiry");
+
+        // Do NOT kick. Wait for second expiry (count counts down from 8 again)
+        wait_cnt = 0;
+        while (wdt_reset_n !== 1'b0 && wait_cnt < 200) begin
+            @(posedge clk); wait_cnt = wait_cnt + 1;
+        end
+        check(wdt_reset_n, 1'b0, "wdt_reset_n=0 asserted on second unserviced expiry");
+
+        // TEST 11: Watchdog recovery upon service kick
+        $display("\n--- TEST 11: Service kick recovers wdt_reset_n to 1 ---");
+        apb_write(4'h8, 32'h0000_00E5);  // kick = 0xE5
+        check(wdt_reset_n, 1'b1, "wdt_reset_n=1 recovered after service kick");
+
         $display("\n==============================");
         if (error_count == 0)
             $display("WDT VERDICT: ✅ PASS — All tests passed");

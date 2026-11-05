@@ -4,7 +4,9 @@
 
 `timescale 1ns/1ps
 
-module titan_x_top (
+module titan_x_top #(
+    parameter FAST_SIM = 0
+) (
     input  wire        clk,
     input  wire        rst_n,
 
@@ -94,7 +96,8 @@ module titan_x_top (
     // Internal Signals & Routing
     // -------------------------------------------------------
     wire boot_pass, boot_fail;
-    wire core_rst_n = rst_n & boot_pass;
+    wire wdt_reset_n;
+    wire core_rst_n = rst_n & boot_pass & wdt_reset_n;
 
     wire [31:0] plic_irq;
     wire [4:0]  timer_irq;
@@ -372,11 +375,21 @@ module titan_x_top (
     );
 
     // Boot ROM on Slave 2 — override at runtime with +hex=path/to/firmware.hex
+    wire        rom_preboot_req;
+    wire [16:0] rom_preboot_addr;
+    wire [31:0] rom_preboot_rdata;
+    wire        rom_preboot_valid;
+
     axi_rom #(
         .HEX_FILE("firmware.hex")
     ) u_boot_rom (
         .clk(clk),
         .rst_n(rst_n),
+        .boot_pass(boot_pass),
+        .rom_preboot_en(rom_preboot_req),
+        .rom_preboot_addr(rom_preboot_addr),
+        .rom_preboot_rdata(rom_preboot_rdata),
+        .rom_preboot_valid(rom_preboot_valid),
         .s_arvalid(axs_arvalid[2]),
         .s_arready(axs_arready[2]),
         .s_araddr (axs_araddr[2*40 +: 40]),
@@ -568,6 +581,11 @@ module titan_x_top (
     assign axs_rid[0*4 +: 4]   = l2_s_rid;
     assign axs_bid[0*4 +: 4]   = l2_s_bid;
 
+    wire [511:0] l2_snoop_data_mux = l2_snoop_data_valid[0] ? core_snoop_data[0] :
+                                     l2_snoop_data_valid[1] ? core_snoop_data[1] :
+                                     l2_snoop_data_valid[2] ? core_snoop_data[2] :
+                                     l2_snoop_data_valid[3] ? core_snoop_data[3] : 512'h0;
+
     l2_cache_top u_l2_cache (
         .clk(clk),
         .rst_n(rst_n),
@@ -616,7 +634,7 @@ module titan_x_top (
         .snoop_type (l2_snoop_type),
         .snoop_ack  (l2_snoop_ack),
         .snoop_data_valid(l2_snoop_data_valid),
-        .snoop_data (core_snoop_data[0] | core_snoop_data[1] | core_snoop_data[2] | core_snoop_data[3])
+        .snoop_data (l2_snoop_data_mux)
     );
 
     ddr_ctrl_top u_ddr_ctrl (
@@ -900,97 +918,27 @@ module titan_x_top (
         .trng_irq(plic_irq[8])
     );
 
-    wire [16:0] envm_addr;
-    wire        envm_req;
-    wire [31:0] envm_rdata;
-    wire        envm_valid;
-
-    assign envm_valid = envm_req;
-    // Authentic Root-of-Trust Boot Image in eNVM (Magic + Length + Hash + Pubkey + Signature + Signed Payload)
-    reg [31:0] envm_image [0:58];
-    initial begin
-        envm_image[ 0] = 32'h5449544E; // Magic: "TITN"
-        envm_image[ 1] = 32'h00000010; // Length: 16 payload words
-        envm_image[ 2] = 32'hCAFEF00D; // Authorized Root Public Key ID
-        // Expected 256-bit SHA-256 Digest
-        envm_image[ 3] = 32'h47FC49DF;
-        envm_image[ 4] = 32'hC7A5A9F5;
-        envm_image[ 5] = 32'h63CB70B5;
-        envm_image[ 6] = 32'h621E4D55;
-        envm_image[ 7] = 32'h1DEF80B1;
-        envm_image[ 8] = 32'h65B0438A;
-        envm_image[ 9] = 32'h6E3DB762;
-        envm_image[10] = 32'h6560B2D1;
-        // Root Public Key Qx (256-bit)
-        envm_image[11] = 32'h26F4FA43;
-        envm_image[12] = 32'h1A2BEB66;
-        envm_image[13] = 32'h46D953CA;
-        envm_image[14] = 32'h332BC722;
-        envm_image[15] = 32'h911D9B05;
-        envm_image[16] = 32'hE5D92476;
-        envm_image[17] = 32'h06330B61;
-        envm_image[18] = 32'hE6703F52;
-        // Root Public Key Qy (256-bit)
-        envm_image[19] = 32'h9E9689C9;
-        envm_image[20] = 32'h49B37A0B;
-        envm_image[21] = 32'h342F6CAC;
-        envm_image[22] = 32'h9B4E5440;
-        envm_image[23] = 32'hA727CEE4;
-        envm_image[24] = 32'h055285CD;
-        envm_image[25] = 32'hA6216084;
-        envm_image[26] = 32'h643D6E4F;
-        // Signature r (256-bit)
-        envm_image[27] = 32'hE3077595;
-        envm_image[28] = 32'hEB490AA5;
-        envm_image[29] = 32'h401DA7B8;
-        envm_image[30] = 32'h8B62216E;
-        envm_image[31] = 32'h12268AD2;
-        envm_image[32] = 32'hBF84F2C2;
-        envm_image[33] = 32'h46ABAA46;
-        envm_image[34] = 32'hBB725C5E;
-        // Signature s (256-bit)
-        envm_image[35] = 32'h78D3D87A;
-        envm_image[36] = 32'hE71E31D6;
-        envm_image[37] = 32'h5812414C;
-        envm_image[38] = 32'h7E90196A;
-        envm_image[39] = 32'h16DBBD28;
-        envm_image[40] = 32'hEC6DF9FD;
-        envm_image[41] = 32'hBA6D21BC;
-        envm_image[42] = 32'h1F31B431;
-        // Signed 16-word payload
-        envm_image[43] = 32'h10000000;
-        envm_image[44] = 32'h10000004;
-        envm_image[45] = 32'h10000008;
-        envm_image[46] = 32'h1000000C;
-        envm_image[47] = 32'h10000010;
-        envm_image[48] = 32'h10000014;
-        envm_image[49] = 32'h10000018;
-        envm_image[50] = 32'h1000001C;
-        envm_image[51] = 32'h10000020;
-        envm_image[52] = 32'h10000024;
-        envm_image[53] = 32'h10000028;
-        envm_image[54] = 32'h1000002C;
-        envm_image[55] = 32'h10000030;
-        envm_image[56] = 32'h10000034;
-        envm_image[57] = 32'h10000038;
-        envm_image[58] = 32'h1000003C;
-    end
-    assign envm_rdata = (envm_addr < 17'd59) ? envm_image[envm_addr] : 32'h0;
-
-    secure_boot u_secure_boot (
+    // Hardware Root-of-Trust Coupling: secure_boot authenticates axi_rom container directly
+    secure_boot #(
+        .FAST_SIM(FAST_SIM)
+    ) u_secure_boot (
         .clk(clk), .rst_n(rst_n),
         .paddr(paddr), .psel(psel_boot), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
         .prdata(prdata_boot), .pready(), .pslverr(),
-        .envm_addr(envm_addr), .envm_req(envm_req), .envm_rdata(envm_rdata), .envm_valid(envm_valid),
+        .envm_addr(rom_preboot_addr), .envm_req(rom_preboot_req), .envm_rdata(rom_preboot_rdata), .envm_valid(rom_preboot_valid),
         .boot_pass(boot_pass), .boot_fail(boot_fail)
     );
+
+    wire [16:0] envm_ctrl_macro_addr;
+    wire        envm_ctrl_macro_ce_n;
+    wire [31:0] envm_ctrl_macro_rdata = 32'h0;
 
     envm_ctrl u_envm (
         .clk(clk), .rst_n(rst_n),
         .s_arvalid(1'b0), .s_arready(), .s_araddr(32'h0), .s_rvalid(), .s_rready(1'b0), .s_rdata(), .s_rresp(),
         .paddr(paddr), .psel(psel_envm), .penable(penable), .pwrite(pwrite), .pwdata(pwdata),
         .prdata(prdata_envm), .pready(), .pslverr(),
-        .envm_clk(), .envm_ce_n(), .envm_we_n(), .envm_addr(), .envm_wdata(), .envm_rdata(32'h0), .envm_ready(1'b1)
+        .envm_clk(), .envm_ce_n(envm_ctrl_macro_ce_n), .envm_we_n(), .envm_addr(envm_ctrl_macro_addr), .envm_wdata(), .envm_rdata(envm_ctrl_macro_rdata), .envm_ready(1'b1)
     );
 
     drbg u_drbg (
@@ -1058,7 +1006,6 @@ module titan_x_top (
     );
 
     // Watchdog Timer
-    wire wdt_reset_n;
     watchdog_timer u_wdt (
         .clk(clk), .rst_n(rst_n),
         .psel(psel_wdt), .penable(penable), .pwrite(pwrite),

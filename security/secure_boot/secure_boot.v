@@ -4,7 +4,9 @@
 // cryptographic authentication over the signed firmware image before core reset release.
 `timescale 1ns/1ps
 
-module secure_boot (
+module secure_boot #(
+    parameter FAST_SIM = 0
+) (
     input  wire        clk,
     input  wire        rst_n,
 
@@ -184,7 +186,9 @@ module secure_boot (
     wire [31:0] ecdsa_prdata;
     wire       ecdsa_pready, ecdsa_pslverr, ecdsa_irq;
 
-    ecdsa_engine u_ecdsa (
+    ecdsa_engine #(
+        .FAST_SIM(FAST_SIM)
+    ) u_ecdsa (
         .clk(clk),
         .rst_n(rst_n),
         .paddr(ecdsa_paddr),
