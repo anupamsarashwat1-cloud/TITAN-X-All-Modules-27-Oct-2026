@@ -10,7 +10,7 @@ module watchdog_timer (
     input  wire        pwrite,
     input  wire [3:0]  paddr,
     input  wire [31:0] pwdata,
-    output reg  [31:0] prdata,
+    output wire [31:0] prdata,
     output wire        pready,
     // Outputs
     output reg         wdt_reset_n,  // Assert low to reset system
@@ -28,6 +28,19 @@ module watchdog_timer (
     reg unlock;
 
     assign irq = int_en && int_stat;
+
+    // APB read data multiplexer (zero wait-state combinational read)
+    reg [31:0] prdata_reg;
+    always @(*) begin
+        case (paddr[3:2])
+            2'd0: prdata_reg = 32'h0; // Lock status
+            2'd1: prdata_reg = load_val;
+            2'd2: prdata_reg = count;
+            2'd3: prdata_reg = {30'h0, int_stat, wdt_en};
+            default: prdata_reg = 32'h0;
+        endcase
+    end
+    assign prdata = prdata_reg;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -54,29 +67,19 @@ module watchdog_timer (
             end
 
             // APB access (must be unlocked to write control)
-            if (psel && penable) begin
-                if (pwrite) begin
-                    case (paddr[3:2])
-                        2'd0: unlock <= (pwdata == UNLOCK_KEY);
-                        2'd1: if (unlock) load_val <= pwdata;
-                        2'd2: begin
-                            // Kick/service: write 0xE5 then 0xE5
-                            if (pwdata == 32'h0000_00E5) count <= load_val;
-                            int_stat <= 1'b0;
-                            wdt_reset_n <= 1'b1;
-                        end
-                        2'd3: if (unlock) {int_en, wdt_en} <= pwdata[1:0];
-                        default: ;
-                    endcase
-                end else begin
-                    case (paddr[3:2])
-                        2'd0: prdata <= 32'h0; // Lock status
-                        2'd1: prdata <= load_val;
-                        2'd2: prdata <= count;
-                        2'd3: prdata <= {30'h0, int_stat, wdt_en};
-                        default: prdata <= 32'h0;
-                    endcase
-                end
+            if (psel && penable && pwrite) begin
+                case (paddr[3:2])
+                    2'd0: unlock <= (pwdata == UNLOCK_KEY);
+                    2'd1: if (unlock) load_val <= pwdata;
+                    2'd2: begin
+                        // Kick/service: write 0xE5 then 0xE5
+                        if (pwdata == 32'h0000_00E5) count <= load_val;
+                        int_stat <= 1'b0;
+                        wdt_reset_n <= 1'b1;
+                    end
+                    2'd3: if (unlock) {int_en, wdt_en} <= pwdata[1:0];
+                    default: ;
+                endcase
             end
         end
     end

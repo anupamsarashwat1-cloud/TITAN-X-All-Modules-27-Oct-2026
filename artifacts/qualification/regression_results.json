@@ -1,13 +1,13 @@
 [
   {
-    "name": "tb_integ_peripherals",
-    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_integ_peripherals.v",
+    "name": "tb_titan_x_top",
+    "path": "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_titan_x_top.v",
     "verdict": "PASS",
     "tail": [
-      "  PERIPHERAL QUALIFICATION VERDICT: 11 PASSED, 0 FAILED",
-      "  REGRESS_RESULT: PASS",
-      "==================================================================",
-      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_integ_peripherals.v:396: $finish called at 120376830 (1ps)"
+      "========================================",
+      "TITAN-X SoC VERDICT: PASS - All Phase 4 & 5 integration checks passed",
+      "========================================",
+      "/home/anupam-sarashwat/SMVDU_TITAN_X_RTL_to_GDS/top/titan_x_top/tb_titan_x_top.v:253: $finish called at 87440400 (1ps)"
     ]
   }
 ]

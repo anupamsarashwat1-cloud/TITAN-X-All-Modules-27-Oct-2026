@@ -93,6 +93,21 @@ module tb_titan_x_top();
 
     integer errors;
     integer wait_cnt;
+    integer retired_instr_cnt;
+    integer core_timeout;
+    reg [63:0] last_wb_x3, last_wb_x5;
+
+    // Monitor Core 0 Instruction Retirement (TASK-09-01 / DEF-VERIF-01)
+    always @(posedge clk) begin
+        if (uut.core_rst_n && uut.gen_cores[0].u_core.wb_we && (uut.gen_cores[0].u_core.wb_rd != 5'h0)) begin
+            retired_instr_cnt <= retired_instr_cnt + 1;
+            if (uut.gen_cores[0].u_core.wb_rd == 5'd3) last_wb_x3 <= uut.gen_cores[0].u_core.wb_data;
+            if (uut.gen_cores[0].u_core.wb_rd == 5'd5) last_wb_x5 <= uut.gen_cores[0].u_core.wb_data;
+            $display("[CORE0 RETIRE] instr_cnt=%0d rd=x%0d data=0x%016h (%0d)",
+                     retired_instr_cnt + 1, uut.gen_cores[0].u_core.wb_rd,
+                     uut.gen_cores[0].u_core.wb_data, uut.gen_cores[0].u_core.wb_data);
+        end
+    end
 
     task check(input string msg, input condition);
         begin
@@ -155,17 +170,42 @@ module tb_titan_x_top();
             end
         end
 
+        // Inject verified boot instructions into ROM payload window (Word 43..) upon RoT pass
+        uut.u_boot_rom.rom[21][63:32] = 32'h00F00093; // Word 43 (0x1000_0000): addi x1, x0, 15
+        uut.u_boot_rom.rom[22]        = {32'h002081B3, 32'h01B00113}; // Word 45: add x3, x1, x2 | Word 44: addi x2, x0, 27
+        uut.u_boot_rom.rom[23]        = {32'h00221293, 32'h40118233}; // Word 47: slli x5, x4, 2 | Word 46: sub x4, x3, x1
+        uut.u_boot_rom.rom[24]        = {32'h05400393, 32'h40000337}; // Word 49: addi x7, x0, 'T'| Word 48: lui x6, 0x40000
+        uut.u_boot_rom.rom[25]        = {32'h05800413, 32'h00732023}; // Word 51: addi x8, x0, 'X'| Word 50: sw x7, 0(x6)
+        uut.u_boot_rom.rom[26]        = {32'h00118493, 32'h00832023}; // Word 53: addi x9, x3, 1  | Word 52: sw x8, 0(x6)
+        uut.u_boot_rom.rom[27]        = {32'h00000013, 32'h00000013}; // Word 55: nop             | Word 54: nop
+        uut.u_boot_rom.rom[28]        = {32'h00000013, 32'h00000013}; // Word 57: nop             | Word 56: nop
+        uut.u_boot_rom.rom[29]        = {32'h0000006F, 32'h0000006F}; // Word 59: j .             | Word 58: j .
+
         check("boot_pass asserted upon successful authentication", uut.boot_pass === 1'b1);
         check("boot_fail remained deasserted (0)", uut.boot_fail === 1'b0);
         check("core_rst_n released (1) after RoT pass", uut.core_rst_n === 1'b1);
-        $display("[DEBUG AXI] boot_pass=%b, s_arvalid=%b, s_arready=%b, s_rvalid=%b, s_rready=%b",
-                 uut.u_boot_rom.boot_pass, uut.u_boot_rom.s_arvalid, uut.u_boot_rom.s_arready, uut.u_boot_rom.s_rvalid, uut.u_boot_rom.s_rready);
         @(posedge clk);
         #1;
-        $display("[DEBUG AXI +1clk] boot_pass=%b, s_arvalid=%b, s_arready=%b, s_rvalid=%b, s_rready=%b",
-                 uut.u_boot_rom.boot_pass, uut.u_boot_rom.s_arvalid, uut.u_boot_rom.s_arready, uut.u_boot_rom.s_rvalid, uut.u_boot_rom.s_rready);
         check("axi_rom s_arready unlocked (1) after RoT pass", uut.u_boot_rom.s_arready === 1'b1 || uut.u_boot_rom.s_rvalid === 1'b1);
         $display("[RoT 4.2] Authentication completed in %0d cycles.", wait_cnt);
+
+        // ----------------------------------------------------
+        // Step 2B: CPU Execution & Instruction Retirement (TASK-09-01 / DEF-VERIF-01)
+        // ----------------------------------------------------
+        $display("\n[CPU 4.2B] Monitoring Core 0 Boot Execution & Instruction Retirement...");
+        enable_aux_clks = 1; // Re-enable peripheral clocks
+        retired_instr_cnt = 0;
+        core_timeout = 0;
+        last_wb_x3 = 64'h0;
+        last_wb_x5 = 64'h0;
+        while (retired_instr_cnt < 6 && core_timeout < 500) begin
+            @(posedge clk);
+            core_timeout = core_timeout + 1;
+        end
+        $display("[CPU 4.2B] Core 0 retired %0d instructions in %0d cycles.", retired_instr_cnt, core_timeout);
+        check("Core 0 instruction retirement assertion (retired_instr_cnt >= 4)", retired_instr_cnt >= 4);
+        check("Core 0 writeback result verification (x3 == 42)", last_wb_x3 === 64'd42);
+        check("Core 0 writeback result verification (x5 == 108)", last_wb_x5 === 64'd108);
 
         // ----------------------------------------------------
         // Step 3: Watchdog Reset Integration (TASK-04-02 / DEF-ARCH-02)

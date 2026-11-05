@@ -10,7 +10,7 @@ module gpio_ctrl (
     input  wire        pwrite,
     input  wire [3:0]  paddr,
     input  wire [31:0] pwdata,
-    output reg  [31:0] prdata,
+    output wire [31:0] prdata,
     output wire        pready,
     // GPIO pads (using tri-state for inout)
     inout  wire [31:0] gpio_pad,
@@ -54,7 +54,20 @@ module gpio_ctrl (
     end
     assign irq = |(int_en & int_raw & ~int_stat);
 
-    // APB access
+    // APB read data multiplexer (zero wait-state combinational read)
+    reg [31:0] prdata_reg;
+    always @(*) begin
+        case (paddr[3:2])
+            2'd0: prdata_reg = in_sync;
+            2'd1: prdata_reg = dir_reg;
+            2'd2: prdata_reg = int_en;
+            2'd3: prdata_reg = int_stat;
+            default: prdata_reg = 32'h0;
+        endcase
+    end
+    assign prdata = prdata_reg;
+
+    // APB write access
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             dir_reg  <= 32'h0;
@@ -62,27 +75,16 @@ module gpio_ctrl (
             int_en   <= 32'h0;
             int_pol  <= 32'h0;
             int_stat <= 32'h0;
-            prdata   <= 32'h0;
-        end else if (psel && penable) begin
-            if (pwrite) begin
-                case (paddr[3:2])
-                    2'd0: out_reg  <= pwdata;
-                    2'd1: dir_reg  <= pwdata;
-                    2'd2: int_en   <= pwdata;
-                    2'd3: begin
-                        int_pol  <= pwdata;
-                        int_stat <= int_stat & ~pwdata; // W1C on bit3
-                    end
-                endcase
-            end else begin
-                case (paddr[3:2])
-                    2'd0: prdata <= in_sync;
-                    2'd1: prdata <= dir_reg;
-                    2'd2: prdata <= int_en;
-                    2'd3: prdata <= int_stat;
-                    default: prdata <= 32'h0;
-                endcase
-            end
+        end else if (psel && penable && pwrite) begin
+            case (paddr[3:2])
+                2'd0: out_reg  <= pwdata;
+                2'd1: dir_reg  <= pwdata;
+                2'd2: int_en   <= pwdata;
+                2'd3: begin
+                    int_pol  <= pwdata;
+                    int_stat <= int_stat & ~pwdata; // W1C on bit3
+                end
+            endcase
         end
     end
 endmodule

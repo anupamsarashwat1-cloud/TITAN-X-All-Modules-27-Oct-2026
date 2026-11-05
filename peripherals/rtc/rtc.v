@@ -65,9 +65,9 @@ module rtc (
                 mtimecmp[i] <= 64'hFFFF_FFFF_FFFF_FFFF;
             end
         end else if (psel && penable && pwrite) begin
-            // mtimecmp0
-            if (paddr[15:0] == 16'h4000) mtimecmp[0][31:0]  <= pwdata;
-            if (paddr[15:0] == 16'h4004) mtimecmp[0][63:32] <= pwdata;
+            // mtimecmp0 (Supports both 64KB CLINT offset 0x4000 and 4KB APB aperture offset 0x008)
+            if (paddr[15:0] == 16'h4000 || paddr[11:0] == 12'h008) mtimecmp[0][31:0]  <= pwdata;
+            if (paddr[15:0] == 16'h4004 || paddr[11:0] == 12'h00C) mtimecmp[0][63:32] <= pwdata;
             // mtimecmp1
             if (paddr[15:0] == 16'h4008) mtimecmp[1][31:0]  <= pwdata;
             if (paddr[15:0] == 16'h400C) mtimecmp[1][63:32] <= pwdata;
@@ -98,7 +98,15 @@ module rtc (
             16'h401C: prdata_reg = mtimecmp[3][63:32];
             16'h4020: prdata_reg = mtimecmp[4][31:0];
             16'h4024: prdata_reg = mtimecmp[4][63:32];
-            default:  prdata_reg = 32'h0;
+            default: begin
+                case (paddr[11:0])
+                    12'h000: prdata_reg = mtime[31:0];
+                    12'h004: prdata_reg = mtime[63:32];
+                    12'h008: prdata_reg = mtimecmp[0][31:0];
+                    12'h00C: prdata_reg = mtimecmp[0][63:32];
+                    default: prdata_reg = 32'h0;
+                endcase
+            end
         endcase
     end
     assign prdata = prdata_reg;
