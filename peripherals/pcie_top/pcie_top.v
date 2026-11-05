@@ -118,7 +118,7 @@ module pcie_top #(
     // LTSSM & Link Training
     // -------------------------------------------------------
     wire [1:0]  tx_rate = 2'b01; // Force Gen2
-    wire [1:0]  power_down [0:LANES-1];
+    wire [(LANES*2)-1:0] power_down = {(LANES*2){1'b0}}; // P0 state
     wire [LANES-1:0] tx_elecidle;
     wire [LANES-1:0] tx_compliance;
     wire [LANES-1:0] rx_polarity;
@@ -126,7 +126,6 @@ module pcie_top #(
     genvar i;
     generate
         for (i = 0; i < LANES; i = i + 1) begin : gen_ltssm_ties
-            assign power_down[i] = 2'b00; // P0 state
             assign tx_elecidle[i] = 1'b0; // transmitting
             assign tx_compliance[i] = 1'b0;
             assign rx_polarity[i] = 1'b0;

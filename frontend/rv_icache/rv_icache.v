@@ -280,6 +280,7 @@ module rv_icache #(
     // -------------------------------------------------------
     // Invalidation: clear all valid bits synchronously
     // -------------------------------------------------------
+`ifndef SYNTHESIS
     integer si, wi;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -294,5 +295,6 @@ module rv_icache #(
                     tag_sram[si][wi][TAG_W+TAG_ECC_W] <= 1'b0;  // Clear valid bit
         end
     end
+`endif
 
 endmodule

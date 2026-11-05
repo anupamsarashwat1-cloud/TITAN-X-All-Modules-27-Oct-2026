@@ -18,7 +18,7 @@ module tb_pcie_pipe_if();
     wire [3:0]  rx_elecidle;
     wire [11:0] rx_status;
     reg  [1:0]  tx_rate;
-    reg  [1:0]  power_down [0:3];
+    reg  [7:0]  power_down;
     reg  [3:0]  tx_elecidle;
     reg  [3:0]  tx_compliance;
     reg  [3:0]  rx_polarity;
@@ -85,8 +85,7 @@ module tb_pcie_pipe_if();
 
         reset_n = 0;
         tx_data = 64'h0; tx_datak = 8'h0; tx_rate = 2'b00;
-        power_down[0] = 2'd0; power_down[1] = 2'd0;
-        power_down[2] = 2'd0; power_down[3] = 2'd0;
+        power_down = 8'h0;
         tx_elecidle = 4'h0; tx_compliance = 4'h0; rx_polarity = 4'h0;
         pipe_rx_data = 64'h0; pipe_rx_datak = 8'h0;
         pipe_rx_valid = 4'h0; pipe_rx_elecidle = 4'h0;
@@ -123,8 +122,7 @@ module tb_pcie_pipe_if();
 
         // T3: control mapping — rate + per-lane powerdown codes
         tx_rate = 2'b01;                       // 5.0 GT/s
-        power_down[0] = 2'd0; power_down[1] = 2'd1;
-        power_down[2] = 2'd2; power_down[3] = 2'd3;   // P0,P0s,P1,P2
+        power_down = 8'b11_10_01_00;           // P0,P0s,P1,P2
         #1;
         check(pipe_tx_rate, 2'b01, "TX rate forwarded");
         check(pipe_power_down, 8'b11_10_01_00, "Powerdown codes per-lane");

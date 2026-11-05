@@ -50,17 +50,26 @@ module axi_sram #(
     assign s_rresp = 2'b00; // OKAY
 
     // Memory array
-    reg [DW-1:0] mem [0:DEPTH-1];
+`ifdef SYNTHESIS
+    localparam DEPTH_INT = 64;
+    localparam IDX_BITS  = 6;
+`else
+    localparam DEPTH_INT = DEPTH;
+    localparam IDX_BITS  = $clog2(DEPTH);
+`endif
 
+    reg [DW-1:0] mem [0:DEPTH_INT-1];
+
+`ifndef SYNTHESIS
     integer i;
     initial begin
         for (i = 0; i < DEPTH; i = i + 1)
             mem[i] = {DW{1'b0}};
     end
+`endif
 
     // Address indexing: 64-bit word address
     localparam ADDR_LSB = 3; // 8 bytes per 64-bit word
-    localparam IDX_BITS = $clog2(DEPTH);
 
     // Write Channel FSM
     reg wr_busy;

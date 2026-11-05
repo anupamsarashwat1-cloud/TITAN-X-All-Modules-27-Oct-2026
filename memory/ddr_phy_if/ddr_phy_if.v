@@ -80,11 +80,18 @@ module ddr_phy_if #(
     // -------------------------------------------------------
     // In-model storage, indexed by the real DDR4 address map.
     // -------------------------------------------------------
+`ifdef SYNTHESIS
+    localparam DEPTH = 64;
+    reg [63:0] mem [0:DEPTH-1];
+`else
     localparam DEPTH = (1 << (2 + 3 + ROW_BITS + COL_BITS));  // words of 64b
-
     reg [63:0] mem [0:DEPTH-1];
     integer mi;
     initial for (mi = 0; mi < DEPTH; mi = mi + 1) mem[mi] = 64'h0;
+`endif
+
+    wire [$clog2(DEPTH)-1:0] wr_mem_addr = {ba_full, row_idx, col_idx} % DEPTH;
+    wire [$clog2(DEPTH)-1:0] rd_mem_addr = {ba_full, open_row[ba_full][ROW_BITS-1:0], col_idx} % DEPTH;
 
     // Open-row tracking inside the model: ACT selects row, PRE closes.
     reg [15:0] open_row  [0:31];   // {bg,bank} = 5 bits
@@ -114,7 +121,7 @@ module ddr_phy_if #(
                 wr_hold      <= dfi_wrdata;
                 wr_drive_cnt <= 3'd4;
                 if (row_open[ba_full]) begin
-                    mem[{ba_full, row_idx, col_idx}] <= dfi_wrdata;
+                    mem[wr_mem_addr] <= dfi_wrdata;
                     `ifdef TB_PHY_TRACE
                     $display("[PHY] %0t WR idx=%05h d=%h (bg=%0d ba=%0d row=%0d col=%0d)",
                              $time, {ba_full, row_idx, col_idx}, dfi_wrdata,
@@ -151,14 +158,14 @@ module ddr_phy_if #(
                 dfi_rddata_valid <= 1'b1;       // set, then held
             if (cmd_rd) begin
                 rd_data_q <= row_open[ba_full]
-                           ? mem[{ba_full, open_row[ba_full][ROW_BITS-1:0], col_idx}]
+                           ? mem[rd_mem_addr]
                            : 64'h0;   // closed-row read returns 0 (model limit)
 `ifdef TB_PHY_TRACE
                 $display("[PHY] %0t RD idx=%05h d=%h (bg=%0d ba=%0d row=%0d col=%0d)",
                          $time,
                          {ba_full, open_row[ba_full][ROW_BITS-1:0], col_idx},
                          row_open[ba_full]
-                           ? mem[{ba_full, open_row[ba_full][ROW_BITS-1:0], col_idx}]
+                           ? mem[rd_mem_addr]
                            : 64'h0,
                          dfi_bg, dfi_bank, open_row[ba_full], col_idx);
 `endif

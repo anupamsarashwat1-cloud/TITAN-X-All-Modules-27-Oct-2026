@@ -530,6 +530,7 @@ module rv_dcache #(
     // The FLUSH WITH WRITEBACK lives in the main FSM (D_FLUSH_SCAN);
     // this path only runs at reset where there is nothing to save.
     // -------------------------------------------------------
+`ifndef SYNTHESIS
     integer si, wi;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -540,5 +541,6 @@ module rv_dcache #(
             end
         end
     end
+`endif
 
 endmodule

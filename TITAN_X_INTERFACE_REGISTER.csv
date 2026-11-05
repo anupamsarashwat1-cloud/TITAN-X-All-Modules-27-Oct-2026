@@ -1,0 +1,44 @@
+Interface Name,Source Module,Destination Module,Protocol,Data Width (bits),Address Width (bits),ID Width (bits),Burst Support,Handshake Signals,Backpressure Behavior,Max Outstanding Transactions,Clock Domain,Integration Status,Source Evidence
+AXI4_M0_CORE0_FETCH,rv_core_top[0],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"ARVALID/READY, RVALID/READY","Supported (ARREADY, RREADY)",4,clk,Integrated,top/titan_x_top/titan_x_top.v:403
+AXI4_M1_CORE1_FETCH,rv_core_top[1],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"ARVALID/READY, RVALID/READY","Supported (ARREADY, RREADY)",4,clk,Integrated,top/titan_x_top/titan_x_top.v:403
+AXI4_M2_CORE2_FETCH,rv_core_top[2],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"ARVALID/READY, RVALID/READY","Supported (ARREADY, RREADY)",4,clk,Integrated,top/titan_x_top/titan_x_top.v:403
+AXI4_M3_CORE3_FETCH,rv_core_top[3],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"ARVALID/READY, RVALID/READY","Supported (ARREADY, RREADY)",4,clk,Integrated,top/titan_x_top/titan_x_top.v:403
+AXI4_M4_CORE0_DATA,rv_core_top[0],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:409
+AXI4_M5_CORE1_DATA,rv_core_top[1],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:409
+AXI4_M6_CORE2_DATA,rv_core_top[2],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:409
+AXI4_M7_CORE3_DATA,rv_core_top[3],axi4_crossbar,AXI4,64,40,4,INCR 8-beat (via b2l shim),"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:409
+AXI4_M8_MONITOR_FETCH,rv_monitor_core,axi4_crossbar,AXI4-Lite,64,40,4,Single-beat only,"ARVALID/READY, RVALID/READY",Supported (ARREADY),4,clk,Integrated,top/titan_x_top/titan_x_top.v:450
+AXI4_M9_MONITOR_DATA,rv_monitor_core,axi4_crossbar,AXI4-Lite,64,40,4,Single-beat only,"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:453
+AXI4_M10_GEM_DMA,gem_ethernet,axi4_crossbar,AXI4,64,40,4,Single-beat / Burst supported,"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:729
+AXI4_M11_PCIE_DMA,pcie_top,axi4_crossbar,AXI4,64,40,4,Burst supported,"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:750
+AXI4_M12_USB_DMA,usb_otg,axi4_crossbar,AXI4,64,40,4,Single-beat / Burst supported,"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:765
+AXI4_M13_MMC_DMA,mmc_controller,axi4_crossbar,AXI4,64,40,4,Burst supported,"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:780
+AXI4_M14_VDMA,vdma,axi4_crossbar,AXI4,64,40,4,Burst supported,"AW/W/B, AR/R handshakes",Supported (all channels),4,clk,Integrated,top/titan_x_top/titan_x_top.v:801
+AXI4_S0_L2_CACHE,axi4_crossbar,l2_cache_top,AXI4-Lite/Burst,64,40,4,Decomposed by b2l shim,"AW/W/B, AR/R handshakes","Supported (s_arready, s_awready, s_wready)",4,clk,Integrated,top/titan_x_top/titan_x_top.v:546
+AXI4_S1_AHB_BRIDGE,axi4_crossbar,axi4_to_ahb,AXI4-Lite,64,40,4,Single-beat only,"AW/W/B, AR/R handshakes","Supported (s_arready, s_awready, s_wready)",4,clk,Integrated,top/titan_x_top/titan_x_top.v:622
+AXI4_S2_BOOT_ROM,axi4_crossbar,axi_rom,AXI4-Lite,64,40,4,Read-Only single-beat,"ARVALID/READY, RVALID/READY",Supported (s_arready),4,clk,Integrated,top/titan_x_top/titan_x_top.v:346
+AXI4_S3_LOW_MEM_TIE,axi4_crossbar,Tied DECERR Responder,AXI4-Lite,64,40,4,Returns DECERR (2'b11),"AW/W/B, AR/R handshakes","Instant ready, returns DECERR",1,clk,Integrated (Tied Off),top/titan_x_top/titan_x_top.v:301
+AXI4_S4_S8_UNUSED_TIE,axi4_crossbar,Tied DECERR Responder,AXI4-Lite,64,40,4,Returns DECERR (2'b11),"AW/W/B, AR/R handshakes","Instant ready, returns DECERR",1,clk,Integrated (Tied Off),top/titan_x_top/titan_x_top.v:301
+AXI4_L2_TO_DDR,l2_cache_top,ddr_ctrl_top,AXI4-Lite,64,40,4,Single-beat (b2l decomposed),"AW/W/B, AR/R handshakes","Supported (s_awready, s_wready, s_arready)",1,clk,Integrated,top/titan_x_top/titan_x_top.v:567
+DDR4_PHY_BUS,ddr_ctrl_top,External DDR4 DRAM,JEDEC DDR4,64,16,0,Burst 8 (BL8),Differential DQS strobe,ODT / ZQ Calibration,16,clk,Integrated,top/titan_x_top/titan_x_top.v:606
+MESI_SNOOP_BUS,l2_cache_top,rv_core_top[0:3],Custom Coherence,512,40,0,Full 64B line exchange,"snoop_valid/ack, snoop_data_valid",Backpressure via snoop_ack,1,clk,Integrated,top/titan_x_top/titan_x_top.v:585
+AHB_TO_APB_INTERNAL,axi4_to_ahb,Inline APB Decoder,AHB-Lite to APB,32,32,0,Single-beat,"hwrite, htrans, hready, hresp",hready tied 1'b1,1,clk,Integrated,top/titan_x_top/titan_x_top.v:637
+APB_PERIPHERAL_BUS,Inline APB Decoder,25x APB Slaves,APB3/APB4,32,32,0,Single-beat (setup/access),"psel, penable, pready, pslverr",pready supported per slave,1,clk,Integrated (Defect: UART0 mask),top/titan_x_top/titan_x_top.v:647
+PLIC_INTERRUPT_SOURCES,186 Peripheral IRQ Lines,plic,Level/Pulse IRQ,186,0,0,N/A,Direct asynchronous/sync lines,None,186,clk,Integrated,top/titan_x_top/titan_x_top.v:158
+PLIC_CORE_TARGETS,plic,"rv_core_top[0:3], rv_monitor_core",RISC-V MEIP,10,0,0,N/A,Direct interrupt target wires,None,10,clk,Integrated,top/titan_x_top/titan_x_top.v:166
+CLINT_TIMER_SW_IRQS,clint,"rv_core_top[0:3], rv_monitor_core",RISC-V MTIP/MSIP,5,0,0,N/A,Direct mtip / msip lines,None,5,clk,Integrated,top/titan_x_top/titan_x_top.v:1020
+GMII_ETHERNET_IF,gem_ethernet,External Ethernet PHY,IEEE 802.3 GMII,8,0,0,Byte stream,"gmii_tx_en, gmii_rx_dv",CRS/COL flow control,1,eth_tx_clk / eth_rx_clk,Integrated,top/titan_x_top/titan_x_top.v:736
+PCIE_PIPE_IF,pcie_top,External PCIe PHY,Intel PIPE 3.0 Gen2,64,0,0,64-bit parallel symbols,"pipe_rx_valid, pipe_phy_status",Powerdown / Elecidle,4,pipe_clk,Integrated,top/titan_x_top/titan_x_top.v:755
+ULPI_USB_IF,usb_otg,External USB PHY,ULPI (UTMI+ Low Pin),8,0,0,Byte-serial stream,"ulpi_dir, ulpi_nxt, ulpi_stp",ulpi_dir/nxt backpressure,1,ulpi_clk,Integrated,top/titan_x_top/titan_x_top.v:770
+SD_MMC_CARD_IF,mmc_controller,External SD/eMMC Card,SD/eMMC Spec,8,0,0,1/4/8-bit block transfer,"sd_cmd, sd_dat",Busy line on dat[0],1,sd_clk,Integrated,top/titan_x_top/titan_x_top.v:789
+QSPI_FLASH_IF,qspi_controller,External NOR Flash,Quad SPI (XIP),4,32,0,1/2/4-bit nibble transfer,"qspi_cs_n, qspi_sclk, qspi_io",Chip select wait states,1,clk,Integrated,top/titan_x_top/titan_x_top.v:819
+MIPI_CSI2_IF,External Camera,mipi_csi2_rx,MIPI CSI-2 / D-PHY,32,0,0,4-lane HS byte packets,"rxvalidhs, rxactivehs",None (streaming),1,mipi_rxbyteclkhs,Integrated,top/titan_x_top/titan_x_top.v:1086
+HDMI_TMDS_IF,hdmi_ctrl,External HDMI Display,DVI 1.0 / HDMI 1.4,3,0,0,10-bit serialized symbols,"tmds_clk_p/n, tmds_data_p/n",None (display timing),1,hdmi_clk_pixel / hdmi_clk_tmds,Integrated,top/titan_x_top/titan_x_top.v:1102
+UART_SERIAL_IF,uart_16550[0:4],External RS-232/TTL,RS-232 Asynchronous,1,0,0,8-N-1 start/stop frame,"rxd, txd",Software / FIFO flow control,1,clk (baud divided),Integrated,top/titan_x_top/titan_x_top.v:1070
+CAN_BUS_IF,can_controller[0:1],External CAN Transceiver,CAN 2.0B Active,1,0,0,NRZ bitstream with stuff,"can_rx, can_tx",Bit-wise arbitration & ACK,1,clk,Integrated,top/titan_x_top/titan_x_top.v:1076
+SPI_MASTER_IF,spi_master,External SPI Slaves,Motorola SPI Mode 0-3,1,0,0,Full-duplex serial shift,"spi_clk, spi_mosi, spi_miso, spi_csn",SS assertion,1,clk,Integrated,top/titan_x_top/titan_x_top.v:1054
+I2C_MASTER_IF,i2c_master,External I2C Slaves,I2C Standard / Fast Mode,1,0,0,Open-drain 2-wire serial,"scl_pad, sda_pad",Clock stretching & ACK,1,clk,Integrated,top/titan_x_top/titan_x_top.v:1066
+GPIO_IF,gpio_ctrl,External Board GPIOs,Digital Bidirectional I/O,32,0,0,Direct bit parallel,gpio_pad[31:0],Input debounce & edge IRQ,1,clk,Integrated,top/titan_x_top/titan_x_top.v:1031
+RTC_REF_CLK_IF,External Oscillator,rtc,32.768 kHz Low Speed,1,0,0,Square wave,rtc_clk,None,1,rtc_clk,Integrated,top/titan_x_top/titan_x_top.v:1006
+SECURE_BOOT_ENVM_IF,secure_boot,Embedded envm_image Array,Custom ROM Read,32,17,0,Single-word sequential,"envm_req, envm_valid, envm_rdata",envm_valid indicates data ready,1,clk,Integrated,top/titan_x_top/titan_x_top.v:955
+JTAG_DEBUG_TAP,External JTAG Debugger,rv_debug,IEEE 1149.1 / RISC-V 0.13,1,0,0,Serial shift DR/IR,"tck, tms, tdi, tdo",TAP state machine,1,clk (TCK tied 1'b0),Integrated (TCK Tied 0),top/titan_x_top/titan_x_top.v:476

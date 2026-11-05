@@ -5,7 +5,18 @@
 // Note: This is a behavioral simulation model. In physical synthesis,
 // this will be replaced by a compiled hard macro from the foundry memory compiler.
 `timescale 1ns/1ps
-
+`ifdef SYNTHESIS
+(* blackbox *)
+module sram_512kx8_180nm (
+    input  wire         CLK,    // Clock
+    input  wire         CEN,    // Chip Enable (Active Low)
+    input  wire         WEN,    // Write Enable (Active Low)
+    input  wire [18:0]  A,      // Address (19 bits for 512K)
+    input  wire [7:0]   D,      // Data In
+    output wire [7:0]   Q       // Data Out
+);
+endmodule
+`else
 module sram_512kx8_180nm (
     input  wire         CLK,    // Clock
     input  wire         CEN,    // Chip Enable (Active Low)
@@ -32,3 +43,4 @@ module sram_512kx8_180nm (
     end
 
 endmodule
+`endif

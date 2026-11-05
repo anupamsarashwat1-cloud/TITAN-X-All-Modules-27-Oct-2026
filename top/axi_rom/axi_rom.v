@@ -55,9 +55,11 @@ module axi_rom #(
     assign rom_preboot_valid = rom_preboot_en;
 
     initial begin
+`ifndef SYNTHESIS
         // 1. Initialize entire ROM with NOP sled
         for (i = 0; i < DEPTH; i = i + 1)
             rom[i] = 64'h0000_0013_0000_0013; // NOP NOP
+`endif
 
         // 2. Default Authentic Root-of-Trust Boot Container (Slot 0 signed 16-word payload)
         // Word 0..42: Secure Boot Header

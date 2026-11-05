@@ -14,6 +14,19 @@
 //   din0   : data input [31:0]
 //   dout0  : data output [31:0] ← MUST BE CONNECTED (LVS requirement)
 `timescale 1ns/1ps
+`ifdef SYNTHESIS
+(* blackbox *)
+module sram_32x64_180nm (
+    input  wire        clk0,
+    input  wire        csb0,    // active-low chip select
+    input  wire        web0,    // active-low write enable
+    input  wire [3:0]  wmask0,  // active-high byte mask
+    input  wire [5:0]  addr0,   // 6-bit address (64 locations)
+    input  wire [31:0] din0,    // write data
+    output wire [31:0] dout0    // read data — MUST be connected at instantiation
+);
+endmodule
+`else
 module sram_32x64_180nm (
     input  wire        clk0,
     input  wire        csb0,    // active-low chip select
@@ -51,3 +64,4 @@ module sram_32x64_180nm (
         end
     end
 endmodule
+`endif

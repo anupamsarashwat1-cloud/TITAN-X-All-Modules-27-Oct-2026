@@ -39,22 +39,38 @@
 // L1 Cache Parameters (Per Application Core)
 // ============================================================
 `define L1I_WAYS          8
+`ifdef SYNTHESIS
+`define L1I_SETS          2
+`else
 `define L1I_SETS          64    // 8-way × 64-sets × 64B line = 32KB I-Cache
+`endif
 `define L1I_LINE_BYTES    64
 `define L1D_WAYS          8
+`ifdef SYNTHESIS
+`define L1D_SETS          2
+`else
 `define L1D_SETS          64    // 8-way × 64-sets × 64B line = 32KB D-Cache
+`endif
 `define L1D_LINE_BYTES    64
 `define L1_ECC_BITS       8     // SECDED: 8 ECC bits per 64-bit word
 
 // Monitor Core L1 I-Cache (smaller)
 `define L1I_MON_WAYS      4
+`ifdef SYNTHESIS
+`define L1I_MON_SETS      2
+`else
 `define L1I_MON_SETS      64    // 4-way × 64-sets × 64B = 16KB
+`endif
 
 // ============================================================
 // L2 Cache Parameters (Shared, 2MB)
 // ============================================================
 `define L2_WAYS           16
+`ifdef SYNTHESIS
+`define L2_SETS           64    // Scaled for synthesis of behavioral tag array
+`else
 `define L2_SETS           2048  // 16-way × 2048-sets × 64B line = 2MB
+`endif
 `define L2_LINE_BYTES     64
 `define L2_BANKS          4     // 4 × 512KB SRAM banks for layout distribution
 `define L2_TAG_BITS       48    // valid(1)+dirty(1)+MESI(2)+ASID(16)+tag(28)

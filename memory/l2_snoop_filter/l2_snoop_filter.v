@@ -50,9 +50,15 @@ module l2_snoop_filter #(
     localparam DIR_WAYS = 2;
     wire [0:0] index = req_addr_saved[6];
 `else
+`ifdef SYNTHESIS
+    localparam DIR_SETS = 2;
+    localparam DIR_WAYS = 2;
+    wire [0:0] index = req_addr_saved[6];
+`else
     localparam DIR_SETS = 64;
     localparam DIR_WAYS = 32;
     wire [INDEX_W-1:0] index = req_addr_saved[11:6];
+`endif
 `endif
     wire [TAG_W-1:0]   tag   = req_addr_saved[39:12];
 

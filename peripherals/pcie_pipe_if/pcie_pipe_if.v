@@ -21,7 +21,7 @@ module pcie_pipe_if #(
 
     // LTSSM Control
     input  wire [1:0]  tx_rate,           // 00=2.5 GT/s, 01=5.0 GT/s
-    input  wire [1:0]  power_down [0:LANES-1], // P0, P0s, P1, P2
+    input  wire [(LANES*2)-1:0] power_down, // P0, P0s, P1, P2
     input  wire [LANES-1:0] tx_elecidle,
     input  wire [LANES-1:0] tx_compliance,
     input  wire [LANES-1:0] rx_polarity,
@@ -58,7 +58,7 @@ module pcie_pipe_if #(
             assign pipe_tx_elecidle[i]       = tx_elecidle[i];
             assign pipe_tx_compliance[i]     = tx_compliance[i];
             assign pipe_rx_polarity[i]       = rx_polarity[i];
-            assign pipe_power_down[i*2 +: 2] = power_down[i];
+            assign pipe_power_down[i*2 +: 2] = power_down[i*2 +: 2];
             
             // RX
             assign rx_data[i*16 +: 16] = pipe_rx_data[i*16 +: 16];
