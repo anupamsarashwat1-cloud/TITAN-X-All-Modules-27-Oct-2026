@@ -50,6 +50,19 @@ module tb_secure_boot();
         end
     endtask
 
+    // Helper: APB 2-cycle write
+    task apb_write(input [31:0] addr, input [31:0] data);
+        begin
+            @(posedge clk); #1;
+            paddr = addr; pwdata = data; psel = 1; pwrite = 1; penable = 0;
+            @(posedge clk); #1;
+            penable = 1;
+            @(posedge clk); #1;
+            while (!pready) @(posedge clk);
+            psel = 0; penable = 0; pwrite = 0;
+        end
+    endtask
+
     reg        envm_enable_valid;
     // Helper: Reset DUT
     task reset_dut();
@@ -275,11 +288,104 @@ module tb_secure_boot();
         end
 
         // ---------------------------------------------------------------
+        // TEST 6: ADVERSARIAL TEST — Rogue Public Key Replacement (DEF-01)
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 6: Adversarial Test (Rogue Public Key Substitution Rejection) ---");
+        load_authentic_image();
+        // Attacker keeps pubkey_id == 0xCAFEF00D, but substitutes Qx with rogue key
+        envm_mem[11] = 32'hDEAD_BEEF;
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (!boot_pass && boot_fail) begin
+            $display("PASS [Scenario 6]: Rogue public key substitution detected and rejected by RoT (boot_pass=0, boot_fail=1)");
+        end else begin
+            $display("FAIL [Scenario 6]: Security vulnerability DEF-01: rogue public key was accepted! (pass=%b, fail=%b)", boot_pass, boot_fail);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 7: OTP eFuse Key Revocation Rejection (DEF-SEC-02)
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 7: OTP eFuse Key Revocation Rejection (DEF-SEC-02) ---");
+        load_authentic_image();
+        // Use APB to blow revocation fuse for Slot 0 (bit 0)
+        apb_write(32'h18, 32'h0000_0001);
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (!boot_pass && boot_fail) begin
+            $display("PASS [Scenario 7]: Firmware signed with revoked key slot 0 rejected (boot_pass=0, boot_fail=1)");
+        end else begin
+            $display("FAIL [Scenario 7]: Firmware signed with revoked key was accepted! (pass=%b, fail=%b)", boot_pass, boot_fail);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 8: Anti-Rollback Monotonic Counter Downgrade (DEF-SEC-03)
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 8: Anti-Rollback Monotonic Counter Downgrade (DEF-SEC-03) ---");
+        load_authentic_image();
+        // Reset fuses so Slot 0 is unrevoked for this test
+        uut.u_efuse.revocation_fuses = 4'b0000;
+        // Upgrade hardware monotonic counter to version 5
+        apb_write(32'h14, 32'd5);
+        // Attempt to boot image with older security version 2
+        envm_mem[2] = 32'h0002_F000;
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (!boot_pass && boot_fail) begin
+            $display("PASS [Scenario 8]: Firmware downgrade attack rejected by anti-rollback counter (boot_pass=0, boot_fail=1)");
+        end else begin
+            $display("FAIL [Scenario 8]: Firmware downgrade was accepted! (pass=%b, fail=%b)", boot_pass, boot_fail);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
+        // TEST 9: Forward Progression / Valid Security Version (DEF-SEC-03)
+        // ---------------------------------------------------------------
+        $display("\n--- SCENARIO 9: Forward Progression / Valid Security Version (DEF-SEC-03) ---");
+        load_authentic_image();
+        uut.u_efuse.revocation_fuses = 4'b0000;
+        // Image version 6 >= hardware counter 5 -> MUST PASS
+        envm_mem[2] = 32'h0006_F000;
+        reset_dut();
+
+        step_cnt = 0;
+        while (!boot_pass && !boot_fail && step_cnt < 4000) begin
+            @(posedge clk);
+            step_cnt = step_cnt + 1;
+        end
+
+        if (boot_pass && !boot_fail) begin
+            $display("PASS [Scenario 9]: Valid forward security version 6 authenticated successfully (boot_pass=1, boot_fail=0)");
+        end else begin
+            $display("FAIL [Scenario 9]: Valid security version was rejected! (pass=%b, fail=%b)", boot_pass, boot_fail);
+            errors = errors + 1;
+        end
+
+        // ---------------------------------------------------------------
         // SUMMARY REPORT
         // ---------------------------------------------------------------
         $display("\n==================================================================");
         if (errors == 0) begin
-            $display("SECURE BOOT VERDICT: ✅ PASS — All 5 security scenarios verified");
+            $display("SECURE BOOT VERDICT: ✅ PASS — All 9 security scenarios verified");
             $display("REGRESS_RESULT: PASS");
         end else begin
             $display("SECURE BOOT VERDICT: ❌ FAIL — %0d violations detected", errors);
