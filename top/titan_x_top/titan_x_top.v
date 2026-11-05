@@ -295,10 +295,10 @@ module titan_x_top (
 
     // Masters 13 and 14 are connected to mmc_controller and vdma below.
 
-    // Tie off unused slaves (Slaves 3-8 return DECERR without bus hang)
+    // Tie off unused slaves (Slaves 4-8 return DECERR without bus hang)
     genvar s;
     generate
-        for (s = 3; s < 9; s = s + 1) begin : gen_unused_axis
+        for (s = 4; s < 9; s = s + 1) begin : gen_unused_axis
             reg s_busy_wr, s_busy_rd;
             reg [3:0] s_id_wr, s_id_rd;
             always @(posedge clk or negedge rst_n) begin
@@ -336,6 +336,40 @@ module titan_x_top (
             assign axs_rid[s*4 +: 4]   = s_id_rd;
         end
     endgenerate
+
+    // On-Chip Scratchpad SRAM on Slave 3 (0x0000_0000 - 0x0FFF_FFFF)
+    axi_sram #(
+        .DEPTH(8192),
+        .AW(AW),
+        .DW(DW),
+        .IDW(IDW)
+    ) u_onchip_sram (
+        .clk      (clk),
+        .rst_n    (rst_n),
+        .s_awvalid(axs_awvalid[3]),
+        .s_awready(axs_awready[3]),
+        .s_awaddr (axs_awaddr[3*40 +: 40]),
+        .s_awid   (axs_awid[3*4 +: 4]),
+        .s_wvalid (axs_wvalid[3]),
+        .s_wready (axs_wready[3]),
+        .s_wdata  (axs_wdata[3*64 +: 64]),
+        .s_wstrb  (axs_wstrb[3*8 +: 8]),
+        .s_wlast  (axs_wlast[3]),
+        .s_bvalid (axs_bvalid[3]),
+        .s_bready (axs_bready[3]),
+        .s_bresp  (axs_bresp[3*2 +: 2]),
+        .s_bid    (axs_bid[3*4 +: 4]),
+        .s_arvalid(axs_arvalid[3]),
+        .s_arready(axs_arready[3]),
+        .s_araddr (axs_araddr[3*40 +: 40]),
+        .s_arid   (axs_arid[3*4 +: 4]),
+        .s_rvalid (axs_rvalid[3]),
+        .s_rready (axs_rready[3]),
+        .s_rdata  (axs_rdata[3*64 +: 64]),
+        .s_rresp  (axs_rresp[3*2 +: 2]),
+        .s_rlast  (axs_rlast[3]),
+        .s_rid    (axs_rid[3*4 +: 4])
+    );
 
     // Boot ROM on Slave 2 — override at runtime with +hex=path/to/firmware.hex
     axi_rom #(
