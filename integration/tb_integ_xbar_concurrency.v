@@ -153,6 +153,50 @@ module tb_integ_xbar_concurrency;
 
     integer k0, k1, k2, v;
 
+    // Fairness monitoring: ensure no master is starved for >= 64 cycles (TASK-08-01)
+    reg [31:0] aw_wait_cnt [0:NM-1];
+    reg [31:0] ar_wait_cnt [0:NM-1];
+    reg [31:0] max_aw_wait [0:NM-1];
+    reg [31:0] max_ar_wait [0:NM-1];
+    integer wi;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            for (wi = 0; wi < NM; wi = wi + 1) begin
+                aw_wait_cnt[wi] <= 32'd0;
+                ar_wait_cnt[wi] <= 32'd0;
+                max_aw_wait[wi] <= 32'd0;
+                max_ar_wait[wi] <= 32'd0;
+            end
+        end else begin
+            for (wi = 0; wi < NM; wi = wi + 1) begin
+                if (m_awvalid[wi] && !m_awready[wi]) begin
+                    aw_wait_cnt[wi] <= aw_wait_cnt[wi] + 32'd1;
+                    if (aw_wait_cnt[wi] + 32'd1 > max_aw_wait[wi])
+                        max_aw_wait[wi] <= aw_wait_cnt[wi] + 32'd1;
+                    if (aw_wait_cnt[wi] >= 32'd64) begin
+                        tb_errors = tb_errors + 1;
+                        $display("[STARVATION ERROR] Master %0d AW starved for >= 64 cycles at time %0t", wi, $time);
+                    end
+                end else begin
+                    aw_wait_cnt[wi] <= 32'd0;
+                end
+
+                if (m_arvalid[wi] && !m_arready[wi]) begin
+                    ar_wait_cnt[wi] <= ar_wait_cnt[wi] + 32'd1;
+                    if (ar_wait_cnt[wi] + 32'd1 > max_ar_wait[wi])
+                        max_ar_wait[wi] <= ar_wait_cnt[wi] + 32'd1;
+                    if (ar_wait_cnt[wi] >= 32'd64) begin
+                        tb_errors = tb_errors + 1;
+                        $display("[STARVATION ERROR] Master %0d AR starved for >= 64 cycles at time %0t", wi, $time);
+                    end
+                end else begin
+                    ar_wait_cnt[wi] <= 32'd0;
+                end
+            end
+        end
+    end
+
     // ---------------- forensics ----------------
 `ifdef TB_XBAR_TRACE
     always @(posedge clk) begin
@@ -245,6 +289,13 @@ module tb_integ_xbar_concurrency;
             m_read_expect(2, 40'h00_4000_0100, exp_data(2'd2, 0));
         join
         m_read_expect(1, 40'h00_8000_0300, 64'hDEAD_D00D_DEAD_D00D);
+
+        for (v = 0; v < NM; v = v + 1) begin
+            $display("[INFO] Master %0d: max AW wait = %0d cycles, max AR wait = %0d cycles (fairness limit = 64)",
+                     v, max_aw_wait[v], max_ar_wait[v]);
+            `EXPECT_EQ(max_aw_wait[v] < 64, 1'b1, "Master AW grant latency < 64 cycles (TASK-08-01)")
+            `EXPECT_EQ(max_ar_wait[v] < 64, 1'b1, "Master AR grant latency < 64 cycles (TASK-08-01)")
+        end
 
         audit_mem;
         `TB_REPORT("XBAR_CONC")

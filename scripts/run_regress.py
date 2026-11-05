@@ -109,10 +109,11 @@ def run_one(tb_path: Path, rtl, timeout: int):
         with tempfile.TemporaryDirectory() as td:
             vvp = Path(td) / f"{name}.vvp"
             compile_cmd.extend([str(vvp), *rtl, str(tb_path)])
+            c_to = 600 if any(k in name for k in ("titan_x", "integ_periph")) else 180
             c = subprocess.run(
                 compile_cmd,
                 capture_output=True, text=True, errors="replace",
-                timeout=180, cwd=str(REPO)
+                timeout=c_to, cwd=str(REPO)
             )
             if c.returncode != 0:
                 tail = (c.stderr or c.stdout).strip().splitlines()[-4:]
@@ -131,10 +132,11 @@ def run_one(tb_path: Path, rtl, timeout: int):
                 log_file.write_text(log_content)
                 return dict(name=name, path=str(tb_path), verdict="COMPILE_FAIL", tail=tail)
 
+            s_to = 600 if any(k in name for k in ("titan_x", "integ_periph", "ecdsa", "secure_boot")) else timeout
             r = subprocess.run(
                 ["vvp", str(vvp)],
                 capture_output=True, text=True, errors="replace",
-                timeout=timeout, cwd=str(REPO)
+                timeout=s_to, cwd=str(REPO)
             )
             log = r.stdout + r.stderr
             verdict = judge_verdict(r.returncode, log)

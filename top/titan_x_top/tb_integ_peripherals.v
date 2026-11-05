@@ -88,7 +88,9 @@ module tb_integ_peripherals;
     integer checks_passed = 0;
     integer checks_failed = 0;
 
-    titan_x_top uut (
+    titan_x_top #(
+        .FAST_SIM(1)
+    ) uut (
         .clk(clk),
         .rst_n(rst_n),
         .ddr_addr(ddr_addr),
