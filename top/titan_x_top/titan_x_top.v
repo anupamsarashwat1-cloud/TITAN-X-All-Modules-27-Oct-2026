@@ -639,12 +639,12 @@ module titan_x_top (
     assign hresp = 1'b0;
 
     // APB Address Decoder (supports 0x4000_0000 APB bridge window and legacy apertures)
-    wire psel_uart0 = psel && (paddr[31:16] == 16'h4001 || paddr[31:12] == 20'h40000 || paddr[31:12] == 20'h10000);
+    wire psel_uart0 = psel && (paddr[31:12] == 20'h40000 || paddr[31:12] == 20'h10000);
     wire psel_uart1 = psel && (paddr[31:12] == 20'h40001 || paddr[31:12] == 20'h10001);
     wire psel_uart2 = psel && (paddr[31:12] == 20'h40002 || paddr[31:12] == 20'h10002);
     wire psel_uart3 = psel && (paddr[31:12] == 20'h40003 || paddr[31:12] == 20'h10003);
     wire psel_uart4 = psel && (paddr[31:12] == 20'h40004 || paddr[31:12] == 20'h10004);
-    wire psel_rtc   = psel && (paddr[31:12] == 20'h40010 || paddr[31:12] == 20'h10010 || paddr[31:16] == 16'h4002);
+    wire psel_rtc   = psel && (paddr[31:12] == 20'h40010 || paddr[31:12] == 20'h10010);
     wire psel_gem   = psel && (paddr[31:12] == 20'h40020 || paddr[31:12] == 20'h10020);
     wire psel_usb   = psel && (paddr[31:12] == 20'h40030 || paddr[31:12] == 20'h10030);
     wire psel_mipi  = psel && (paddr[31:12] == 20'h40040 || paddr[31:12] == 20'h10040);
