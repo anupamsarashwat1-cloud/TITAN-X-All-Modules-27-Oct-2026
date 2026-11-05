@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SMVDU-TITAN-X SoC — SHA-256 Hash Engine
-// FIPS 180-4 compliant. 64-round iterative architecture.
+// FIPS 180-4 compliant. 64-round iterative architecture with automated message padding.
 `timescale 1ns/1ps
 module sha256_engine (
     input  wire        clk,
@@ -55,6 +55,10 @@ module sha256_engine (
     // Message schedule input
     reg [31:0] msg_block [0:15];  // 512-bit block (16 × 32b words)
     reg        start;
+    reg        init_hash;
+    reg        auto_pad;
+    reg [31:0] msg_len_bytes;
+    reg        pad_step; // 0 = final or single block, 1 = first of 2-block padding
 
     // Rotate functions
     function [31:0] rotr32;
@@ -76,26 +80,121 @@ module sha256_engine (
     assign sig0   = rotr32(W[1],7) ^ rotr32(W[1],18) ^ (W[1]>>3);
     assign sig1   = rotr32(W[14],17) ^ rotr32(W[14],19) ^ (W[14]>>10);
     assign w_sched= W[0] + sig0 + W[9] + sig1;  // Wt = W[t-16]+σ0[W[t-15]]+W[t-7]+σ1[W[t-2]]
-    // Simplified indexing: use shift-register window
+
+    // Padding helper signals
+    wire [5:0]  rem_bytes      = msg_len_bytes[5:0];
+    wire [63:0] total_len_bits = {32'h0, msg_len_bytes} << 3;
+
+    function [31:0] calc_pad_single;
+        input integer wi;
+        input [5:0]   rem;
+        input [63:0]  total_bits;
+        reg   [3:0]   w_target;
+        reg   [1:0]   b_target;
+        begin
+            w_target = rem[5:2];
+            b_target = rem[1:0];
+            if (wi < w_target) begin
+                calc_pad_single = msg_block[wi];
+            end else if (wi == w_target) begin
+                case (b_target)
+                    2'd0: calc_pad_single = 32'h8000_0000;
+                    2'd1: calc_pad_single = {msg_block[wi][31:24], 8'h80, 16'h0000};
+                    2'd2: calc_pad_single = {msg_block[wi][31:16], 8'h80, 8'h00};
+                    2'd3: calc_pad_single = {msg_block[wi][31:8],  8'h80};
+                endcase
+            end else if (wi == 14) begin
+                calc_pad_single = total_bits[63:32];
+            end else if (wi == 15) begin
+                calc_pad_single = total_bits[31:0];
+            end else begin
+                calc_pad_single = 32'h0;
+            end
+        end
+    endfunction
+
+    function [31:0] calc_pad_block1;
+        input integer wi;
+        input [5:0]   rem;
+        reg   [3:0]   w_target;
+        reg   [1:0]   b_target;
+        begin
+            w_target = rem[5:2];
+            b_target = rem[1:0];
+            if (wi < w_target) begin
+                calc_pad_block1 = msg_block[wi];
+            end else if (wi == w_target) begin
+                case (b_target)
+                    2'd0: calc_pad_block1 = 32'h8000_0000;
+                    2'd1: calc_pad_block1 = {msg_block[wi][31:24], 8'h80, 16'h0000};
+                    2'd2: calc_pad_block1 = {msg_block[wi][31:16], 8'h80, 8'h00};
+                    2'd3: calc_pad_block1 = {msg_block[wi][31:8],  8'h80};
+                endcase
+            end else begin
+                calc_pad_block1 = 32'h0;
+            end
+        end
+    endfunction
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            active <= 1'b0;
-            done   <= 1'b0;
-            round  <= 6'h0;
-            hash[0] <= H0; hash[1] <= H1; hash[2] <= H2; hash[3] <= H3;
-            hash[4] <= H4; hash[5] <= H5; hash[6] <= H6; hash[7] <= H7;
+            active   <= 1'b0;
+            done     <= 1'b0;
+            round    <= 6'h0;
+            pad_step <= 1'b0;
+            hash[0]  <= H0; hash[1] <= H1; hash[2] <= H2; hash[3] <= H3;
+            hash[4]  <= H4; hash[5] <= H5; hash[6] <= H6; hash[7] <= H7;
         end else begin
             done <= 1'b0;
             if (start && !active) begin
-                // Load W from message block
-                begin : init_w
-                    integer wi;
-                    for (wi = 0; wi < 16; wi = wi+1)
-                        W[wi] <= msg_block[wi];
+                if (init_hash) begin
+                    hash[0] <= H0; hash[1] <= H1; hash[2] <= H2; hash[3] <= H3;
+                    hash[4] <= H4; hash[5] <= H5; hash[6] <= H6; hash[7] <= H7;
                 end
-                a <= hash[0]; b <= hash[1]; c <= hash[2]; d <= hash[3];
-                e <= hash[4]; f <= hash[5]; g <= hash[6]; h <= hash[7];
+                if (!auto_pad) begin
+                    // Raw block compression (legacy mode)
+                    begin : init_w_raw
+                        integer wi;
+                        for (wi = 0; wi < 16; wi = wi+1)
+                            W[wi] <= msg_block[wi];
+                    end
+                    pad_step <= 1'b0;
+                end else begin
+                    // Automated FIPS 180-4 padding mode
+                    if (msg_len_bytes > 32'd0 && rem_bytes == 6'd0) begin
+                        // Exact 64-byte multiple: Block 1 is raw message, Block 2 is padding
+                        begin : init_w_pad_full
+                            integer wi;
+                            for (wi = 0; wi < 16; wi = wi+1)
+                                W[wi] <= msg_block[wi];
+                        end
+                        pad_step <= 1'b1;
+                    end else if (rem_bytes >= 6'd56) begin
+                        // 2-block padding: Block 1 has rem_bytes, 0x80, then zero-padded
+                        begin : init_w_pad_2blk
+                            integer wi;
+                            for (wi = 0; wi < 16; wi = wi+1)
+                                W[wi] <= calc_pad_block1(wi, rem_bytes);
+                        end
+                        pad_step <= 1'b1;
+                    end else begin
+                        // Single-block padding: message + 0x80 + zeros + length in words 14..15
+                        begin : init_w_pad_1blk
+                            integer wi;
+                            for (wi = 0; wi < 16; wi = wi+1)
+                                W[wi] <= calc_pad_single(wi, rem_bytes, total_len_bits);
+                        end
+                        pad_step <= 1'b0;
+                    end
+                end
+                a <= init_hash ? H0 : hash[0];
+                b <= init_hash ? H1 : hash[1];
+                c <= init_hash ? H2 : hash[2];
+                d <= init_hash ? H3 : hash[3];
+                e <= init_hash ? H4 : hash[4];
+                f <= init_hash ? H5 : hash[5];
+                g <= init_hash ? H6 : hash[6];
+                h <= init_hash ? H7 : hash[7];
                 round  <= 6'h0;
                 active <= 1'b1;
                 start  <= 1'b0;
@@ -127,29 +226,72 @@ module sha256_engine (
                     hash[5] <= hash[5] + e;
                     hash[6] <= hash[6] + f;
                     hash[7] <= hash[7] + g;
-                    active <= 1'b0;
-                    done   <= 1'b1;
+
+                    if (auto_pad && pad_step == 1'b1) begin
+                        // Transition to second padding block
+                        pad_step <= 1'b0;
+                        round    <= 6'h0;
+                        if (rem_bytes == 6'd0) begin
+                            W[0] <= 32'h8000_0000;
+                            W[1] <= 32'h0; W[2]  <= 32'h0; W[3]  <= 32'h0;
+                            W[4] <= 32'h0; W[5]  <= 32'h0; W[6]  <= 32'h0;
+                            W[7] <= 32'h0; W[8]  <= 32'h0; W[9]  <= 32'h0;
+                            W[10]<= 32'h0; W[11] <= 32'h0; W[12] <= 32'h0;
+                            W[13]<= 32'h0;
+                            W[14]<= total_len_bits[63:32];
+                            W[15]<= total_len_bits[31:0];
+                        end else begin
+                            W[0] <= 32'h0; W[1]  <= 32'h0; W[2]  <= 32'h0;
+                            W[3] <= 32'h0; W[4]  <= 32'h0; W[5]  <= 32'h0;
+                            W[6] <= 32'h0; W[7]  <= 32'h0; W[8]  <= 32'h0;
+                            W[9] <= 32'h0; W[10] <= 32'h0; W[11] <= 32'h0;
+                            W[12]<= 32'h0; W[13] <= 32'h0;
+                            W[14]<= total_len_bits[63:32];
+                            W[15]<= total_len_bits[31:0];
+                        end
+                        a <= hash[0] + (T1 + T2);
+                        b <= hash[1] + a;
+                        c <= hash[2] + b;
+                        d <= hash[3] + c;
+                        e <= hash[4] + (d + T1);
+                        f <= hash[5] + e;
+                        g <= hash[6] + f;
+                        h <= hash[7] + g;
+                    end else begin
+                        active <= 1'b0;
+                        done   <= 1'b1;
+                    end
                 end
             end
         end
     end
 
-    // APB: write 16 words of block (0x00-0x3C), read 8 words of hash (0x40-0x5C)
+    // APB Interface
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            start  <= 1'b0;
-            prdata <= 32'h0;
+            start         <= 1'b0;
+            init_hash     <= 1'b0;
+            auto_pad      <= 1'b0;
+            msg_len_bytes <= 32'h0;
+            prdata        <= 32'h0;
         end else if (psel && penable) begin
             if (pwrite) begin
                 if (paddr[7:6] == 2'b00)
                     msg_block[paddr[5:2]] <= pwdata;
-                else if (paddr == 8'h60)
-                    start <= pwdata[0];
+                else if (paddr == 8'h60) begin
+                    start     <= pwdata[0];
+                    init_hash <= pwdata[1];
+                    auto_pad  <= pwdata[2];
+                end else if (paddr == 8'h64) begin
+                    msg_len_bytes <= pwdata;
+                end
             end else begin
                 if (paddr[7:6] == 2'b00)
                     prdata <= msg_block[paddr[5:2]];
                 else if (paddr[7:6] == 2'b01)
                     prdata <= hash[paddr[4:2]];
+                else if (paddr == 8'h64)
+                    prdata <= msg_len_bytes;
                 else
                     prdata <= {30'h0, done, active};
             end

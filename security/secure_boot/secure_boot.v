@@ -130,7 +130,10 @@ module secure_boot (
     localparam S_READ_STATUS_SETUP = 5'd19;
     localparam S_READ_STATUS_ACCESS= 5'd20;
     localparam S_READ_STATUS_CHECK = 5'd21;
+    localparam S_CFG_LEN_SETUP     = 5'd22;
+    localparam S_CFG_LEN_ACCESS    = 5'd23;
     reg [4:0]  state;
+    reg        fips_mode;
     reg [16:0] word_addr;
     reg [31:0] img_len;
     reg [31:0] pubkey_id;
@@ -210,6 +213,7 @@ module secure_boot (
             payload_idx   <= 16'h0;
             block_word_idx<= 4'h0;
             first_block   <= 1'b1;
+            fips_mode     <= 1'b0;
             sha_read_idx  <= 5'h0;
             ecdsa_load_idx<= 6'h0;
             payload_word  <= 32'h0;
@@ -269,8 +273,9 @@ module secure_boot (
                                 state     <= S_HALT;
                             end
                         end else if (word_addr == 17'd1) begin
-                            img_len <= envm_rdata;
-                            if (envm_rdata == 32'h0 || envm_rdata > 32'd1024) begin
+                            img_len   <= envm_rdata[15:0];
+                            fips_mode <= envm_rdata[16] || (envm_rdata[15:0] != 16'd16 && envm_rdata[15:0] != 16'd0);
+                            if (envm_rdata[15:0] == 16'h0 || envm_rdata[15:0] > 16'd1024) begin
                                 auth_fail <= 1'b1;
                                 state     <= S_HALT;
                             end
@@ -322,10 +327,28 @@ module secure_boot (
                                 payload_idx    <= 16'h0;
                                 block_word_idx <= 4'h0;
                                 first_block    <= 1'b1;
-                                state          <= S_READ_PAYLOAD_REQ;
+                                if (fips_mode) begin
+                                    state <= S_CFG_LEN_SETUP;
+                                end else begin
+                                    state <= S_READ_PAYLOAD_REQ;
+                                end
                             end
                         end
                     end
+                end
+
+                S_CFG_LEN_SETUP: begin
+                    sha_psel    <= 1'b1;
+                    sha_penable <= 1'b0;
+                    sha_pwrite  <= 1'b1;
+                    sha_paddr   <= 8'h64;
+                    sha_pwdata  <= {14'h0, img_len[15:0], 2'b00};
+                    state       <= S_CFG_LEN_ACCESS;
+                end
+
+                S_CFG_LEN_ACCESS: begin
+                    sha_penable <= 1'b1;
+                    state       <= S_READ_PAYLOAD_REQ;
                 end
 
                 S_READ_PAYLOAD_REQ: begin
@@ -369,7 +392,9 @@ module secure_boot (
                     sha_penable <= 1'b0;
                     sha_pwrite  <= 1'b1;
                     sha_paddr   <= 8'h60;
-                    sha_pwdata  <= first_block ? 32'h3 : 32'h1;
+                    sha_pwdata  <= (fips_mode && (payload_idx == img_len)) ?
+                                   (first_block ? 32'h7 : 32'h5) :
+                                   (first_block ? 32'h3 : 32'h1);
                     state       <= S_START_SHA_ACCESS;
                 end
 
@@ -386,7 +411,7 @@ module secure_boot (
                     sha_penable <= 1'b0;
                     sha_pwrite  <= 1'b0;
                     timeout_cnt <= timeout_cnt + 12'd1;
-                    if (timeout_cnt >= 12'd300) begin
+                    if (timeout_cnt >= 12'd1000) begin
                         auth_fail <= 1'b1;
                         state     <= S_HALT;
                     end else if (sha_done) begin
