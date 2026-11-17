@@ -25,6 +25,7 @@ verilator --lint-only -Wall \
     -Wno-CASEX \
     -Wno-PINMISSING \
     -Wno-UNOPTFLAT \
+    --unroll-count 2048 \
     -f "$CPU_BASE/verilator_files.f"
 
 echo "============================================"

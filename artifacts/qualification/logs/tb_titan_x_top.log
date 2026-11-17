@@ -1,3 +1,84 @@
-Verdict: TIMEOUT
+================================================================================
+Testbench: tb_titan_x_top
 Path: /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/top/titan_x_top/tb_titan_x_top.v
-Timeout=120s
+Verdict: PASS
+Compile Return Code: 0
+Simulation Return Code: 0
+Compile Command: iverilog -g2012 -DFAST_INIT -s tb_titan_x_top -I /home/anupam-sarashwat/TITAN-X-2026-11-04/includes -I /home/anupam-sarashwat/TITAN-X-2026-11-04/common -I /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/top/titan_x_top -o /tmp/tmp_xnmcwkx/tb_titan_x_top.vvp /home/anupam-sarashwat/TITAN-X-2026-11-04/includes/stdcell_stubs.v /home/anupam-sarashwat/TITAN-X-2026-11-04/common/BUFX4/buf_macros.v /home/anupam-sarashwat/TITAN-X-2026-11-04/common/cdc_sync/cdc_sync.v /home/anupam-sarashwat/TITAN-X-2026-11-04/common/fifo_sync/fifo_sync.v /home/anupam-sarashwat/TITAN-X-2026-11-04/common/fifo_async/fifo_async.v /home/anupam-sarashwat/TITAN-X-2026-11-04/common/reset_sync/reset_sync.v /home/anupam-sarashwat/TITAN-X-2026-11-04/frontend/rv_bpu/rv_bpu.v /home/anupam-sarashwat/TITAN-X-2026-11-04/frontend/rv_fetch/rv_fetch.v /home/anupam-sarashwat/TITAN-X-2026-11-04/frontend/rv_decode/rv_decode.v /home/anupam-sarashwat/TITAN-X-2026-11-04/frontend/rv_icache/rv_icache.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_regfile/rv_regfile.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_execute/rv_execute.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_fpu/rv_fpu.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_csr/rv_csr.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_mem/rv_mem.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_writeback/rv_writeback.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_tlb/rv_tlb.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_ptw/rv_ptw.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_pmp/rv_pmp.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_mmu/rv_mmu.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_dcache/rv_dcache.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/clint/clint.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/plic/plic.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_debug/rv_debug.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_monitor_core/rv_monitor_core.v /home/anupam-sarashwat/TITAN-X-2026-11-04/backend/rv_core_top/rv_core_top.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/sram_32x64_180nm/sram_32x64_180nm.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/sram_512kx8_180nm/sram_512kx8_180nm.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/l2_tag_array/l2_tag_array.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/l2_data_array/l2_data_array.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/l2_snoop_filter/l2_snoop_filter.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/l2_cache_ctrl/l2_cache_ctrl.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/l2_cache_top/l2_cache_top.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/ddr_scheduler/ddr_scheduler.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/ddr_phy_if/ddr_phy_if.v /home/anupam-sarashwat/TITAN-X-2026-11-04/memory/ddr_ctrl_top/ddr_ctrl_top.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/axi4_burst_to_lite.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/interconnect_mpu/mpu.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/mmu_arbiter/mmu_arbiter.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/qos_controller/qos_controller.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/ahb_to_apb/ahb_to_apb.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/apb_bridge/apb_bridge.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/axi4_to_ahb/axi4_to_ahb.v /home/anupam-sarashwat/TITAN-X-2026-11-04/interconnect/axi4_crossbar/axi4_crossbar.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/gpio_ctrl/gpio_ctrl.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/rtc/rtc.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/watchdog_timer/watchdog_timer.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/uart_16550/uart_16550.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/spi_master/spi_master.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/i2c_master/i2c_master.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/can_controller/can_controller.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/trng/trng.v /home/anupam-sarashwat/TITAN-X-2026-11-04/security/drbg/drbg.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/sha256_engine/sha256_engine.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/aes_engine/aes_engine.v /home/anupam-sarashwat/TITAN-X-2026-11-04/security/ecdsa_engine/ecdsa_engine.v /home/anupam-sarashwat/TITAN-X-2026-11-04/security/envm_ctrl/envm_ctrl.v /home/anupam-sarashwat/TITAN-X-2026-11-04/security/efuse_ctrl/efuse_ctrl.v /home/anupam-sarashwat/TITAN-X-2026-11-04/security/secure_boot/secure_boot.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/gem_sgmii_pcs/gem_sgmii_pcs.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/gem_ethernet/gem_ethernet.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/pcie_pipe_if/pcie_pipe_if.v /home/anupam-sarashwat/TITAN-X-2026-11-04/peripherals/pcie_top/pcie_top.v /home/anupam-sarashwat/TITAN-X-2026-11-04/storage/usb_otg/usb_otg.v /home/anupam-sarashwat/TITAN-X-2026-11-04/storage/mmc_controller/mmc_controller.v /home/anupam-sarashwat/TITAN-X-2026-11-04/storage/qspi_controller/qspi_controller.v /home/anupam-sarashwat/TITAN-X-2026-11-04/video/mipi_csi2_rx/mipi_csi2_rx.v /home/anupam-sarashwat/TITAN-X-2026-11-04/video/isp_pipeline/isp_pipeline.v /home/anupam-sarashwat/TITAN-X-2026-11-04/video/vdma/vdma.v /home/anupam-sarashwat/TITAN-X-2026-11-04/video/hdmi_ctrl/hdmi_ctrl.v /home/anupam-sarashwat/TITAN-X-2026-11-04/top/axi_rom/axi_rom.v /home/anupam-sarashwat/TITAN-X-2026-11-04/top/axi_sram/axi_sram.v /home/anupam-sarashwat/TITAN-X-2026-11-04/top/titan_x_top/titan_x_top.v /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/bfm/axi_memory_model.v /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/bfm/ddr4_sdram_bfm.v /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/bfm/gmii_frame_gen.v /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/bfm/mipi_csi2_bfm.v /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/bfm/pcie_rootport_bfm.v /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/bfm/ulpi_phy_bfm.v /home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/top/titan_x_top/tb_titan_x_top.v
+Sim Command: vvp /tmp/tmp_xnmcwkx/tb_titan_x_top.vvp
+================================================================================
+--- Simulation Output ---
+
+========================================
+  Phase 4/5: TITAN-X SoC Integration & RoT Qualification
+========================================
+PASS [860000] DDR PHY clock active (ddr_ck_p driven)
+PASS [1220000] DDR CKE driven
+PASS [1220000] UART0 TX idle high
+PASS [1220000] CAN0 TX recessive idle
+PASS [1220000] HDMI clk driven
+
+[RoT 4.1] Checking Pre-Boot RoT Gating & AXI Lock...
+PASS [1220000] boot_pass held low during verification
+PASS [1220000] core_rst_n held in reset while boot_pass=0
+PASS [1220000] axi_rom s_arready locked (0) during verification
+[RoT 4.2] Waiting for Cryptographic Boot Container Authentication...
+[DEBUG 500 cycles] state=18, word_addr=59, timeout=375, ecdsa_state=6
+[DEBUG 1000 cycles] state=18, word_addr=59, timeout=875, ecdsa_state=29
+[DEBUG 1500 cycles] state=18, word_addr=59, timeout=1375, ecdsa_state=29
+[DEBUG 2000 cycles] state=18, word_addr=59, timeout=1875, ecdsa_state=9
+[DEBUG 2500 cycles] state=18, word_addr=59, timeout=2375, ecdsa_state=26
+[DEBUG 3000 cycles] state=18, word_addr=59, timeout=2875, ecdsa_state=19
+[DEBUG 3500 cycles] state=18, word_addr=59, timeout=3375, ecdsa_state=22
+[DEBUG 4000 cycles] state=18, word_addr=59, timeout=3875, ecdsa_state=14
+[DEBUG 4500 cycles] state=18, word_addr=59, timeout=4375, ecdsa_state=16
+[DEBUG 5000 cycles] state=18, word_addr=59, timeout=4875, ecdsa_state=31
+[DEBUG 5500 cycles] state=18, word_addr=59, timeout=5375, ecdsa_state=21
+[DEBUG 6000 cycles] state=18, word_addr=59, timeout=5875, ecdsa_state=14
+[DEBUG 6500 cycles] state=18, word_addr=59, timeout=6375, ecdsa_state=27
+[DEBUG 7000 cycles] state=18, word_addr=59, timeout=6875, ecdsa_state=11
+[DEBUG 7500 cycles] state=18, word_addr=59, timeout=7375, ecdsa_state=17
+[DEBUG 8000 cycles] state=18, word_addr=59, timeout=7875, ecdsa_state=18
+[DEBUG 8500 cycles] state=18, word_addr=59, timeout=8375, ecdsa_state=32
+[DEBUG 9000 cycles] state=18, word_addr=59, timeout=8875, ecdsa_state=24
+[DEBUG 9500 cycles] state=18, word_addr=59, timeout=9375, ecdsa_state=29
+[DEBUG 10000 cycles] state=18, word_addr=59, timeout=9875, ecdsa_state=21
+[DEBUG 10500 cycles] state=18, word_addr=59, timeout=10375, ecdsa_state=11
+[DEBUG 11000 cycles] state=18, word_addr=59, timeout=10875, ecdsa_state=17
+[DEBUG 11500 cycles] state=18, word_addr=59, timeout=11375, ecdsa_state=35
+PASS [86576000] boot_pass asserted upon successful authentication
+PASS [86576000] boot_fail remained deasserted (0)
+PASS [86576000] core_rst_n released (1) after RoT pass
+PASS [86585000] axi_rom s_arready unlocked (1) after RoT pass
+[RoT 4.2] Authentication completed in 11855 cycles.
+
+[CPU 4.2B] Monitoring Core 0 Boot Execution & Instruction Retirement...
+[CORE0 RETIRE] instr_cnt=1 rd=x1 data=0x000000000000000f (15)
+[CORE0 RETIRE] instr_cnt=2 rd=x2 data=0x000000000000001b (27)
+[CORE0 RETIRE] instr_cnt=3 rd=x3 data=0x000000000000002a (42)
+[CORE0 RETIRE] instr_cnt=4 rd=x4 data=0x000000000000001b (27)
+[CORE0 RETIRE] instr_cnt=5 rd=x5 data=0x000000000000006c (108)
+[CORE0 RETIRE] instr_cnt=6 rd=x6 data=0x0000000040000000 (1073741824)
+[CPU 4.2B] Core 0 retired 6 instructions in 97 cycles.
+PASS [87282000] Core 0 instruction retirement assertion (retired_instr_cnt >= 4)
+PASS [87282000] Core 0 writeback result verification (x3 == 42)
+PASS [87282000] Core 0 writeback result verification (x5 == 108)
+
+[WDT 4.3] Verifying Watchdog Reset Integration into core_rst_n...
+PASS [87282000] core_rst_n is 1 while wdt_reset_n is 1
+PASS [87283000] core_rst_n forced to 0 when wdt_reset_n asserts 0
+PASS [87284000] core_rst_n recovered to 1 after wdt_reset_n release
+
+[RoT 4.4] Verifying Tampered Firmware Rejection...
+PASS [87440000] boot_fail asserted on tampered boot image
+PASS [87440000] boot_pass permanently deasserted (0) on tamper
+PASS [87440000] core_rst_n held locked in reset (0) on tamper
+PASS [87440000] axi_rom permanently locked (s_arready=0) on tamper
+
+========================================
+TITAN-X SoC VERDICT: PASS - All Phase 4 & 5 integration checks passed
+========================================
+
+/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/top/titan_x_top/tb_titan_x_top.v:254: $finish called at 87440400 (1ps)
+
+================================================================================

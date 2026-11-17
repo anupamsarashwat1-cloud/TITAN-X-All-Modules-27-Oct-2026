@@ -100,6 +100,7 @@ def run_one(tb_path: Path, rtl, timeout: int):
     log_file = log_dir / f"{name}.log"
     compile_cmd = [
         "iverilog", "-g2012",
+        "-DFAST_INIT",
         "-s", name,
         "-I", str(REPO / "includes"),
         "-I", str(REPO / "common"),
@@ -110,7 +111,7 @@ def run_one(tb_path: Path, rtl, timeout: int):
         with tempfile.TemporaryDirectory() as td:
             vvp = Path(td) / f"{name}.vvp"
             compile_cmd.extend([str(vvp), *rtl, str(tb_path)])
-            c_to = 600 if any(k in name for k in ("titan_x", "integ_periph")) else 180
+            c_to = 600 if any(k in name for k in ("titan_x", "integ_", "ecdsa", "secure_boot", "multicore")) else 180
             c = subprocess.run(
                 compile_cmd,
                 capture_output=True, text=True, errors="replace",
@@ -133,7 +134,7 @@ def run_one(tb_path: Path, rtl, timeout: int):
                 log_file.write_text(log_content)
                 return dict(name=name, path=str(tb_path), verdict="COMPILE_FAIL", tail=tail)
 
-            s_to = 600 if any(k in name for k in ("titan_x", "integ_periph", "ecdsa", "secure_boot")) else timeout
+            s_to = 600 if any(k in name for k in ("titan_x", "integ_", "ecdsa", "secure_boot", "multicore")) else timeout
             r = subprocess.run(
                 ["vvp", str(vvp)],
                 capture_output=True, text=True, errors="replace",

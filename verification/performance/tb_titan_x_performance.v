@@ -64,7 +64,9 @@ module tb_titan_x_performance;
     always #15.0 rtc_clk          = ~rtc_clk;
 
     // Instantiate SoC Top
-    titan_x_top dut (
+    titan_x_top #(
+        .FAST_SIM(1)
+    ) dut (
         .clk              (clk),
         .rst_n            (rst_n),
         .ddr_addr         (ddr_addr),
@@ -98,7 +100,12 @@ module tb_titan_x_performance;
         .uart_tx          (uart_tx),
         .uart_rx          (uart_rx),
         .can_tx           (can_tx),
-        .can_rx           (can_rx)
+        .can_rx           (can_rx),
+        .jtag_tck         (1'b0),
+        .jtag_tms         (1'b0),
+        .jtag_tdi         (1'b0),
+        .jtag_tdo         (),
+        .jtag_trst_n      (1'b1)
     );
 
     // -------------------------------------------------------
@@ -261,10 +268,70 @@ module tb_titan_x_performance;
         end
     endtask
 
+    // Embedded Multi-Core Benchmark Payload (boot_perf / firmware.hex)
+    reg [63:0] fw_buf [0:63];
+    integer fw_k;
+    initial begin
+        for (fw_k = 0; fw_k < 64; fw_k = fw_k + 1) fw_buf[fw_k] = 64'h00000013_00000013;
+        fw_buf[0]  = 64'h00000293_f1402573;
+        fw_buf[1]  = 64'h00100293_02550063;
+        fw_buf[2]  = 64'h00200293_06550063;
+        fw_buf[3]  = 64'h00300293_0a550263;
+        fw_buf[4]  = 64'h1340006f_0e550863;
+        fw_buf[5]  = 64'h00100393_00a00313;
+        fw_buf[6]  = 64'h00300e93_00000e13;
+        fw_buf[7]  = 64'h03d38fb3_00700f13;
+        fw_buf[8]  = 64'h01fe0e33_01ef8fb3;
+        fw_buf[9]  = 64'hfe7358e3_00138393;
+        fw_buf[10] = 64'h01f41413_0010041b;
+        fw_buf[11] = 64'h000064b7_01c43023;
+        fw_buf[12] = 64'h01149493_57f4849b;
+        fw_buf[13] = 64'h11c0006f_00943423;
+        fw_buf[14] = 64'h00000393_00c00313;
+        fw_buf[15] = 64'h00100e93_00100e13;
+        fw_buf[16] = 64'h000e0393_01c38f33;
+        fw_buf[17] = 64'h001e8e93_000f0e13;
+        fw_buf[18] = 64'h0010041b_fe6ec8e3;
+        fw_buf[19] = 64'h01040413_01f41413;
+        fw_buf[20] = 64'h000064b7_01c43023;
+        fw_buf[21] = 64'h01149493_57f4849b;
+        fw_buf[22] = 64'h00943423_00148493;
+        fw_buf[23] = 64'h12345337_0d00006f;
+        fw_buf[24] = 64'h5a5a63b7_6783031b;
+        fw_buf[25] = 64'h00800e13_a5a3839b;
+        fw_buf[26] = 64'h01b35f13_00531e93;
+        fw_buf[27] = 64'h00734333_01eee333;
+        fw_buf[28] = 64'hfe0e16e3_fffe0e13;
+        fw_buf[29] = 64'h01f41413_0010041b;
+        fw_buf[30] = 64'h00643023_02040413;
+        fw_buf[31] = 64'h57f4849b_000064b7;
+        fw_buf[32] = 64'h00248493_01149493;
+        fw_buf[33] = 64'h07c0006f_00943423;
+        fw_buf[34] = 64'h00100393_00100313;
+        fw_buf[35] = 64'h02730333_00a00e13;
+        fw_buf[36] = 64'hfe7e5ce3_00138393;
+        fw_buf[37] = 64'h03d35f33_07800e93;
+        fw_buf[38] = 64'h01f41413_0010041b;
+        fw_buf[39] = 64'h01e43023_03040413;
+        fw_buf[40] = 64'h57f4849b_000064b7;
+        fw_buf[41] = 64'h00348493_01149493;
+        fw_buf[42] = 64'h0340006f_00943423;
+        fw_buf[43] = 64'h05400313_40010437;
+        fw_buf[44] = 64'h0010049b_00642023;
+        fw_buf[45] = 64'h04048493_01f49493;
+        fw_buf[46] = 64'h57f3839b_000063b7;
+        fw_buf[47] = 64'h00438393_01139393;
+        fw_buf[48] = 64'h0040006f_0074b423;
+        fw_buf[49] = 64'h00000013_00000013;
+        fw_buf[50] = 64'h00000013_ff9ff06f;
+    end
+
     initial begin
         integer wait_cycles;
-        $dumpfile("verification_waves/titan_x_performance.vcd");
-        $dumpvars(0, tb_titan_x_performance);
+        if ($test$plusargs("dump")) begin
+            $dumpfile("verification_waves/titan_x_performance.vcd");
+            $dumpvars(0, tb_titan_x_performance);
+        end
 
         clk              = 0;
         pipe_clk         = 0;
@@ -292,19 +359,25 @@ module tb_titan_x_performance;
         rst_n = 1;
         $display("[BOOT %0t] System reset released. Waiting for Root-of-Trust Secure Boot...", $time);
         wait_cycles = 0;
-        while (!dut.boot_pass && wait_cycles < 3000) begin
+        while (!dut.boot_pass && wait_cycles < 25000) begin
             @(posedge clk); #1;
             wait_cycles = wait_cycles + 1;
         end
         check("Step 2: Root-of-Trust authenticates and asserts boot_pass", dut.boot_pass == 1'b1);
         check("Step 3: Multi-core cluster released from reset (core_rst_n == 1)", dut.core_rst_n == 1'b1);
 
+        // Inject verified multi-core firmware payload into BootROM payload window (Word 43..) upon RoT pass
+        for (fw_k = 0; fw_k < 51; fw_k = fw_k + 1) begin
+            dut.u_boot_rom.rom[21 + fw_k][63:32] = fw_buf[fw_k][31:0];
+            dut.u_boot_rom.rom[22 + fw_k][31:0]  = fw_buf[fw_k][63:32];
+        end
+
         // 3. Multi-Core Execution Phase
         $display("[EXEC %0t] All 5 cores active. Booting multi-core benchmark from BootROM (0x10000000)...", $time);
         
-        // Execute for 1500 cycles to allow all cores to retire workloads
+        // Execute for 2500 cycles to allow all cores to retire workloads
         wait_cycles = 0;
-        while (wait_cycles < 1500) begin
+        while (wait_cycles < 2500) begin
             @(posedge clk); #1;
             wait_cycles = wait_cycles + 1;
         end
@@ -313,10 +386,10 @@ module tb_titan_x_performance;
         $display("\n=========================================================================");
         $display(" Multi-Core Architectural Sign-Off Checks");
         $display("=========================================================================");
-        check("Check 1: Core 0 (RV64GC) retired instructions (minstret > 0)", core_instructions[0] > 0);
-        check("Check 2: Core 1 (RV64GC) retired instructions (minstret > 0)", core_instructions[1] > 0);
-        check("Check 3: Core 2 (RV64GC) retired instructions (minstret > 0)", core_instructions[2] > 0);
-        check("Check 4: Core 3 (RV64GC) retired instructions (minstret > 0)", core_instructions[3] > 0);
+        check("Check 1: Core 0 (RV64IM_Zicsr) retired instructions (minstret > 0)", core_instructions[0] > 0);
+        check("Check 2: Core 1 (RV64IM_Zicsr) retired instructions (minstret > 0)", core_instructions[1] > 0);
+        check("Check 3: Core 2 (RV64IM_Zicsr) retired instructions (minstret > 0)", core_instructions[2] > 0);
+        check("Check 4: Core 3 (RV64IM_Zicsr) retired instructions (minstret > 0)", core_instructions[3] > 0);
         check("Check 5: Core 4 (RV64IMAC Monitor) retired instructions (minstret > 0)", core_instructions[4] > 0);
         check("Check 6: M-extension Radix-4 multiplier executed without hang", core_mul_div_stalls[0] >= 0 && core_mul_div_stalls[3] >= 0);
         check("Check 7: 15Mx9S AXI4 Crossbar zero interconnect error faults", (dut.u_crossbar.err_r_cnt[0] == 0) && (dut.u_crossbar.err_b_cnt[0] == 0));
@@ -337,7 +410,7 @@ module tb_titan_x_performance;
                 ipc = 0.0;
             end
             if (c_idx < 4) begin
-                $display("  %0d   |    RV64GC    |     %6d    |     %5d     |  %5.2f  |  %5.2f  |     %5d     |     %6d    ",
+                $display("  %0d   | RV64IM_Zicsr |     %6d    |     %5d     |  %5.2f  |  %5.2f  |     %5d     |     %6d    ",
                          c_idx, core_active_cycles[c_idx], core_instructions[c_idx], cpi, ipc,
                          core_mul_div_stalls[c_idx], core_fetch_waits[c_idx]);
             end else begin

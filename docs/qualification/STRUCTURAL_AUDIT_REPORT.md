@@ -13,9 +13,9 @@ This structural audit provides a 100% source-code-grounded discovery of the TITA
 Every signal path, module instantiation, interface connection, constant tie-off, and module omission has been extracted
 directly from the synthesizable Verilog source without assuming documentation correctness.
 
-- **Total Synthesizable Modules in Codebase:** 268
-- **Active Modules Instantiated in Top-Level Hierarchy:** 52
-- **Synthesizable Modules Omitted from Top-Level Hierarchy:** 215
+- **Total Synthesizable Modules in Codebase:** 271
+- **Active Modules Instantiated in Top-Level Hierarchy:** 57
+- **Synthesizable Modules Omitted from Top-Level Hierarchy:** 213
 
 ---
 
@@ -47,47 +47,48 @@ directly from the synthesizable Verilog source without assuming documentation co
 
 | Instance Name | Module Name | Source RTL File | Port Count | Unconnected Ports | Tied-to-Constant Ports |
 |:---|:---|:---|:---:|:---:|:---:|
-| `u_plic` | `plic` | `backend/plic/plic.v` | 11 | 0 | 0 |
-| `u_qos_controller` | `qos_controller` | `interconnect/qos_controller/qos_controller.v` | 20 | 2 | 1 |
-| `u_interconnect_mpu` | `interconnect_mpu` | `interconnect/interconnect_mpu/mpu.v` | 61 | 2 | 1 |
-| `u_crossbar` | `axi4_crossbar` | `interconnect/axi4_crossbar/axi4_crossbar.v` | 50 | 0 | 0 |
-| `u_boot_rom` | `axi_rom` | `top/axi_rom/axi_rom.v` | 12 | 0 | 0 |
-| `u_core` | `rv_core_top` | `backend/rv_core_top/rv_core_top.v` | 52 | 7 | 0 |
-| `u_monitor` | `rv_monitor_core` | `backend/rv_monitor_core/rv_monitor_core.v` | 40 | 7 | 0 |
-| `u_debug` | `rv_debug` | `backend/rv_debug/rv_debug.v` | 35 | 15 | 14 |
-| `u_l2_cache` | `l2_cache_top` | `memory/l2_cache_top/l2_cache_top.v` | 43 | 0 | 0 |
-| `u_ddr_ctrl` | `ddr_ctrl_top` | `memory/ddr_ctrl_top/ddr_ctrl_top.v` | 41 | 3 | 6 |
-| `u_axi2ahb` | `axi4_to_ahb` | `interconnect/axi4_to_ahb/axi4_to_ahb.v` | 32 | 0 | 0 |
-| `u_gem` | `gem_ethernet` | `peripherals/gem_ethernet/gem_ethernet.v` | 43 | 2 | 0 |
-| `u_pcie` | `pcie_top` | `peripherals/pcie_top/pcie_top.v` | 39 | 0 | 0 |
-| `u_usb` | `usb_otg` | `storage/usb_otg/usb_otg.v` | 44 | 6 | 0 |
-| `u_mmc` | `mmc_controller` | `storage/mmc_controller/mmc_controller.v` | 42 | 6 | 0 |
-| `u_vdma` | `vdma` | `video/vdma/vdma.v` | 43 | 6 | 5 |
-| `u_qspi` | `qspi_controller` | `storage/qspi_controller/qspi_controller.v` | 20 | 6 | 3 |
-| `u_mmu_arbiter` | `mmu_arbiter` | `interconnect/mmu_arbiter/mmu_arbiter.v` | 16 | 0 | 0 |
-| `u_trng` | `trng` | `peripherals/trng/trng.v` | 14 | 2 | 0 |
-| `u_secure_boot` | `secure_boot` | `security/secure_boot/secure_boot.v` | 16 | 2 | 0 |
-| `u_envm` | `envm_ctrl` | `security/envm_ctrl/envm_ctrl.v` | 24 | 11 | 5 |
-| `u_drbg` | `drbg` | `security/drbg/drbg.v` | 14 | 2 | 0 |
-| `u_sha256` | `sha256_engine` | `peripherals/sha256_engine/sha256_engine.v` | 10 | 1 | 0 |
-| `u_ecdsa` | `ecdsa_engine` | `security/ecdsa_engine/ecdsa_engine.v` | 11 | 2 | 0 |
-| `u_aes` | `aes_engine` | `peripherals/aes_engine/aes_engine.v` | 19 | 6 | 4 |
-| `u_rtc` | `rtc` | `peripherals/rtc/rtc.v` | 12 | 2 | 0 |
-| `u_clint` | `clint` | `backend/clint/clint.v` | 11 | 1 | 0 |
-| `u_gpio` | `gpio_ctrl` | `peripherals/gpio_ctrl/gpio_ctrl.v` | 11 | 1 | 0 |
-| `u_wdt` | `watchdog_timer` | `peripherals/watchdog_timer/watchdog_timer.v` | 11 | 1 | 0 |
-| `u_spi` | `spi_master` | `peripherals/spi_master/spi_master.v` | 14 | 1 | 1 |
-| `u_i2c` | `i2c_master` | `peripherals/i2c_master/i2c_master.v` | 12 | 1 | 0 |
-| `u_uart0` | `uart_16550` | `peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
-| `u_uart1` | `uart_16550` | `peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
-| `u_uart2` | `uart_16550` | `peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
-| `u_uart3` | `uart_16550` | `peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
-| `u_uart4` | `uart_16550` | `peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
-| `u_can0` | `can_controller` | `peripherals/can_controller/can_controller.v` | 13 | 2 | 0 |
-| `u_can1` | `can_controller` | `peripherals/can_controller/can_controller.v` | 13 | 2 | 0 |
-| `u_mipi` | `mipi_csi2_rx` | `video/mipi_csi2_rx/mipi_csi2_rx.v` | 22 | 2 | 5 |
-| `u_isp` | `isp_pipeline` | `video/isp_pipeline/isp_pipeline.v` | 20 | 6 | 1 |
-| `u_hdmi` | `hdmi_ctrl` | `video/hdmi_ctrl/hdmi_ctrl.v` | 22 | 3 | 4 |
+| `u_plic` | `plic` | `Design Files of TITAN X/backend/plic/plic.v` | 11 | 0 | 0 |
+| `u_qos_controller` | `qos_controller` | `Design Files of TITAN X/interconnect/qos_controller/qos_controller.v` | 20 | 2 | 1 |
+| `u_interconnect_mpu` | `interconnect_mpu` | `Design Files of TITAN X/interconnect/interconnect_mpu/mpu.v` | 61 | 2 | 1 |
+| `u_crossbar` | `axi4_crossbar` | `Design Files of TITAN X/interconnect/axi4_crossbar/axi4_crossbar.v` | 50 | 0 | 0 |
+| `u_onchip_sram` | `axi_sram` | `Design Files of TITAN X/top/axi_sram/axi_sram.v` | 25 | 0 | 0 |
+| `u_boot_rom` | `axi_rom` | `Design Files of TITAN X/top/axi_rom/axi_rom.v` | 17 | 0 | 0 |
+| `u_core` | `rv_core_top` | `Design Files of TITAN X/backend/rv_core_top/rv_core_top.v` | 52 | 7 | 0 |
+| `u_monitor` | `rv_monitor_core` | `Design Files of TITAN X/backend/rv_monitor_core/rv_monitor_core.v` | 40 | 7 | 0 |
+| `u_debug` | `rv_debug` | `Design Files of TITAN X/backend/rv_debug/rv_debug.v` | 35 | 14 | 11 |
+| `u_l2_cache` | `l2_cache_top` | `Design Files of TITAN X/memory/l2_cache_top/l2_cache_top.v` | 43 | 0 | 0 |
+| `u_ddr_ctrl` | `ddr_ctrl_top` | `Design Files of TITAN X/memory/ddr_ctrl_top/ddr_ctrl_top.v` | 41 | 3 | 6 |
+| `u_axi2ahb` | `axi4_to_ahb` | `Design Files of TITAN X/interconnect/axi4_to_ahb/axi4_to_ahb.v` | 32 | 0 | 0 |
+| `u_gem` | `gem_ethernet` | `Design Files of TITAN X/peripherals/gem_ethernet/gem_ethernet.v` | 43 | 2 | 0 |
+| `u_pcie` | `pcie_top` | `Design Files of TITAN X/peripherals/pcie_top/pcie_top.v` | 39 | 0 | 0 |
+| `u_usb` | `usb_otg` | `Design Files of TITAN X/storage/usb_otg/usb_otg.v` | 44 | 6 | 0 |
+| `u_mmc` | `mmc_controller` | `Design Files of TITAN X/storage/mmc_controller/mmc_controller.v` | 42 | 6 | 0 |
+| `u_vdma` | `vdma` | `Design Files of TITAN X/video/vdma/vdma.v` | 43 | 6 | 5 |
+| `u_qspi` | `qspi_controller` | `Design Files of TITAN X/storage/qspi_controller/qspi_controller.v` | 20 | 6 | 3 |
+| `u_mmu_arbiter` | `mmu_arbiter` | `Design Files of TITAN X/interconnect/mmu_arbiter/mmu_arbiter.v` | 16 | 0 | 0 |
+| `u_trng` | `trng` | `Design Files of TITAN X/peripherals/trng/trng.v` | 14 | 2 | 0 |
+| `u_secure_boot` | `secure_boot` | `Design Files of TITAN X/security/secure_boot/secure_boot.v` | 16 | 2 | 0 |
+| `u_envm` | `envm_ctrl` | `Design Files of TITAN X/security/envm_ctrl/envm_ctrl.v` | 24 | 9 | 4 |
+| `u_drbg` | `drbg` | `Design Files of TITAN X/security/drbg/drbg.v` | 14 | 2 | 0 |
+| `u_sha256` | `sha256_engine` | `Design Files of TITAN X/peripherals/sha256_engine/sha256_engine.v` | 10 | 1 | 0 |
+| `u_ecdsa` | `ecdsa_engine` | `Design Files of TITAN X/security/ecdsa_engine/ecdsa_engine.v` | 11 | 2 | 0 |
+| `u_aes` | `aes_engine` | `Design Files of TITAN X/peripherals/aes_engine/aes_engine.v` | 19 | 6 | 4 |
+| `u_rtc` | `rtc` | `Design Files of TITAN X/peripherals/rtc/rtc.v` | 12 | 2 | 0 |
+| `u_clint` | `clint` | `Design Files of TITAN X/backend/clint/clint.v` | 11 | 1 | 0 |
+| `u_gpio` | `gpio_ctrl` | `Design Files of TITAN X/peripherals/gpio_ctrl/gpio_ctrl.v` | 11 | 1 | 0 |
+| `u_wdt` | `watchdog_timer` | `Design Files of TITAN X/peripherals/watchdog_timer/watchdog_timer.v` | 11 | 1 | 0 |
+| `u_spi` | `spi_master` | `Design Files of TITAN X/peripherals/spi_master/spi_master.v` | 14 | 1 | 1 |
+| `u_i2c` | `i2c_master` | `Design Files of TITAN X/peripherals/i2c_master/i2c_master.v` | 12 | 1 | 0 |
+| `u_uart0` | `uart_16550` | `Design Files of TITAN X/peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
+| `u_uart1` | `uart_16550` | `Design Files of TITAN X/peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
+| `u_uart2` | `uart_16550` | `Design Files of TITAN X/peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
+| `u_uart3` | `uart_16550` | `Design Files of TITAN X/peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
+| `u_uart4` | `uart_16550` | `Design Files of TITAN X/peripherals/uart_16550/uart_16550.v` | 17 | 4 | 2 |
+| `u_can0` | `can_controller` | `Design Files of TITAN X/peripherals/can_controller/can_controller.v` | 13 | 2 | 0 |
+| `u_can1` | `can_controller` | `Design Files of TITAN X/peripherals/can_controller/can_controller.v` | 13 | 2 | 0 |
+| `u_mipi` | `mipi_csi2_rx` | `Design Files of TITAN X/video/mipi_csi2_rx/mipi_csi2_rx.v` | 22 | 2 | 5 |
+| `u_isp` | `isp_pipeline` | `Design Files of TITAN X/video/isp_pipeline/isp_pipeline.v` | 20 | 6 | 1 |
+| `u_hdmi` | `hdmi_ctrl` | `Design Files of TITAN X/video/hdmi_ctrl/hdmi_ctrl.v` | 22 | 3 | 4 |
 
 ---
 

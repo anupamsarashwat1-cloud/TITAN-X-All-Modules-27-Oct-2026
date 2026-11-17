@@ -1,8 +1,8 @@
 {
   "top_module": "titan_x_top",
-  "total_modules_declared": 268,
-  "total_modules_instantiated": 52,
-  "total_modules_omitted": 215,
+  "total_modules_declared": 271,
+  "total_modules_instantiated": 57,
+  "total_modules_omitted": 213,
   "instantiated_modules": [
     "BUFX4",
     "aes_engine",
@@ -10,6 +10,7 @@
     "axi4_crossbar",
     "axi4_to_ahb",
     "axi_rom",
+    "axi_sram",
     "can_controller",
     "clint",
     "ddr_ctrl_top",
@@ -17,6 +18,7 @@
     "ddr_scheduler",
     "drbg",
     "ecdsa_engine",
+    "efuse_ctrl",
     "envm_ctrl",
     "gem_ethernet",
     "gpio_ctrl",
@@ -26,10 +28,12 @@
     "isp_pipeline",
     "l2_cache_ctrl",
     "l2_cache_top",
+    "l2_data_array",
     "l2_snoop_filter",
     "mipi_csi2_rx",
     "mmc_controller",
     "mmu_arbiter",
+    "mont_mul_256",
     "pcie_pipe_if",
     "pcie_top",
     "plic",
@@ -51,6 +55,7 @@
     "secure_boot",
     "sha256_engine",
     "spi_master",
+    "sram_32x64_180nm",
     "trng",
     "uart_16550",
     "usb_otg",
@@ -152,7 +157,6 @@
     "fpga_core",
     "gem_sgmii_pcs",
     "irq_rate_limit",
-    "l2_data_array",
     "l2_tag_array",
     "led_sreg_driver",
     "pcie_axi_dma_desc_mux",
@@ -204,7 +208,6 @@
     "rv_pmp",
     "rv_ptw",
     "rv_tlb",
-    "sram_32x64_180nm",
     "sram_512kx8_180nm",
     "sync_reset",
     "sync_signal",
@@ -383,7 +386,7 @@
       "instance": "u_plic",
       "module": "plic",
       "path": "titan_x_top.u_plic",
-      "file": "backend/plic/plic.v",
+      "file": "Design Files of TITAN X/backend/plic/plic.v",
       "port_audit": [
         {
           "port": "clk",
@@ -447,7 +450,7 @@
       "instance": "u_qos_controller",
       "module": "qos_controller",
       "path": "titan_x_top.u_qos_controller",
-      "file": "interconnect/qos_controller/qos_controller.v",
+      "file": "Design Files of TITAN X/interconnect/qos_controller/qos_controller.v",
       "port_audit": [
         {
           "port": "clk",
@@ -556,7 +559,7 @@
       "instance": "u_interconnect_mpu",
       "module": "interconnect_mpu",
       "path": "titan_x_top.u_interconnect_mpu",
-      "file": "interconnect/interconnect_mpu/mpu.v",
+      "file": "Design Files of TITAN X/interconnect/interconnect_mpu/mpu.v",
       "port_audit": [
         {
           "port": "clk",
@@ -870,7 +873,7 @@
       "instance": "u_crossbar",
       "module": "axi4_crossbar",
       "path": "titan_x_top.u_crossbar",
-      "file": "interconnect/axi4_crossbar/axi4_crossbar.v",
+      "file": "Design Files of TITAN X/interconnect/axi4_crossbar/axi4_crossbar.v",
       "port_audit": [
         {
           "port": "clk",
@@ -1126,10 +1129,10 @@
       "children": []
     },
     {
-      "instance": "u_boot_rom",
-      "module": "axi_rom",
-      "path": "titan_x_top.u_boot_rom",
-      "file": "top/axi_rom/axi_rom.v",
+      "instance": "u_onchip_sram",
+      "module": "axi_sram",
+      "path": "titan_x_top.u_onchip_sram",
+      "file": "Design Files of TITAN X/top/axi_sram/axi_sram.v",
       "port_audit": [
         {
           "port": "clk",
@@ -1139,6 +1142,165 @@
         {
           "port": "rst_n",
           "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awvalid",
+          "expr": "axs_awvalid[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awready",
+          "expr": "axs_awready[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awaddr",
+          "expr": "axs_awaddr[3*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_awid",
+          "expr": "axs_awid[3*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wvalid",
+          "expr": "axs_wvalid[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wready",
+          "expr": "axs_wready[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wdata",
+          "expr": "axs_wdata[3*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wstrb",
+          "expr": "axs_wstrb[3*8 +: 8]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_wlast",
+          "expr": "axs_wlast[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bvalid",
+          "expr": "axs_bvalid[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bready",
+          "expr": "axs_bready[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bresp",
+          "expr": "axs_bresp[3*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_bid",
+          "expr": "axs_bid[3*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arvalid",
+          "expr": "axs_arvalid[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arready",
+          "expr": "axs_arready[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_araddr",
+          "expr": "axs_araddr[3*40 +: 40]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_arid",
+          "expr": "axs_arid[3*4 +: 4]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rvalid",
+          "expr": "axs_rvalid[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rready",
+          "expr": "axs_rready[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rdata",
+          "expr": "axs_rdata[3*64 +: 64]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rresp",
+          "expr": "axs_rresp[3*2 +: 2]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rlast",
+          "expr": "axs_rlast[3]",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "s_rid",
+          "expr": "axs_rid[3*4 +: 4]",
+          "class": "CONNECTED"
+        }
+      ],
+      "children": []
+    },
+    {
+      "instance": "u_boot_rom",
+      "module": "axi_rom",
+      "path": "titan_x_top.u_boot_rom",
+      "file": "Design Files of TITAN X/top/axi_rom/axi_rom.v",
+      "port_audit": [
+        {
+          "port": "clk",
+          "expr": "clk",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rst_n",
+          "expr": "rst_n",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "boot_pass",
+          "expr": "boot_pass",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rom_preboot_en",
+          "expr": "rom_preboot_req",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rom_preboot_addr",
+          "expr": "rom_preboot_addr",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rom_preboot_rdata",
+          "expr": "rom_preboot_rdata",
+          "class": "CONNECTED"
+        },
+        {
+          "port": "rom_preboot_valid",
+          "expr": "rom_preboot_valid",
           "class": "CONNECTED"
         },
         {
@@ -1198,7 +1360,7 @@
       "instance": "u_core",
       "module": "rv_core_top",
       "path": "titan_x_top.u_core",
-      "file": "backend/rv_core_top/rv_core_top.v",
+      "file": "Design Files of TITAN X/backend/rv_core_top/rv_core_top.v",
       "port_audit": [
         {
           "port": "clk",
@@ -1466,7 +1628,7 @@
           "instance": "u_buf_flush1",
           "module": "BUFX4",
           "path": "titan_x_top.u_core.u_buf_flush1",
-          "file": "common/BUFX4/buf_macros.v",
+          "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
           "port_audit": [
             {
               "port": "A",
@@ -1485,7 +1647,7 @@
           "instance": "u_buf_flush4",
           "module": "BUFX4",
           "path": "titan_x_top.u_core.u_buf_flush4",
-          "file": "common/BUFX4/buf_macros.v",
+          "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
           "port_audit": [
             {
               "port": "A",
@@ -1504,7 +1666,7 @@
           "instance": "u_fetch",
           "module": "rv_fetch",
           "path": "titan_x_top.u_core.u_fetch",
-          "file": "frontend/rv_fetch/rv_fetch.v",
+          "file": "Design Files of TITAN X/frontend/rv_fetch/rv_fetch.v",
           "port_audit": [
             {
               "port": "clk",
@@ -1608,7 +1770,7 @@
           "instance": "u_icache",
           "module": "rv_icache",
           "path": "titan_x_top.u_core.u_icache",
-          "file": "frontend/rv_icache/rv_icache.v",
+          "file": "Design Files of TITAN X/frontend/rv_icache/rv_icache.v",
           "port_audit": [
             {
               "port": "clk",
@@ -1722,7 +1884,7 @@
           "instance": "u_icache_b2l",
           "module": "axi4_burst_to_lite",
           "path": "titan_x_top.u_core.u_icache_b2l",
-          "file": "interconnect/axi4_burst_to_lite.v",
+          "file": "Design Files of TITAN X/interconnect/axi4_burst_to_lite.v",
           "port_audit": [
             {
               "port": "clk",
@@ -1991,7 +2153,7 @@
           "instance": "u_decode",
           "module": "rv_decode",
           "path": "titan_x_top.u_core.u_decode",
-          "file": "frontend/rv_decode/rv_decode.v",
+          "file": "Design Files of TITAN X/frontend/rv_decode/rv_decode.v",
           "port_audit": [
             {
               "port": "clk",
@@ -2204,7 +2366,7 @@
               "instance": "u_rf",
               "module": "rv_regfile",
               "path": "titan_x_top.u_core.u_decode.u_rf",
-              "file": "backend/rv_regfile/rv_regfile.v",
+              "file": "Design Files of TITAN X/backend/rv_regfile/rv_regfile.v",
               "port_audit": [
                 {
                   "port": "clk",
@@ -2258,7 +2420,7 @@
               "instance": "u_buf1",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_decode.u_buf1",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2277,7 +2439,7 @@
               "instance": "u_buf2",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_decode.u_buf2",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2296,7 +2458,7 @@
               "instance": "u_buf3",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_decode.u_buf3",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2315,7 +2477,7 @@
               "instance": "u_buf4",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_decode.u_buf4",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2334,7 +2496,7 @@
               "instance": "u_buf5",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_decode.u_buf5",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2355,7 +2517,7 @@
           "instance": "u_execute",
           "module": "rv_execute",
           "path": "titan_x_top.u_core.u_execute",
-          "file": "backend/rv_execute/rv_execute.v",
+          "file": "Design Files of TITAN X/backend/rv_execute/rv_execute.v",
           "port_audit": [
             {
               "port": "clk",
@@ -2728,7 +2890,7 @@
               "instance": "u_csr",
               "module": "rv_csr",
               "path": "titan_x_top.u_core.u_execute.u_csr",
-              "file": "backend/rv_csr/rv_csr.v",
+              "file": "Design Files of TITAN X/backend/rv_csr/rv_csr.v",
               "port_audit": [
                 {
                   "port": "clk",
@@ -2837,7 +2999,7 @@
               "instance": "u_buf_flush_ex1",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex1",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2856,7 +3018,7 @@
               "instance": "u_buf_flush_ex2",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex2",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2875,7 +3037,7 @@
               "instance": "u_buf_flush_ex3",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex3",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2894,7 +3056,7 @@
               "instance": "u_buf_flush_ex4",
               "module": "BUFX4",
               "path": "titan_x_top.u_core.u_execute.u_buf_flush_ex4",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -2915,7 +3077,7 @@
           "instance": "u_mem",
           "module": "rv_mem",
           "path": "titan_x_top.u_core.u_mem",
-          "file": "backend/rv_mem/rv_mem.v",
+          "file": "Design Files of TITAN X/backend/rv_mem/rv_mem.v",
           "port_audit": [
             {
               "port": "clk",
@@ -3134,7 +3296,7 @@
           "instance": "u_dcache",
           "module": "rv_dcache",
           "path": "titan_x_top.u_core.u_dcache",
-          "file": "backend/rv_dcache/rv_dcache.v",
+          "file": "Design Files of TITAN X/backend/rv_dcache/rv_dcache.v",
           "port_audit": [
             {
               "port": "clk",
@@ -3413,7 +3575,7 @@
           "instance": "u_dcache_b2l",
           "module": "axi4_burst_to_lite",
           "path": "titan_x_top.u_core.u_dcache_b2l",
-          "file": "interconnect/axi4_burst_to_lite.v",
+          "file": "Design Files of TITAN X/interconnect/axi4_burst_to_lite.v",
           "port_audit": [
             {
               "port": "clk",
@@ -3682,7 +3844,7 @@
           "instance": "u_wb",
           "module": "rv_writeback",
           "path": "titan_x_top.u_core.u_wb",
-          "file": "backend/rv_writeback/rv_writeback.v",
+          "file": "Design Files of TITAN X/backend/rv_writeback/rv_writeback.v",
           "port_audit": [
             {
               "port": "clk",
@@ -3753,7 +3915,7 @@
       "instance": "u_monitor",
       "module": "rv_monitor_core",
       "path": "titan_x_top.u_monitor",
-      "file": "backend/rv_monitor_core/rv_monitor_core.v",
+      "file": "Design Files of TITAN X/backend/rv_monitor_core/rv_monitor_core.v",
       "port_audit": [
         {
           "port": "clk",
@@ -3961,7 +4123,7 @@
           "instance": "u_decode",
           "module": "rv_decode",
           "path": "titan_x_top.u_monitor.u_decode",
-          "file": "frontend/rv_decode/rv_decode.v",
+          "file": "Design Files of TITAN X/frontend/rv_decode/rv_decode.v",
           "port_audit": [
             {
               "port": "clk",
@@ -4134,7 +4296,7 @@
               "instance": "u_rf",
               "module": "rv_regfile",
               "path": "titan_x_top.u_monitor.u_decode.u_rf",
-              "file": "backend/rv_regfile/rv_regfile.v",
+              "file": "Design Files of TITAN X/backend/rv_regfile/rv_regfile.v",
               "port_audit": [
                 {
                   "port": "clk",
@@ -4188,7 +4350,7 @@
               "instance": "u_buf1",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_decode.u_buf1",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4207,7 +4369,7 @@
               "instance": "u_buf2",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_decode.u_buf2",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4226,7 +4388,7 @@
               "instance": "u_buf3",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_decode.u_buf3",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4245,7 +4407,7 @@
               "instance": "u_buf4",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_decode.u_buf4",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4264,7 +4426,7 @@
               "instance": "u_buf5",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_decode.u_buf5",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4285,7 +4447,7 @@
           "instance": "u_execute",
           "module": "rv_execute",
           "path": "titan_x_top.u_monitor.u_execute",
-          "file": "backend/rv_execute/rv_execute.v",
+          "file": "Design Files of TITAN X/backend/rv_execute/rv_execute.v",
           "port_audit": [
             {
               "port": "clk",
@@ -4578,7 +4740,7 @@
               "instance": "u_csr",
               "module": "rv_csr",
               "path": "titan_x_top.u_monitor.u_execute.u_csr",
-              "file": "backend/rv_csr/rv_csr.v",
+              "file": "Design Files of TITAN X/backend/rv_csr/rv_csr.v",
               "port_audit": [
                 {
                   "port": "clk",
@@ -4687,7 +4849,7 @@
               "instance": "u_buf_flush_ex1",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex1",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4706,7 +4868,7 @@
               "instance": "u_buf_flush_ex2",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex2",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4725,7 +4887,7 @@
               "instance": "u_buf_flush_ex3",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex3",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4744,7 +4906,7 @@
               "instance": "u_buf_flush_ex4",
               "module": "BUFX4",
               "path": "titan_x_top.u_monitor.u_execute.u_buf_flush_ex4",
-              "file": "common/BUFX4/buf_macros.v",
+              "file": "Design Files of TITAN X/common/BUFX4/buf_macros.v",
               "port_audit": [
                 {
                   "port": "A",
@@ -4767,7 +4929,7 @@
       "instance": "u_debug",
       "module": "rv_debug",
       "path": "titan_x_top.u_debug",
-      "file": "backend/rv_debug/rv_debug.v",
+      "file": "Design Files of TITAN X/backend/rv_debug/rv_debug.v",
       "port_audit": [
         {
           "port": "clk",
@@ -4776,28 +4938,28 @@
         },
         {
           "port": "rst_n",
-          "expr": "rst_n",
+          "expr": "debug_rst_n",
           "class": "CONNECTED"
         },
         {
           "port": "tck",
-          "expr": "1'b0",
-          "class": "TIED_TO_CONSTANT"
+          "expr": "jtag_tck",
+          "class": "CONNECTED"
         },
         {
           "port": "tms",
-          "expr": "1'b0",
-          "class": "TIED_TO_CONSTANT"
+          "expr": "jtag_tms",
+          "class": "CONNECTED"
         },
         {
           "port": "tdi",
-          "expr": "1'b0",
-          "class": "TIED_TO_CONSTANT"
+          "expr": "jtag_tdi",
+          "class": "CONNECTED"
         },
         {
           "port": "tdo",
-          "expr": "",
-          "class": "UNCONNECTED"
+          "expr": "jtag_tdo",
+          "class": "CONNECTED"
         },
         {
           "port": "halt_req",
@@ -4951,7 +5113,7 @@
       "instance": "u_l2_cache",
       "module": "l2_cache_top",
       "path": "titan_x_top.u_l2_cache",
-      "file": "memory/l2_cache_top/l2_cache_top.v",
+      "file": "Design Files of TITAN X/memory/l2_cache_top/l2_cache_top.v",
       "port_audit": [
         {
           "port": "clk",
@@ -5165,7 +5327,7 @@
         },
         {
           "port": "snoop_data",
-          "expr": "core_snoop_data[0] | core_snoop_data[1] | core_snoop_data[2] | core_snoop_data[3]",
+          "expr": "l2_snoop_data_mux",
           "class": "CONNECTED"
         }
       ],
@@ -5174,7 +5336,7 @@
           "instance": "u_ctrl",
           "module": "l2_cache_ctrl",
           "path": "titan_x_top.u_l2_cache.u_ctrl",
-          "file": "memory/l2_cache_ctrl/l2_cache_ctrl.v",
+          "file": "Design Files of TITAN X/memory/l2_cache_ctrl/l2_cache_ctrl.v",
           "port_audit": [
             {
               "port": "clk",
@@ -5452,13 +5614,157 @@
               "class": "CONNECTED"
             }
           ],
-          "children": []
+          "children": [
+            {
+              "instance": "u_data_array",
+              "module": "l2_data_array",
+              "path": "titan_x_top.u_l2_cache.u_ctrl.u_data_array",
+              "file": "Design Files of TITAN X/memory/l2_data_array/l2_data_array.v",
+              "port_audit": [
+                {
+                  "port": "clk",
+                  "expr": "clk",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rst_n",
+                  "expr": "rst_n",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "cs",
+                  "expr": "sram_cs",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "we",
+                  "expr": "sram_we",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "wmask",
+                  "expr": "sram_wmask",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "addr",
+                  "expr": "sram_addr",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "din",
+                  "expr": "sram_din",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "dout",
+                  "expr": "sram_dout",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "dout_valid",
+                  "expr": "sram_dout_valid",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": [
+                {
+                  "instance": "u_sram_lo",
+                  "module": "sram_32x64_180nm",
+                  "path": "titan_x_top.u_l2_cache.u_ctrl.u_data_array.u_sram_lo",
+                  "file": "Design Files of TITAN X/memory/sram_32x64_180nm/sram_32x64_180nm.v",
+                  "port_audit": [
+                    {
+                      "port": "clk0",
+                      "expr": "clk",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "csb0",
+                      "expr": "bank_csb",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "web0",
+                      "expr": "bank_web",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "wmask0",
+                      "expr": "wmask[3:0]",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "addr0",
+                      "expr": "row_addr",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "din0",
+                      "expr": "din[31:0]",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "dout0",
+                      "expr": "bank_dout_lo[b]",
+                      "class": "CONNECTED"
+                    }
+                  ],
+                  "children": []
+                },
+                {
+                  "instance": "u_sram_hi",
+                  "module": "sram_32x64_180nm",
+                  "path": "titan_x_top.u_l2_cache.u_ctrl.u_data_array.u_sram_hi",
+                  "file": "Design Files of TITAN X/memory/sram_32x64_180nm/sram_32x64_180nm.v",
+                  "port_audit": [
+                    {
+                      "port": "clk0",
+                      "expr": "clk",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "csb0",
+                      "expr": "bank_csb",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "web0",
+                      "expr": "bank_web",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "wmask0",
+                      "expr": "wmask[7:4]",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "addr0",
+                      "expr": "row_addr",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "din0",
+                      "expr": "din[63:32]",
+                      "class": "CONNECTED"
+                    },
+                    {
+                      "port": "dout0",
+                      "expr": "bank_dout_hi[b]",
+                      "class": "CONNECTED"
+                    }
+                  ],
+                  "children": []
+                }
+              ]
+            }
+          ]
         },
         {
           "instance": "u_snoop_filter",
           "module": "l2_snoop_filter",
           "path": "titan_x_top.u_l2_cache.u_snoop_filter",
-          "file": "memory/l2_snoop_filter/l2_snoop_filter.v",
+          "file": "Design Files of TITAN X/memory/l2_snoop_filter/l2_snoop_filter.v",
           "port_audit": [
             {
               "port": "clk",
@@ -5542,7 +5848,7 @@
           "instance": "u_b2l",
           "module": "axi4_burst_to_lite",
           "path": "titan_x_top.u_l2_cache.u_b2l",
-          "file": "interconnect/axi4_burst_to_lite.v",
+          "file": "Design Files of TITAN X/interconnect/axi4_burst_to_lite.v",
           "port_audit": [
             {
               "port": "clk",
@@ -5813,7 +6119,7 @@
       "instance": "u_ddr_ctrl",
       "module": "ddr_ctrl_top",
       "path": "titan_x_top.u_ddr_ctrl",
-      "file": "memory/ddr_ctrl_top/ddr_ctrl_top.v",
+      "file": "Design Files of TITAN X/memory/ddr_ctrl_top/ddr_ctrl_top.v",
       "port_audit": [
         {
           "port": "clk",
@@ -6026,7 +6332,7 @@
           "instance": "u_sched",
           "module": "ddr_scheduler",
           "path": "titan_x_top.u_ddr_ctrl.u_sched",
-          "file": "memory/ddr_scheduler/ddr_scheduler.v",
+          "file": "Design Files of TITAN X/memory/ddr_scheduler/ddr_scheduler.v",
           "port_audit": [
             {
               "port": "clk",
@@ -6155,7 +6461,7 @@
           "instance": "u_phy",
           "module": "ddr_phy_if",
           "path": "titan_x_top.u_ddr_ctrl.u_phy",
-          "file": "memory/ddr_phy_if/ddr_phy_if.v",
+          "file": "Design Files of TITAN X/memory/ddr_phy_if/ddr_phy_if.v",
           "port_audit": [
             {
               "port": "clk",
@@ -6311,7 +6617,7 @@
       "instance": "u_axi2ahb",
       "module": "axi4_to_ahb",
       "path": "titan_x_top.u_axi2ahb",
-      "file": "interconnect/axi4_to_ahb/axi4_to_ahb.v",
+      "file": "Design Files of TITAN X/interconnect/axi4_to_ahb/axi4_to_ahb.v",
       "port_audit": [
         {
           "port": "clk",
@@ -6480,7 +6786,7 @@
       "instance": "u_gem",
       "module": "gem_ethernet",
       "path": "titan_x_top.u_gem",
-      "file": "peripherals/gem_ethernet/gem_ethernet.v",
+      "file": "Design Files of TITAN X/peripherals/gem_ethernet/gem_ethernet.v",
       "port_audit": [
         {
           "port": "clk",
@@ -6704,7 +7010,7 @@
       "instance": "u_pcie",
       "module": "pcie_top",
       "path": "titan_x_top.u_pcie",
-      "file": "peripherals/pcie_top/pcie_top.v",
+      "file": "Design Files of TITAN X/peripherals/pcie_top/pcie_top.v",
       "port_audit": [
         {
           "port": "pcie_clk",
@@ -6907,7 +7213,7 @@
           "instance": "u_pipe_if",
           "module": "pcie_pipe_if",
           "path": "titan_x_top.u_pcie.u_pipe_if",
-          "file": "peripherals/pcie_pipe_if/pcie_pipe_if.v",
+          "file": "Design Files of TITAN X/peripherals/pcie_pipe_if/pcie_pipe_if.v",
           "port_audit": [
             {
               "port": "pclk",
@@ -7053,7 +7359,7 @@
       "instance": "u_usb",
       "module": "usb_otg",
       "path": "titan_x_top.u_usb",
-      "file": "storage/usb_otg/usb_otg.v",
+      "file": "Design Files of TITAN X/storage/usb_otg/usb_otg.v",
       "port_audit": [
         {
           "port": "clk",
@@ -7282,7 +7588,7 @@
       "instance": "u_mmc",
       "module": "mmc_controller",
       "path": "titan_x_top.u_mmc",
-      "file": "storage/mmc_controller/mmc_controller.v",
+      "file": "Design Files of TITAN X/storage/mmc_controller/mmc_controller.v",
       "port_audit": [
         {
           "port": "clk",
@@ -7501,7 +7807,7 @@
       "instance": "u_vdma",
       "module": "vdma",
       "path": "titan_x_top.u_vdma",
-      "file": "video/vdma/vdma.v",
+      "file": "Design Files of TITAN X/video/vdma/vdma.v",
       "port_audit": [
         {
           "port": "clk",
@@ -7725,7 +8031,7 @@
       "instance": "u_qspi",
       "module": "qspi_controller",
       "path": "titan_x_top.u_qspi",
-      "file": "storage/qspi_controller/qspi_controller.v",
+      "file": "Design Files of TITAN X/storage/qspi_controller/qspi_controller.v",
       "port_audit": [
         {
           "port": "clk",
@@ -7834,7 +8140,7 @@
       "instance": "u_mmu_arbiter",
       "module": "mmu_arbiter",
       "path": "titan_x_top.u_mmu_arbiter",
-      "file": "interconnect/mmu_arbiter/mmu_arbiter.v",
+      "file": "Design Files of TITAN X/interconnect/mmu_arbiter/mmu_arbiter.v",
       "port_audit": [
         {
           "port": "clk",
@@ -7923,7 +8229,7 @@
       "instance": "u_trng",
       "module": "trng",
       "path": "titan_x_top.u_trng",
-      "file": "peripherals/trng/trng.v",
+      "file": "Design Files of TITAN X/peripherals/trng/trng.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8002,7 +8308,7 @@
       "instance": "u_secure_boot",
       "module": "secure_boot",
       "path": "titan_x_top.u_secure_boot",
-      "file": "security/secure_boot/secure_boot.v",
+      "file": "Design Files of TITAN X/security/secure_boot/secure_boot.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8056,22 +8362,22 @@
         },
         {
           "port": "envm_addr",
-          "expr": "envm_addr",
+          "expr": "rom_preboot_addr",
           "class": "CONNECTED"
         },
         {
           "port": "envm_req",
-          "expr": "envm_req",
+          "expr": "rom_preboot_req",
           "class": "CONNECTED"
         },
         {
           "port": "envm_rdata",
-          "expr": "envm_rdata",
+          "expr": "rom_preboot_rdata",
           "class": "CONNECTED"
         },
         {
           "port": "envm_valid",
-          "expr": "envm_valid",
+          "expr": "rom_preboot_valid",
           "class": "CONNECTED"
         },
         {
@@ -8087,10 +8393,109 @@
       ],
       "children": [
         {
+          "instance": "u_efuse",
+          "module": "efuse_ctrl",
+          "path": "titan_x_top.u_secure_boot.u_efuse",
+          "file": "Design Files of TITAN X/security/efuse_ctrl/efuse_ctrl.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "paddr",
+              "expr": "{28'h0, paddr[3:0]}",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "psel",
+              "expr": "efuse_apb_sel",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "penable",
+              "expr": "penable",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pwrite",
+              "expr": "pwrite",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pwdata",
+              "expr": "pwdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "prdata",
+              "expr": "efuse_prdata",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "pready",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "pslverr",
+              "expr": "",
+              "class": "UNCONNECTED"
+            },
+            {
+              "port": "hw_slot_idx",
+              "expr": "efuse_slot_idx",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "hw_rot_qx",
+              "expr": "efuse_rot_qx",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "hw_rot_qy",
+              "expr": "efuse_rot_qy",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "hw_slot_revoked",
+              "expr": "efuse_slot_revoked",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "hw_revocation_mask",
+              "expr": "efuse_revocation_mask",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "hw_security_counter",
+              "expr": "efuse_security_counter",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "hw_update_counter_val",
+              "expr": "efuse_update_counter_val",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "hw_update_counter_en",
+              "expr": "efuse_update_counter_en",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        },
+        {
           "instance": "u_sha256",
           "module": "sha256_engine",
           "path": "titan_x_top.u_secure_boot.u_sha256",
-          "file": "peripherals/sha256_engine/sha256_engine.v",
+          "file": "Design Files of TITAN X/peripherals/sha256_engine/sha256_engine.v",
           "port_audit": [
             {
               "port": "clk",
@@ -8149,7 +8554,7 @@
           "instance": "u_ecdsa",
           "module": "ecdsa_engine",
           "path": "titan_x_top.u_secure_boot.u_ecdsa",
-          "file": "security/ecdsa_engine/ecdsa_engine.v",
+          "file": "Design Files of TITAN X/security/ecdsa_engine/ecdsa_engine.v",
           "port_audit": [
             {
               "port": "clk",
@@ -8207,7 +8612,62 @@
               "class": "CONNECTED"
             }
           ],
-          "children": []
+          "children": [
+            {
+              "instance": "u_mont_mul",
+              "module": "mont_mul_256",
+              "path": "titan_x_top.u_secure_boot.u_ecdsa.u_mont_mul",
+              "file": "Design Files of TITAN X/security/ecdsa_engine/ecdsa_engine.v",
+              "port_audit": [
+                {
+                  "port": "clk",
+                  "expr": "clk",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "rst_n",
+                  "expr": "rst_n",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "start",
+                  "expr": "mul_start",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "a",
+                  "expr": "mul_a",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "b",
+                  "expr": "mul_b",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "m",
+                  "expr": "mul_m",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "res",
+                  "expr": "mul_res",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "done",
+                  "expr": "mul_done",
+                  "class": "CONNECTED"
+                },
+                {
+                  "port": "busy",
+                  "expr": "mul_busy",
+                  "class": "CONNECTED"
+                }
+              ],
+              "children": []
+            }
+          ]
         }
       ]
     },
@@ -8215,7 +8675,7 @@
       "instance": "u_envm",
       "module": "envm_ctrl",
       "path": "titan_x_top.u_envm",
-      "file": "security/envm_ctrl/envm_ctrl.v",
+      "file": "Design Files of TITAN X/security/envm_ctrl/envm_ctrl.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8309,8 +8769,8 @@
         },
         {
           "port": "envm_ce_n",
-          "expr": "",
-          "class": "UNCONNECTED"
+          "expr": "envm_ctrl_macro_ce_n",
+          "class": "CONNECTED"
         },
         {
           "port": "envm_we_n",
@@ -8319,8 +8779,8 @@
         },
         {
           "port": "envm_addr",
-          "expr": "",
-          "class": "UNCONNECTED"
+          "expr": "envm_ctrl_macro_addr",
+          "class": "CONNECTED"
         },
         {
           "port": "envm_wdata",
@@ -8329,8 +8789,8 @@
         },
         {
           "port": "envm_rdata",
-          "expr": "32'h0",
-          "class": "TIED_TO_CONSTANT"
+          "expr": "envm_ctrl_macro_rdata",
+          "class": "CONNECTED"
         },
         {
           "port": "envm_ready",
@@ -8344,7 +8804,7 @@
       "instance": "u_drbg",
       "module": "drbg",
       "path": "titan_x_top.u_drbg",
-      "file": "security/drbg/drbg.v",
+      "file": "Design Files of TITAN X/security/drbg/drbg.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8423,7 +8883,7 @@
       "instance": "u_sha256",
       "module": "sha256_engine",
       "path": "titan_x_top.u_sha256",
-      "file": "peripherals/sha256_engine/sha256_engine.v",
+      "file": "Design Files of TITAN X/peripherals/sha256_engine/sha256_engine.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8482,7 +8942,7 @@
       "instance": "u_ecdsa",
       "module": "ecdsa_engine",
       "path": "titan_x_top.u_ecdsa",
-      "file": "security/ecdsa_engine/ecdsa_engine.v",
+      "file": "Design Files of TITAN X/security/ecdsa_engine/ecdsa_engine.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8540,13 +9000,68 @@
           "class": "CONNECTED"
         }
       ],
-      "children": []
+      "children": [
+        {
+          "instance": "u_mont_mul",
+          "module": "mont_mul_256",
+          "path": "titan_x_top.u_ecdsa.u_mont_mul",
+          "file": "Design Files of TITAN X/security/ecdsa_engine/ecdsa_engine.v",
+          "port_audit": [
+            {
+              "port": "clk",
+              "expr": "clk",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "rst_n",
+              "expr": "rst_n",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "start",
+              "expr": "mul_start",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "a",
+              "expr": "mul_a",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "b",
+              "expr": "mul_b",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "m",
+              "expr": "mul_m",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "res",
+              "expr": "mul_res",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "done",
+              "expr": "mul_done",
+              "class": "CONNECTED"
+            },
+            {
+              "port": "busy",
+              "expr": "mul_busy",
+              "class": "CONNECTED"
+            }
+          ],
+          "children": []
+        }
+      ]
     },
     {
       "instance": "u_aes",
       "module": "aes_engine",
       "path": "titan_x_top.u_aes",
-      "file": "peripherals/aes_engine/aes_engine.v",
+      "file": "Design Files of TITAN X/peripherals/aes_engine/aes_engine.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8650,7 +9165,7 @@
       "instance": "u_rtc",
       "module": "rtc",
       "path": "titan_x_top.u_rtc",
-      "file": "peripherals/rtc/rtc.v",
+      "file": "Design Files of TITAN X/peripherals/rtc/rtc.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8719,7 +9234,7 @@
       "instance": "u_clint",
       "module": "clint",
       "path": "titan_x_top.u_clint",
-      "file": "backend/clint/clint.v",
+      "file": "Design Files of TITAN X/backend/clint/clint.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8783,7 +9298,7 @@
       "instance": "u_gpio",
       "module": "gpio_ctrl",
       "path": "titan_x_top.u_gpio",
-      "file": "peripherals/gpio_ctrl/gpio_ctrl.v",
+      "file": "Design Files of TITAN X/peripherals/gpio_ctrl/gpio_ctrl.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8847,7 +9362,7 @@
       "instance": "u_wdt",
       "module": "watchdog_timer",
       "path": "titan_x_top.u_wdt",
-      "file": "peripherals/watchdog_timer/watchdog_timer.v",
+      "file": "Design Files of TITAN X/peripherals/watchdog_timer/watchdog_timer.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8911,7 +9426,7 @@
       "instance": "u_spi",
       "module": "spi_master",
       "path": "titan_x_top.u_spi",
-      "file": "peripherals/spi_master/spi_master.v",
+      "file": "Design Files of TITAN X/peripherals/spi_master/spi_master.v",
       "port_audit": [
         {
           "port": "clk",
@@ -8990,7 +9505,7 @@
       "instance": "u_i2c",
       "module": "i2c_master",
       "path": "titan_x_top.u_i2c",
-      "file": "peripherals/i2c_master/i2c_master.v",
+      "file": "Design Files of TITAN X/peripherals/i2c_master/i2c_master.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9059,7 +9574,7 @@
       "instance": "u_uart0",
       "module": "uart_16550",
       "path": "titan_x_top.u_uart0",
-      "file": "peripherals/uart_16550/uart_16550.v",
+      "file": "Design Files of TITAN X/peripherals/uart_16550/uart_16550.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9153,7 +9668,7 @@
       "instance": "u_uart1",
       "module": "uart_16550",
       "path": "titan_x_top.u_uart1",
-      "file": "peripherals/uart_16550/uart_16550.v",
+      "file": "Design Files of TITAN X/peripherals/uart_16550/uart_16550.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9247,7 +9762,7 @@
       "instance": "u_uart2",
       "module": "uart_16550",
       "path": "titan_x_top.u_uart2",
-      "file": "peripherals/uart_16550/uart_16550.v",
+      "file": "Design Files of TITAN X/peripherals/uart_16550/uart_16550.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9341,7 +9856,7 @@
       "instance": "u_uart3",
       "module": "uart_16550",
       "path": "titan_x_top.u_uart3",
-      "file": "peripherals/uart_16550/uart_16550.v",
+      "file": "Design Files of TITAN X/peripherals/uart_16550/uart_16550.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9435,7 +9950,7 @@
       "instance": "u_uart4",
       "module": "uart_16550",
       "path": "titan_x_top.u_uart4",
-      "file": "peripherals/uart_16550/uart_16550.v",
+      "file": "Design Files of TITAN X/peripherals/uart_16550/uart_16550.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9529,7 +10044,7 @@
       "instance": "u_can0",
       "module": "can_controller",
       "path": "titan_x_top.u_can0",
-      "file": "peripherals/can_controller/can_controller.v",
+      "file": "Design Files of TITAN X/peripherals/can_controller/can_controller.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9603,7 +10118,7 @@
       "instance": "u_can1",
       "module": "can_controller",
       "path": "titan_x_top.u_can1",
-      "file": "peripherals/can_controller/can_controller.v",
+      "file": "Design Files of TITAN X/peripherals/can_controller/can_controller.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9677,7 +10192,7 @@
       "instance": "u_mipi",
       "module": "mipi_csi2_rx",
       "path": "titan_x_top.u_mipi",
-      "file": "video/mipi_csi2_rx/mipi_csi2_rx.v",
+      "file": "Design Files of TITAN X/video/mipi_csi2_rx/mipi_csi2_rx.v",
       "port_audit": [
         {
           "port": "rst_n",
@@ -9796,7 +10311,7 @@
       "instance": "u_isp",
       "module": "isp_pipeline",
       "path": "titan_x_top.u_isp",
-      "file": "video/isp_pipeline/isp_pipeline.v",
+      "file": "Design Files of TITAN X/video/isp_pipeline/isp_pipeline.v",
       "port_audit": [
         {
           "port": "clk",
@@ -9905,7 +10420,7 @@
       "instance": "u_hdmi",
       "module": "hdmi_ctrl",
       "path": "titan_x_top.u_hdmi",
-      "file": "video/hdmi_ctrl/hdmi_ctrl.v",
+      "file": "Design Files of TITAN X/video/hdmi_ctrl/hdmi_ctrl.v",
       "port_audit": [
         {
           "port": "clk_pixel",

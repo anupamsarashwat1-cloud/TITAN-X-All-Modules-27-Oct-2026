@@ -1,0 +1,15 @@
+Configuration Parameter,Hardware Declaration Macro,Synthesis Value (SCL 180nm),Architectural Target Value,Effective Data Capacity,Verification Status,Design Rationale & Notes
+Application Cores,`NUM_CORES,4,4,4x RV64IM_Zicsr Harts,VERIFIED (PASS),Cores 0-3 with private L1 caches and hardware MESI coherence
+Monitor Cores,N/A (Fixed),1,1,1x RV64IMAC Hart,VERIFIED (PASS),Hart 4 dedicated safety and runtime telemetry monitor
+L1 Instruction Cache,`L1I_WAYS / `L1I_SETS,4 ways x 64 sets,4 ways x 64 sets,16 KB per core (64B lines),VERIFIED (PASS),Direct-mapped to 4-way set associative write-through cache
+L1 Data Cache,`L1D_WAYS / `L1D_SETS,4 ways x 64 sets,4 ways x 64 sets,16 KB per core (64B lines),VERIFIED (PASS),"Write-back, write-allocate with MESI snooping"
+L2 Cache Geometry (Synthesis),`L2_WAYS / `L2_SETS,16 ways x 64 sets,16 ways x 64 sets,64 KB (64B line size),VERIFIED (PASS),"Standard-cell DFF scaling to fit inside 180nm die area (30,927 cells)"
+L2 Cache Geometry (Architectural),Target Parameter,16 ways x 2048 sets,16 ways x 2048 sets,2048 KB (2 MB),VERIFIED (PASS),Compiled foundry SRAM macro drop-in target
+L2 Snoop Filter Directory,Directory Table,64 sets x 4 cores,64 sets x 4 cores,256 directory entries,VERIFIED (PASS),Hardware multi-agent ack_accum & dirty_accum with round-robin eviction
+Physical Address Width,`ADDR_WIDTH,40 bits,40 bits,1 TB Physical Address Space,VERIFIED (PASS),Standard RV64 SV39-compatible physical bus width
+System Data Bus Width,`DATA_WIDTH,64 bits,64 bits,8 Bytes per beat,VERIFIED (PASS),AXI4-Full system backbone
+Crossbar Masters x Slaves,NM / NS,15 Masters x 9 Slaves,15 Masters x 9 Slaves,135 Crossbar Intersections,VERIFIED (PASS),Round-robin arbiter with fair starvation prevention and default DECERR
+On-Chip Scratchpad SRAM,`SRAM_SIZE,512 KB,512 KB,"524,288 Bytes (8-bit bytes)",VERIFIED (PASS),Dual sram_512kx8_180nm macro array for zero-wait deterministic tasks
+On-Chip Boot ROM,`ROM_SIZE,64 KB (1024 x 64-bit words),64 KB,"8,192 Bytes firmware image",VERIFIED (PASS),Authentic NIST ECDSA P-256 authenticated boot container
+Security eFuse Bank,NUM_SLOTS,4 Slots x 256 bits,4 Slots x 256 bits,1024 bits OTP,VERIFIED (PASS),Hardware key revocation and anti-rollback monotonic counters
+PLIC Interrupt Sources,SOURCES,186 Sources,186 Sources,186 Peripheral IRQs,VERIFIED (PASS),"7 priority levels, 10 contexts across 5 harts"

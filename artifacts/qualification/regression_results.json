@@ -1,13 +1,13 @@
 [
   {
-    "name": "tb_ecdsa_engine",
-    "path": "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/security/ecdsa_engine/tb_ecdsa_engine.v",
+    "name": "tb_titan_x_performance",
+    "path": "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/performance/tb_titan_x_performance.v",
     "verdict": "PASS",
     "tail": [
-      "ECDSA_ENGINE VERDICT: \u2705 PASS \u2014 All 6 genuine crypto scenarios verified",
-      "REGRESS_RESULT: PASS",
-      "==================================================================",
-      "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/security/ecdsa_engine/tb_ecdsa_engine.v:238: $finish called at 38987327000 (1ps)"
+      " Total Verification Failed: 0",
+      "=========================================================================================================",
+      "[PHASE 6 SIGN-OFF: SUCCESS] Performance verification and multi-core firmware boot 100% complete.",
+      "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/performance/tb_titan_x_performance.v:433: $finish called at 145106000 (1ps)"
     ]
   }
 ]
