@@ -1,0 +1,26 @@
+Subsystem,Requirement_or_Claim,Review_Method,Evidence_File_Reference,Outcome,Notes
+Root_of_Trust,Hardware eFuse Key Anchoring,RTL Static Analysis,Design Files of TITAN X/security/secure_boot/secure_boot.v:59-77,PASS,Hardware eFuse slot keys loaded; firmware cannot inject arbitrary public keys
+Root_of_Trust,Monotonic Anti-Rollback Counter,RTL Static Analysis,Design Files of TITAN X/security/efuse_ctrl/efuse_ctrl.v:75-105,PASS,Counter only increments in HW/SW; rollback firmware rejected
+Root_of_Trust,Fail-Safe Reset Gating,RTL Static Analysis,Design Files of TITAN X/security/secure_boot/secure_boot.v:577-578,PASS,boot_fail latches S_HALT; core_rst_n held low; axi_rom locked
+Root_of_Trust,NIST P-256 ECDSA Engine,RTL Static Analysis & Sim,Design Files of TITAN X/security/ecdsa_engine/ecdsa_engine.v:1-870,PASS,Genuine multicycle Montgomery multiplier with Jacobian point addition/doubling
+Cryptography,SHA-256 FIPS 180-4 Padding,RTL Static Analysis & Sim,Design Files of TITAN X/peripherals/sha256_engine/sha256_engine.v:50-250,PASS,Automated single-block and 2-block padding with 64-bit length encoding
+Processor_Core,RV64I Base Integer ISA,RTL Static Analysis & Regression,Design Files of TITAN X/frontend/rv_decode/rv_decode.v:70-130,PASS,Full 64-bit ALU instructions decoded and executed
+Processor_Core,RV64M Integer Mul/Div,RTL Static Analysis & Regression,Design Files of TITAN X/frontend/rv_decode/rv_decode.v:145-165,PASS,MUL/MULH/DIV/REM decoded on full funct7 and funct3
+Processor_Core,RV64A Atomic Extension,RTL Static Analysis,Design Files of TITAN X/backend/rv_dcache/rv_dcache.v:39-43,FAIL,A-extension commented as absent and tied off; LR/SC not integrated
+Processor_Core,RV64F_D Floating Point (RV64GC),RTL Static Analysis,Design Files of TITAN X/backend/rv_core_top/rv_core_top.v:400,FAIL,rv_fpu.v exists as standalone file but fpu_result tied to 0 in core
+Processor_Core,RV64C Compressed Instructions,RTL Static Analysis,Design Files of TITAN X/frontend/rv_decode/rv_decode.v:65,FAIL,Non-32-bit instructions (instr[1:0]!=2'b11) trapped as illegal
+Processor_Core,Sv39 MMU / Virtual Memory,RTL Static Analysis,Design Files of TITAN X/backend/rv_core_top/rv_core_top.v,FAIL,MMU/PTW/TLB/PMP not instantiated in core; physical M-mode only
+L1_Cache,32KB 8-Way D-Cache & I-Cache,RTL Geometry Calculation,Design Files of TITAN X/backend/rv_dcache/rv_dcache.v:15-20,PASS,8 ways x 64 sets x 64B line = 32 KiB exact
+L2_Cache,Shared 2MB 16-Way Cache,RTL Parameter & Instantiation Check,Design Files of TITAN X/memory/l2_cache_top/l2_cache_top.v:9,PARTIAL,SoC overrides SETS to 2048 (2MB sim); standalone default is 64 sets (64KB)
+L2_Cache,Compiled SRAM Macros Integration,RTL Static Analysis,Design Files of TITAN X/memory/l2_data_array/l2_data_array.v,PASS,256 sram_32x64_180nm macros integrated in data array
+L2_Cache,Tag Array Implementation,RTL Static Analysis,Design Files of TITAN X/memory/l2_cache_ctrl/l2_cache_ctrl.v:115,PARTIAL,Behavioral DFF array instead of SRAM macro; requires set scaling in synthesis
+Cache_Coherence,MESI Protocol Transitions,RTL Static Analysis,Design Files of TITAN X/memory/l2_snoop_filter/l2_snoop_filter.v:65-210,PASS,Directory tracks M/E/S/I states; issues GetS/GetM/Inv snoops
+Cache_Coherence,Directory Set Saturation Eviction,RTL Static Analysis,Design Files of TITAN X/memory/l2_snoop_filter/l2_snoop_filter.v:115-125,FAIL,Set overflow overwrites way 0 without back-invalidating L1 caches
+Interconnect,AXI4 Crossbar Routing & Fairness,RTL & Formal Analysis,Design Files of TITAN X/interconnect/axi4_crossbar/axi4_crossbar.v:1-150,PASS,Queue-based transaction tracking; 15 masters x 9 slaves; SVA proven
+Interconnect,APB Peripheral Aperture Decoding,RTL & Testbench Sim,Design Files of TITAN X/top/titan_x_top/titan_x_top.v:680-760,PASS,28 apertures decoded; zero-wait-state combinational prdata verified
+Memory_Subsystem,DDR4 Controller & PHY,RTL Static Analysis,Design Files of TITAN X/memory/ddr_phy_if/ddr_phy_if.v:1-35,PARTIAL,Controller is synthesizable; PHY is behavioral simulation array model
+SoC_Integration,Top-Level Netlist Integration,RTL Elaboration & Yosys Check,Design Files of TITAN X/top/titan_x_top/titan_x_top.v,PASS,Elaborated cleanly with 30886 cells and 256 SRAM macros
+SoC_Integration,JTAG Debug Module Top Pins,RTL Static Analysis,Design Files of TITAN X/top/titan_x_top/titan_x_top.v:538-545,PARTIAL,rv_debug instantiated but TCK/TMS/TDI hard-tied to 0
+Formal_Verification,SVA BMC Proofs (5 suites),Tool Execution Log,verification/formal/sva_inventory.md,PASS,5 formal suites proven using yosys-smtbmc and Z3
+Synthesis_Status,RTL Elaboration Accounting,Yosys 0.33 Execution,Design Files of TITAN X/synth_titan_x.tcl,PASS,Hierarchy check passed with 0 blackboxes and clean cell accounting
+ASIC_Implementation,Physical Layout (P&R/CTS/STA/GDSII),Repository Inspection,Top Level Directory,NOT TESTED,No P&R floorplan timing constraints or GDSII artifacts present in repo
