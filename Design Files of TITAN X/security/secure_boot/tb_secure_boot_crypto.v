@@ -30,7 +30,9 @@ module tb_secure_boot_crypto;
     integer checks_passed = 0;
     integer checks_failed = 0;
 
-    secure_boot uut (
+    secure_boot #(
+        .FAST_SIM(1)
+    ) uut (
         .clk(clk),
         .rst_n(rst_n),
         .paddr(paddr),

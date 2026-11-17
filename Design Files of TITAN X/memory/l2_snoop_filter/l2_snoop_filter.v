@@ -91,6 +91,8 @@ module l2_snoop_filter #(
     reg [1:0] req_type_saved;
     reg [3:0] target_snoop_mask;
     reg [4:0] chosen_way;
+    reg [3:0] ack_accum;
+    reg       dirty_accum;
 
     // Combinational lookup logic
     reg       combo_line_hit;
@@ -155,6 +157,8 @@ module l2_snoop_filter #(
             req_type_saved <= 2'h0;
             req_addr_saved <= {ADDR_W{1'b0}};
             target_snoop_mask <= 4'h0;
+            ack_accum <= 4'h0;
+            dirty_accum <= 1'b0;
             for (s_i = 0; s_i < DIR_SETS; s_i = s_i + 1) begin
                 replace_ptr[s_i] <= 5'd0;
                 for (w_i = 0; w_i < DIR_WAYS; w_i = w_i + 1) begin
@@ -204,6 +208,8 @@ module l2_snoop_filter #(
                                 snoop_addr        <= {victim_tag_comb, index, 6'h0};
                                 snoop_type        <= 2'b10; // Invalidate
                                 target_snoop_mask <= victim_mask_comb;
+                                ack_accum         <= 4'h0;
+                                dirty_accum       <= 1'b0;
                                 state             <= EVICT_WAIT;
                             end else begin
                                 // Entry valid but no sharers
@@ -219,10 +225,12 @@ module l2_snoop_filter #(
                         if (combo_line_state == ST_M || combo_line_state == ST_E) begin
                             // Someone else has it exclusively, must snoop
                             if (combo_hit_mask != (1 << req_core_saved)) begin
-                                snoop_valid <= combo_hit_mask;
-                                snoop_addr  <= {tag, index, 6'h0};
-                                snoop_type  <= (req_type_saved == 2'b00) ? 2'b00 : 2'b01; // GetS vs GetM
+                                snoop_valid       <= combo_hit_mask;
+                                snoop_addr        <= {tag, index, 6'h0};
+                                snoop_type        <= (req_type_saved == 2'b00) ? 2'b00 : 2'b01; // GetS vs GetM
                                 target_snoop_mask <= combo_hit_mask;
+                                ack_accum         <= 4'h0;
+                                dirty_accum       <= 1'b0;
                                 state <= SNOOP_REQ;
                             end else begin
                                 // It is us, no snoop needed
@@ -236,10 +244,12 @@ module l2_snoop_filter #(
                             if (req_type_saved == 2'b01 || req_type_saved == 2'b10) begin
                                 // Write request to shared line: invalidate others
                                 if ((combo_hit_mask & ~(1 << req_core_saved)) != 4'h0) begin
-                                    snoop_valid <= combo_hit_mask & ~(1 << req_core_saved);
-                                    snoop_addr  <= {tag, index, 6'h0};
-                                    snoop_type  <= 2'b10; // Inv
+                                    snoop_valid       <= combo_hit_mask & ~(1 << req_core_saved);
+                                    snoop_addr        <= {tag, index, 6'h0};
+                                    snoop_type        <= 2'b10; // Inv
                                     target_snoop_mask <= combo_hit_mask & ~(1 << req_core_saved);
+                                    ack_accum         <= 4'h0;
+                                    dirty_accum       <= 1'b0;
                                     state <= SNOOP_REQ;
                                 end else begin
                                     resp_valid <= 1'b1;
@@ -259,31 +269,39 @@ module l2_snoop_filter #(
                 end
 
                 SNOOP_REQ: begin
-                    // Wait for all snooped cores to ack
-                    if ((snoop_ack & target_snoop_mask) == target_snoop_mask) begin
-                        resp_valid <= 1'b1;
-                        resp_hit <= 1'b1;
-                        resp_dirty <= |(snoop_data_valid & target_snoop_mask);
-                        resp_owner <= req_core_saved;
+                    // Wait for all snooped cores to ack (support independent / staggered acks)
+                    if ((ack_accum | (snoop_ack & target_snoop_mask)) == target_snoop_mask) begin
+                        resp_valid  <= 1'b1;
+                        resp_hit    <= 1'b1;
+                        resp_dirty  <= dirty_accum | (|(snoop_data_valid & target_snoop_mask));
+                        resp_owner  <= req_core_saved;
                         snoop_valid <= 4'h0;
-                        state <= UPDATE;
+                        ack_accum   <= 4'h0;
+                        dirty_accum <= 1'b0;
+                        state       <= UPDATE;
                     end else begin
-                        snoop_valid <= target_snoop_mask & ~snoop_ack; // Keep requesting un-acked
+                        ack_accum   <= ack_accum | (snoop_ack & target_snoop_mask);
+                        dirty_accum <= dirty_accum | (|(snoop_data_valid & target_snoop_mask));
+                        snoop_valid <= target_snoop_mask & ~(ack_accum | (snoop_ack & target_snoop_mask)); // Keep requesting un-acked
                     end
                 end
 
                 EVICT_WAIT: begin
-                    // Wait for all snooped L1 cores to ack the victim back-invalidation
-                    if ((snoop_ack & target_snoop_mask) == target_snoop_mask) begin
-                        snoop_valid <= 4'h0;
+                    // Wait for all snooped L1 cores to ack the victim back-invalidation (support independent / staggered acks)
+                    if ((ack_accum | (snoop_ack & target_snoop_mask)) == target_snoop_mask) begin
+                        snoop_valid                  <= 4'h0;
                         dir_state[index][chosen_way] <= ST_I;
                         dir_mask[index][chosen_way]  <= 4'h0;
-                        resp_valid <= 1'b1;
-                        resp_hit   <= 1'b0;
-                        resp_dirty <= |(snoop_data_valid & target_snoop_mask);
-                        state      <= UPDATE;
+                        resp_valid                   <= 1'b1;
+                        resp_hit                     <= 1'b0;
+                        resp_dirty                   <= dirty_accum | (|(snoop_data_valid & target_snoop_mask));
+                        ack_accum                    <= 4'h0;
+                        dirty_accum                  <= 1'b0;
+                        state                        <= UPDATE;
                     end else begin
-                        snoop_valid <= target_snoop_mask & ~snoop_ack; // Keep requesting un-acked
+                        ack_accum   <= ack_accum | (snoop_ack & target_snoop_mask);
+                        dirty_accum <= dirty_accum | (|(snoop_data_valid & target_snoop_mask));
+                        snoop_valid <= target_snoop_mask & ~(ack_accum | (snoop_ack & target_snoop_mask)); // Keep requesting un-acked
                     end
                 end
 

@@ -1,22 +1,22 @@
 # SMVDU TITAN-X Multi-Core RISC-V SoC Architecture Specification
 
 ## 1. System Overview
-The **SMVDU TITAN-X** is an advanced 64-bit multi-core heterogeneous System-on-Chip (SoC) implementing the RISC-V RV64GC instruction set architecture. It integrates a coherent processor cluster, multi-tier cache subsystem, high-bandwidth AXI4 crossbar interconnect, hardware Root-of-Trust security enclave, high-performance video and imaging pipelines, storage controllers, and full industrial peripheral interfaces.
+The **SMVDU TITAN-X** is an advanced 64-bit multi-core heterogeneous System-on-Chip (SoC) implementing the RISC-V RV64IM_Zicsr instruction set architecture (with integrated IEEE 754 FPU coprocessor pipeline). It integrates a coherent processor cluster, multi-tier cache subsystem, high-bandwidth AXI4 crossbar interconnect, hardware Root-of-Trust security enclave, high-performance video and imaging pipelines, storage controllers, and full industrial peripheral interfaces.
 
 ---
 
 ## 2. Processor Core Organization
 The CPU cluster integrates five RISC-V harts:
 - **Four High-Performance Application Cores (Harts 0–3)**:
-  - Architecture: RV64IMAFD / RV64GC in-order 5-stage pipeline (`rv_fetch` -> `rv_decode` -> `rv_execute` -> `rv_mem` -> `rv_writeback`).
+  - Architecture: RV64IM_Zicsr in-order 5-stage pipeline (`rv_fetch` -> `rv_decode` -> `rv_execute` -> `rv_mem` -> `rv_writeback`).
   - L1 Instruction Cache: 32 KB 8-way set-associative (`rv_icache`).
-  - L1 Data Cache: 32 KB 8-way set-associative write-back, write-allocate with SECDED ECC protection (`rv_dcache`).
-  - Translation & Memory Protection: MMU with SV39 page-table walker (`rv_ptw`), unified TLB (`rv_tlb`), and 16-entry Physical Memory Protection (`rv_pmp`).
+  - L1 Data Cache: 32 KB 8-way set-associative write-back, write-allocate (`rv_dcache`).
+  - Memory Protection & Addressing: Physical Memory Protection (`rv_pmp`) with Bare physical addressing; SV39 paging structures (`rv_ptw`, `rv_tlb`) available for virtual memory extensions.
   - Branch Prediction: Two-level branch prediction unit with branch target buffer and return address stack (`rv_bpu`).
-  - Floating Point: IEEE 754-2008 single/double-precision FPU (`rv_fpu`).
-  - Traps & CSRs: Complete Machine/Supervisor privilege modes, `mtvec`, `mepc`, `mcause`, `mstatus` handling (`rv_csr`).
+  - Floating Point: IEEE 754-2008 single/double-precision FPU coprocessor datapath (`rv_fpu`).
+  - Traps & CSRs: Standard RISC-V Machine-mode privilege architecture with WARL CSR validation (`mtvec`, `mepc`, `mcause`, `mstatus`, `misa`, `mip`, `mie`) handling (`rv_csr`).
 - **One Real-Time Secure Service Monitor Core (Hart 4)**:
-  - Architecture: RV64IMAC deterministic core (`rv_monitor_core`).
+  - Architecture: RV64IM_Zicsr deterministic core (`rv_monitor_core`).
   - Purpose: Platform telemetry, secure enclave monitoring, safety watchdog, and auxiliary system supervision.
 
 ---

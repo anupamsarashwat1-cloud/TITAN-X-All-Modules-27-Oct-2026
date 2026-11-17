@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SMVDU-TITAN-X SoC — IEEE 754-2008 Floating Point Unit (F + D extensions)
-// Iteration 3: RV64GC FPU — 4-stage pipeline, shared SP/DP datapath
+// Iteration 3: RV64 FPU Coprocessor — 4-stage pipeline, shared SP/DP datapath
 // Target: SCL 180nm, 125-200 MHz
 // Supports: FADD/FSUB/FMUL/FDIV/FSQRT/FMA, FCVT, FMIN/FMAX, FCMP, FMV
 // Rounding modes: RNE, RTZ, RDN, RUP, RMM, DYN

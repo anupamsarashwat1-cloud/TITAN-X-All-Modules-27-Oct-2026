@@ -164,9 +164,10 @@ module tb_titan_x_top();
         while (!uut.boot_pass && !uut.boot_fail && wait_cnt < 2500000) begin
             @(posedge clk);
             wait_cnt = wait_cnt + 1;
-            if (wait_cnt % 10000 == 0) begin
+            if (wait_cnt % 500 == 0) begin
                 $display("[DEBUG %0d cycles] state=%0d, word_addr=%0d, timeout=%0d, ecdsa_state=%0d", 
                          wait_cnt, uut.u_secure_boot.state, uut.u_secure_boot.word_addr, uut.u_secure_boot.timeout_cnt, uut.u_secure_boot.u_ecdsa.state);
+                $fflush;
             end
         end
 

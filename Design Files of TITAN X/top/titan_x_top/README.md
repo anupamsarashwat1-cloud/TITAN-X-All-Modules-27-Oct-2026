@@ -2,7 +2,7 @@
 
 ## Description
 
-The `titan_x_top` module serves as the top-level System-on-Chip (SoC) integration module for the SMVDU-TITAN-X project. It instantiates, interconnects, and orchestrates the entire system architecture, anchoring a multicore RISC-V compute cluster (four RV64GC cores and an RV64IMAC monitor core) to a massive high-speed communication backbone via a 15-Master, 9-Slave AXI4 crossbar. It embeds extensive peripheral subsystems, including a DDR4 Memory Controller, high-speed interfaces (Gigabit Ethernet, PCIe, USB OTG), a multimedia and video subsystem (MIPI CSI-2, ISP, HDMI, VDMA), low-speed I/O (UARTs, RTC, CAN), and a dedicated Secure Boot and Cryptographic engine (AES, DRBG).
+The `titan_x_top` module serves as the top-level System-on-Chip (SoC) integration module for the SMVDU-TITAN-X project. It instantiates, interconnects, and orchestrates the entire system architecture, anchoring a multicore RISC-V compute cluster (four RV64IM_Zicsr application cores and an RV64IM_Zicsr monitor core) to a massive high-speed communication backbone via a 15-Master, 9-Slave AXI4 crossbar. It embeds extensive peripheral subsystems, including a DDR4 Memory Controller, high-speed interfaces (Gigabit Ethernet, PCIe, USB OTG), a multimedia and video subsystem (MIPI CSI-2, ISP, HDMI, VDMA), low-speed I/O (UARTs, RTC, CAN), hardware Root-of-Trust and cryptographic engines (AES, DRBG, SHA-256, ECDSA P-256), and external IEEE 1149.1 / RISC-V Debug 0.13 JTAG TAP pins.
 
 ## Interface
 
@@ -22,6 +22,10 @@ The `titan_x_top` module serves as the top-level System-on-Chip (SoC) integratio
 | rtc_clk | 1 | Real-Time Clock reference clock |
 | uart_rx | 5 | UART receive lines (5 channels) |
 | can_rx | 2 | CAN receive lines (2 channels) |
+| jtag_tck | 1 | JTAG Test Clock (< 10 MHz) |
+| jtag_tms | 1 | JTAG Test Mode Select |
+| jtag_tdi | 1 | JTAG Test Data In |
+| jtag_trst_n | 1 | JTAG Asynchronous Reset (active-low) |
 
 ### Outputs
 
@@ -46,6 +50,7 @@ The `titan_x_top` module serves as the top-level System-on-Chip (SoC) integratio
 | hdmi_tmds_data_n | 3 | HDMI TMDS differential data negative |
 | uart_tx | 5 | UART transmit lines (5 channels) |
 | can_tx | 2 | CAN transmit lines (2 channels) |
+| jtag_tdo | 1 | JTAG Test Data Out |
 
 ### Inouts
 
@@ -64,7 +69,8 @@ The top module manages the massive AXI interconnect topology. The five RISC-V co
 ```mermaid
 graph TD
     subgraph titan_x_top["titan_x_top"]
-        CORE["RISC-V Cores (4x RV64GC, 1x Monitor)"]
+        CORE["RISC-V Cores (4x RV64IM_Zicsr, 1x Monitor)"]
+        DEBUG["JTAG 0.13 Debug Module (TAP, DMI, DM)"]
         XBAR["AXI4 Crossbar (15x9)"]
         DDR["L2 Cache + DDR4 Controller"]
         PERIPH_BRIDGE["AXI-to-AHB/APB Bridge"]
@@ -76,6 +82,7 @@ graph TD
     end
 
     CORE --> |"AXI Masters (0-9)"| XBAR
+    DEBUG -.-> |"Halt/Resume & DMI"| CORE
     HS_PERIPH --> |"AXI Masters (10-12)"| XBAR
     XBAR --> |"AXI Slave 0"| DDR
     XBAR --> |"AXI Slave 1"| PERIPH_BRIDGE

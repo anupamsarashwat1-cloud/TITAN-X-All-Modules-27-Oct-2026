@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// SMVDU-TITAN-X SoC — RV64GC Execute / ALU Stage
+// SMVDU-TITAN-X SoC — RV64IM_Zicsr Execute / ALU Stage
 // Iteration 3: Adds M-extension (MUL/DIV) + A-extension (Atomics)
 // Target: SCL 180nm, 125-200 MHz
 `timescale 1ns/1ps

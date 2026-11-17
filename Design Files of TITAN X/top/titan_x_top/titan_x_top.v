@@ -90,7 +90,14 @@ module titan_x_top #(
     output wire        sd_reset_n,
     output wire        qspi_sclk,
     output wire        qspi_cs_n,
-    inout  wire [3:0]  qspi_io
+    inout  wire [3:0]  qspi_io,
+
+    // RISC-V Debug / JTAG 0.13 External Interface (Finding F-05 Remediation)
+    input  wire        jtag_tck,
+    input  wire        jtag_tms,
+    input  wire        jtag_tdi,
+    output wire        jtag_tdo,
+    input  wire        jtag_trst_n
 );
 
     // -------------------------------------------------------
@@ -409,7 +416,7 @@ module titan_x_top #(
     assign axs_bid[2*4 +: 4] = 4'h0;
 
     // -------------------------------------------------------
-    // Cores 0-3 (RV64GC) with L2 Coherence Snooping
+    // Cores 0-3 (RV64IM_Zicsr) with L2 Coherence Snooping
     // -------------------------------------------------------
     wire [3:0]   l2_snoop_valid;
     wire [39:0]  l2_snoop_addr;
@@ -515,16 +522,18 @@ module titan_x_top #(
     // -------------------------------------------------------
     // RISC-V Debug Module (JTAG 0.13 DM)
     // -------------------------------------------------------
+    wire debug_rst_n = (jtag_trst_n === 1'b0) ? 1'b0 : rst_n;
+
     rv_debug #(
         .NUM_HARTS(5),
         .PROGBUF_SIZE(16)
     ) u_debug (
         .clk(clk),
-        .rst_n(rst_n),
-        .tck(1'b0),
-        .tms(1'b0),
-        .tdi(1'b0),
-        .tdo(),
+        .rst_n(debug_rst_n),
+        .tck(jtag_tck),
+        .tms(jtag_tms),
+        .tdi(jtag_tdi),
+        .tdo(jtag_tdo),
         .halt_req(dbg_halt_req),
         .resume_req(dbg_resume_req),
         .hart_halted(dbg_hart_halted),

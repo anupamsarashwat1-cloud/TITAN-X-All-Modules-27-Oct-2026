@@ -8,8 +8,8 @@
 // Core and ISA Configuration
 // ============================================================
 `define XLEN              64
-`define NUM_APP_HARTS     4      // RV64GC application cores (Harts 0-3)
-`define NUM_MON_HARTS     1      // RV64IMAC monitor core (Hart 4)
+`define NUM_APP_HARTS     4      // RV64IM_Zicsr application cores (Harts 0-3)
+`define NUM_MON_HARTS     1      // RV64IM_Zicsr security monitor core (Hart 4)
 `define NUM_HARTS         5
 
 // Boot address — eNVM base (Secure Boot ROM)

@@ -168,21 +168,43 @@ REGRESS_RESULT: PASS
 ==================================================================
 ```
 
-### 4.2 Multi-Core Integration Verification
+### 4.2 Adversarial Multi-Agent Stress Verification (`tb_l2_snoop_filter_adversarial.v`)
+Under Prompt 6B, an adversarial stress testbench was developed to target edge cases in multi-agent asynchronous snooping:
+1. **Staggered Ack Accumulation:** Verified that cores acking at asynchronous cycle offsets (e.g., Core 0 at +1, Core 1 at +3, Core 2 at +5) do not deadlock `EVICT_WAIT` or `SNOOP_REQ`.
+2. **Early Dirty Pulse Retention:** Verified that a single-cycle dirty pulse on cycle 1 is held in `dirty_accum` until all remaining clean sharers complete their delayed acks.
+3. **Dirty Victim Saturation Eviction:** Verified that evicting a modified line owned by Core 1 asserts `resp_dirty=1` to trigger L2 dirty writeback.
+4. **32-Way Round-Robin Wrap-Around:** Exercised sequential eviction across all 32 ways and verified clean pointer wrap-around from Way 31 back to Way 0.
+5. **Random Jitter Stress:** 15 iterations of randomized delay injections (0-6 cycles per core) completed with zero timeouts.
+6. **Mid-Flight Reset Recovery:** Asynchronous reset asserted during active snoop wait cleanly returns FSM to `IDLE`.
+
+```
+==================================================================
+  TITAN-X: L2 SNOOP FILTER ADVERSARIAL STRESS SUITE
+==================================================================
+L2_SNOOP_FILTER_ADVERSARIAL: 231 checks, 0 errors
+REGRESS_RESULT: PASS
+==================================================================
+```
+
+### 4.3 Multi-Core Integration Verification
 - `tb_multicore_coherence.v`: Executed multi-core concurrent reads, writes, and snooping across 4 cores. **PASS (100%)**.
 - `tb_integ_memory_hierarchy.v`: Executed full memory hierarchy pipeline test including L1, L2, Snoop Filter, and DDR controller. **PASS (100%)**.
+- `tb_integ_multicore_mesi.v`: Executed top-level 4-core concurrent MESI coherence with dirty-line forwarding. **PASS (100%)**.
 
 ---
 
 ## 5. Architectural Defect Closure Sign-Off
 
-| Metric | Pre-Remediation | Post-Remediation | Verification Status |
+| Metric | Pre-Remediation | Post-Remediation (Prompt 6B) | Verification Status |
 |:---|:---:|:---:|:---:|
 | Directory Set Saturation Behavior | Silent overwrite of Way 0 | Round-Robin Victim Eviction | ✅ VERIFIED |
 | L1 Back-Invalidation on Eviction | None (orphaned lines) | Forced `2'b10 (Inv)` Snoop | ✅ VERIFIED |
-| Victim Dirty Forwarding | Dropped | Propagated via `resp_dirty` | ✅ VERIFIED |
+| Staggered Multi-Core Acks | Protocol Deadlock | Cycle-by-cycle `ack_accum` | ✅ VERIFIED |
+| Victim Dirty Forwarding | Dropped | Latched via `dirty_accum` | ✅ VERIFIED |
 | Directory Inclusion Property | Violated | Strictly Enforced | ✅ VERIFIED |
-| Unit Testbench Checks | 46 Checks (0 errors) | 119 Checks (0 errors) | ✅ 100% PASS |
-| Multi-Core Coherence Regression | Passed (low depth) | Passed (full inclusion) | ✅ 100% PASS |
+| Directed Testbench Checks | 46 Checks (0 errors) | 119 Checks (0 errors) | ✅ 100% PASS |
+| Adversarial Testbench Checks | 0 Checks | 231 Checks (0 errors) | ✅ 100% PASS |
+| Multi-Core Coherence Regression | Passed (low depth) | Passed (full inclusion & MESI) | ✅ 100% PASS |
 
-**Sign-Off Verdict:** FINDING-02 is formally **CLOSED**.
+**Sign-Off Verdict:** FINDING-02 is formally **REMEDIATED, PROVEN ADVERSARIALLY, AND CLOSED**.
+

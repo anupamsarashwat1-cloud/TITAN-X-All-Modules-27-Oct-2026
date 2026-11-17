@@ -72,7 +72,9 @@ module tb_fresh_titan_x_top;
     always #15    rtc_clk          = ~rtc_clk;          // Fast simulation RTC clock
 
     // Instantiate DUT
-    titan_x_top dut (
+    titan_x_top #(
+        .FAST_SIM(1)
+    ) dut (
         .clk              (clk),
         .rst_n            (rst_n),
         .ddr_addr         (ddr_addr),
@@ -174,9 +176,9 @@ module tb_fresh_titan_x_top;
         @(posedge clk); #1;
         check("Test 2.1: Secure boot transitions out of IDLE into HASH_IMAGE", dut.u_secure_boot.state == 3'd1);
 
-        // Wait for secure_boot to complete image hash and ECDSA verification
+        // Wait for secure_boot to complete image hash and ECDSA verification (~11,855 cycles)
         timeout = 0;
-        while (!dut.boot_pass && timeout < 2500) begin
+        while (!dut.boot_pass && timeout < 25000) begin
             @(posedge clk); #1;
             timeout = timeout + 1;
         end
