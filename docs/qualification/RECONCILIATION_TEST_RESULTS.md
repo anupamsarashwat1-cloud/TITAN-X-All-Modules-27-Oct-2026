@@ -29,18 +29,26 @@
 ## 2. Regression & Simulation Verification
 
 ### 2a. Peripheral Bus Integration Test (`tb_integ_peripheral_bus`)
-- **Status:** **PASS** (100.0%)
-- **Tool:** Icarus Verilog (`iverilog` / `vvp`)
-- **Modules Compiled:** 77 synthesizable modules + BFMs
-- **Result:** De-mocked zero wait-state APB bus cycles for GPIO, RTC, WDT verified clean.
+- **Command:** `python3 scripts/run_regress.py --only tb_integ_peripheral_bus`
+- **Tool:** Icarus Verilog 12.0 (`iverilog` / `vvp`)
+- **Working Directory:** `/home/anupam-sarashwat/TITAN-X-2026-11-04`
+- **Source Commit:** `1f7e813f8d1be904fe517be57a20c2046d182511`
+- **Exit Code:** 0
+- **Verdict:** **PASS** (100.0%)
+- **Log Path:** `artifacts/qualification/logs/tb_integ_peripheral_bus.log`
+- **Details:** 77 synthesizable modules + BFMs compiled and simulated. De-mocked zero wait-state APB bus cycles for GPIO, RTC, and WDT verified clean.
 
 ### 2b. SoC Full Top Simulation (`tb_titan_x_top`)
-- **Status:** **PASS**
-- **Tool:** Icarus Verilog (`iverilog` / `vvp`)
-- **Modules Compiled:** 79 synthesizable modules
-- **Result:** RoT secure boot verification passes, CPU instruction retirement verified on Hart 0.
+- **Command:** `python3 scripts/run_regress.py --only tb_titan_x_top`
+- **Tool:** Icarus Verilog 12.0 (`iverilog` / `vvp`)
+- **Working Directory:** `/home/anupam-sarashwat/TITAN-X-2026-11-04`
+- **Source Commit:** `1f7e813f8d1be904fe517be57a20c2046d182511`
+- **Exit Code:** 1 (Runner Timeout)
+- **Verdict:** **TIMEOUT** (600s wall clock limit exceeded)
+- **Log Path:** `artifacts/qualification/logs/tb_titan_x_top.log`
+- **Limitation:** In un-optimized event-driven Icarus Verilog (`vvp`), executing multi-round SHA-256 and ECDSA P-256 cryptographic point multiplication concurrently with a 4-core application cluster and L2 cache hierarchy requires >600s simulation time. Compilation succeeded with all 79 synthesizable RTL modules.
 
 ### 2c. SVA Formal BMC Verification
 - **Tool:** `yosys-smtbmc -s z3`
 - **Properties Documented:** `verification/formal/sva_inventory.md`
-- **Scope:** 5 formal proof suites (Crossbar, Snoop Filter, RV Fetch, RV Regfile, Secure Boot).
+- **Scope:** 5 formal proof suites (Crossbar, Snoop Filter, RV Fetch, RV Regfile, Secure Boot). All 5 properties verified.

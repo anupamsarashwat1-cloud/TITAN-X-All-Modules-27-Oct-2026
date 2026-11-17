@@ -2,12 +2,7 @@
   {
     "name": "tb_titan_x_top",
     "path": "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/top/titan_x_top/tb_titan_x_top.v",
-    "verdict": "PASS",
-    "tail": [
-      "========================================",
-      "TITAN-X SoC VERDICT: PASS - All Phase 4 & 5 integration checks passed",
-      "========================================",
-      "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/top/titan_x_top/tb_titan_x_top.v:253: $finish called at 87440400 (1ps)"
-    ]
+    "verdict": "TIMEOUT",
+    "tail": []
   }
 ]
