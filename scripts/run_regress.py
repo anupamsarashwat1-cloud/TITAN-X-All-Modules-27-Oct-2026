@@ -31,14 +31,15 @@ def rtl_files():
                     p = REPO / line
                     if p.exists() and str(p) not in rtl:
                         rtl.append(str(p))
-    # Append canonical BFMs if present
-    bfms = sorted(
-        str(p) for p in REPO.rglob("bfm/*.v")
-        if not any(x in p.parts for x in EXCLUDE_DIRS)
-    )
-    for b in bfms:
-        if b not in rtl:
-            rtl.append(b)
+    # Append canonical BFMs if present (resolved to prevent symlink duplication)
+    bfm_seen = set()
+    for p in sorted(REPO.rglob("bfm/*.v")):
+        if any(x in p.parts for x in EXCLUDE_DIRS):
+            continue
+        rp = str(p.resolve())
+        if rp not in rtl and rp not in bfm_seen:
+            bfm_seen.add(rp)
+            rtl.append(rp)
     return rtl
 
 
