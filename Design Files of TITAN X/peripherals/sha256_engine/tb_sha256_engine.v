@@ -235,6 +235,49 @@ module tb_sha256_engine();
         while (!irq) @(posedge clk);
         check_hash256(256'h676491965ed3ec50cb7a63ee96315480a95c54426b0b72bca8a0d4ad1285ad55, "64-byte CAVP");
 
+
+        $display("\n--- TEST 8B: NIST CAVP 1-byte message 'a' (auto-pad) ---");
+        apb_write(8'h00, 32'h6100_0000); // 'a'
+        apb_write(8'h64, 32'd1); // msg_len_bytes = 1
+        apb_write(8'h60, 32'h7); // start=1, init_hash=1, auto_pad=1
+        while (!irq) @(posedge clk);
+        check_hash256(256'hca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb, "1-byte 'a'");
+
+        $display("\n--- TEST 9B: Boundary 55-byte message (single-block limit, auto-pad) ---");
+        // 55 bytes of 'a' (13 full words 0x61616161, word 13 is 0x61616100)
+        for (i = 0; i < 13; i = i + 1)
+            apb_write(i*4, 32'h61616161);
+        apb_write(13*4, 32'h61616100);
+        apb_write(8'h64, 32'd55);
+        apb_write(8'h60, 32'h7);
+        while (!irq) @(posedge clk);
+        check_hash256(256'h9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318, "55-byte boundary");
+
+        $display("\n--- TEST 10B: Boundary 63-byte message (block-1 fill limit, auto-pad) ---");
+        // 63 bytes of 'a' (15 full words 0x61616161, word 15 is 0x61616100)
+        for (i = 0; i < 15; i = i + 1)
+            apb_write(i*4, 32'h61616161);
+        apb_write(15*4, 32'h61616100);
+        apb_write(8'h64, 32'd63);
+        apb_write(8'h60, 32'h7);
+        while (!irq) @(posedge clk);
+        check_hash256(256'h7d3e74a05d7db15bce4ad9ec0658ea98e3f06eeecf16b4c6fff2da457ddc2f34, "63-byte boundary");
+
+        $display("\n--- TEST 11B: Boundary 65-byte message (2-block multi-block chaining, auto-pad) ---");
+        // Block 0: 64 bytes of 'a' (16 words)
+        for (i = 0; i < 16; i = i + 1)
+            apb_write(i*4, 32'h61616161);
+        apb_write(8'h60, 32'h3); // start=1, init_hash=1, auto_pad=0
+        while (!irq) @(posedge clk);
+        // Block 1: 1 byte of 'a' in word 0
+        apb_write(8'h00, 32'h6100_0000);
+        for (i = 1; i < 16; i = i + 1)
+            apb_write(i*4, 32'h0);
+        apb_write(8'h64, 32'd65); // total 65 bytes
+        apb_write(8'h60, 32'h5);   // start=1, init_hash=0, auto_pad=1
+        while (!irq) @(posedge clk);
+        check_hash256(256'h635361c48bb9eab14198e76ea8ab7f1a41685d6ad62aa9146d301d4f17eb0ae0, "65-byte boundary");
+
         $display("\n--- TEST 12: Multi-block 120-byte message chaining (auto-pad) ---");
         // 120 bytes of 0x41 ('A')
         for (i = 0; i < 16; i = i + 1)

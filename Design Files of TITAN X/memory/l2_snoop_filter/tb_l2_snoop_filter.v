@@ -69,6 +69,8 @@ module tb_l2_snoop_filter;
     // Mock L1 Cache Snoop Responder
     reg [3:0] mock_ack_en;
     reg [3:0] mock_dirty_en;
+    integer sat_k;
+    reg evict_snoop_seen;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -291,6 +293,62 @@ module tb_l2_snoop_filter;
         send_request(40'h00_8000_00C0, 2'b00, 2'b10);
         wait_response(20);
         `EXPECT_EQ(resp_hit, 1'b1, "Set 3 entry preserved and hits")
+        wait_idle();
+
+        // ------------------------------------------------------------
+        // TEST 11: Set Saturation, Victim Eviction & Back-Invalidation
+        // Set 4 (index = 6'd4) has 32 ways. Fill all 32 ways with distinct lines.
+        // Then request line 33 mapping to Set 4.
+        // DUT must select victim way 0 (holding line 0), back-invalidate Core 0,
+        // and replace way 0 with line 33.
+        // ------------------------------------------------------------
+        $display("\n[TEST 11] Set Saturation, Round-Robin Eviction & L1 Back-Invalidation");
+        // Fill 32 ways of Set 4 (addr = 0x8000_0100 + (k << 12))
+        for (sat_k = 0; sat_k < 32; sat_k = sat_k + 1) begin
+            send_request(40'h00_8000_0100 + (sat_k << 12), 2'b00, 2'b00); // Core 0 ReadShared
+            wait_response(20);
+            `EXPECT_EQ(resp_hit, 1'b0, "Cold line fill in Set 4")
+            wait_idle();
+        end
+
+        // Verify Set 4 is full: Way 0 contains line 0 (addr 0x8000_0100)
+        send_request(40'h00_8000_0100, 2'b00, 2'b00);
+        wait_response(20);
+        `EXPECT_EQ(resp_hit, 1'b1, "Way 0 line hits before saturation eviction")
+        wait_idle();
+
+        // Now inject line 32 (33rd line) mapping to Set 4 -> Trigger Saturation Eviction!
+        evict_snoop_seen = 1'b0;
+        fork
+            begin
+                // Monitor snoop bus for back-invalidation targeting victim line 0
+                while (!evict_snoop_seen) begin
+                    @(posedge clk);
+                    if (snoop_valid == 4'b0001 && snoop_addr == 40'h00_8000_0100 && snoop_type == 2'b10) begin
+                        evict_snoop_seen = 1'b1;
+                    end
+                end
+            end
+            begin
+                send_request(40'h00_8000_0100 + (32 << 12), 2'b00, 2'b01); // Core 1 ReadShared line 32
+                wait_response(30);
+                `EXPECT_EQ(resp_hit, 1'b0, "33rd line is a directory miss allocating in evicted way")
+            end
+        join
+
+        `EXPECT_TRUE(evict_snoop_seen, "DUT asserted snoop invalidation targeting victim line 0")
+        wait_idle();
+
+        // Verify Line 1 (in Way 1) was NOT evicted and still hits
+        send_request(40'h00_8000_0100 + (1 << 12), 2'b00, 2'b00);
+        wait_response(20);
+        `EXPECT_EQ(resp_hit, 1'b1, "Preserved line 1 in Way 1 correctly reports directory hit")
+        wait_idle();
+
+        // Verify Line 0 was evicted and now misses
+        send_request(40'h00_8000_0100, 2'b00, 2'b00);
+        wait_response(20);
+        `EXPECT_EQ(resp_hit, 1'b0, "Evicted victim line 0 correctly reports directory miss")
         wait_idle();
 
         $display("\n==================================================================");

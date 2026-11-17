@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // SMVDU-TITAN-X SoC — L2 Snoop Filter (MESI Directory)
-// Iteration 3: Tracks L1 D-Cache coherence state for 4 application cores.
-// Coherence Protocol: MESI
+// Iteration 4: Tracks L1 D-Cache coherence state for 4 application cores.
+// Coherence Protocol: MESI with Set Saturation Victim Eviction & Back-Invalidation.
 `timescale 1ns/1ps
 `include "params.vh"
 
@@ -38,10 +38,6 @@ module l2_snoop_filter #(
     // -------------------------------------------------------
     // Directory Array
     // Tracks MESI state and owner/sharer mask for each L1 line.
-    // To maintain strict inclusion, directory must have at least 
-    // as many entries as total L1 capacity, typically organized 
-    // as a set-associative array (e.g., matching L1 sets).
-    // Here we model a 64-set × 8-way directory per core (or unified).
     // Unified array: 64 sets × 32 ways (8 ways * 4 cores)
     // -------------------------------------------------------
     reg [ADDR_W-1:0] req_addr_saved;
@@ -73,14 +69,18 @@ module l2_snoop_filter #(
     reg [3:0]  dir_mask  [0:DIR_SETS-1][0:DIR_WAYS-1];
     reg [27:0] dir_tag   [0:DIR_SETS-1][0:DIR_WAYS-1];
 
+    // Round-robin replacement pointer per directory set
+    reg [4:0]  replace_ptr [0:DIR_SETS-1];
+
     // -------------------------------------------------------
     // FSM
     // -------------------------------------------------------
-    localparam IDLE      = 3'd0;
-    localparam LOOKUP    = 3'd1;
-    localparam SNOOP_REQ = 3'd2;
-    localparam SNOOP_ACK = 3'd3;
-    localparam UPDATE    = 3'd4;
+    localparam IDLE       = 3'd0;
+    localparam LOOKUP     = 3'd1;
+    localparam SNOOP_REQ  = 3'd2;
+    localparam SNOOP_ACK  = 3'd3;
+    localparam UPDATE     = 3'd4;
+    localparam EVICT_WAIT = 3'd5;
 
     reg [2:0] state;
     reg [3:0] hit_mask;
@@ -90,8 +90,9 @@ module l2_snoop_filter #(
     reg [1:0] req_core_saved;
     reg [1:0] req_type_saved;
     reg [3:0] target_snoop_mask;
+    reg [4:0] chosen_way;
 
-    // Combinational lookup and allocation logic to avoid BLKSEQ in sequential block
+    // Combinational lookup logic
     reg       combo_line_hit;
     reg [4:0] combo_hit_way;
     reg [1:0] combo_line_state;
@@ -113,31 +114,53 @@ module l2_snoop_filter #(
         end
     end
 
-    reg [4:0] alloc_way_comb;
+    // Combinational free way detection
+    reg       has_free_way;
+    reg [4:0] free_way;
     integer ai;
     always @* begin
-        alloc_way_comb = 5'd0;
-        for (ai = 0; ai < DIR_WAYS; ai = ai + 1) begin
-            if (dir_state[index][ai] == ST_I) alloc_way_comb = ai[4:0];
+        has_free_way = 1'b0;
+        free_way     = 5'd0;
+        for (ai = DIR_WAYS - 1; ai >= 0; ai = ai - 1) begin
+            if (dir_state[index][ai] == ST_I) begin
+                has_free_way = 1'b1;
+                free_way     = ai[4:0];
+            end
         end
     end
+
+    // Combinational victim selection
+    wire [4:0]  victim_way_comb  = replace_ptr[index];
+    wire [3:0]  victim_mask_comb = dir_mask[index][victim_way_comb];
+    wire [27:0] victim_tag_comb  = dir_tag[index][victim_way_comb];
+
+    integer s_i, w_i;
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state <= IDLE;
             snoop_valid <= 4'h0;
+            snoop_addr  <= 40'h0;
+            snoop_type  <= 2'b00;
             resp_valid <= 1'b0;
+            resp_hit <= 1'b0;
+            resp_dirty <= 1'b0;
+            resp_owner <= 2'b00;
             line_hit <= 1'b0;
             hit_mask <= 4'h0;
             hit_way <= 5'h0;
+            chosen_way <= 5'h0;
             line_state <= ST_I;
             req_core_saved <= 2'h0;
             req_type_saved <= 2'h0;
             req_addr_saved <= {ADDR_W{1'b0}};
             target_snoop_mask <= 4'h0;
-            for (integer s=0; s<DIR_SETS; s=s+1) begin
-                for (integer w=0; w<DIR_WAYS; w=w+1) begin
-                    dir_state[s][w] = ST_I;
+            for (s_i = 0; s_i < DIR_SETS; s_i = s_i + 1) begin
+                replace_ptr[s_i] <= 5'd0;
+                for (w_i = 0; w_i < DIR_WAYS; w_i = w_i + 1) begin
+                    dir_state[s_i][w_i] <= ST_I;
+                    dir_mask[s_i][w_i]  <= 4'h0;
+                    dir_tag[s_i][w_i]   <= 28'h0;
                 end
             end
         end else begin
@@ -153,6 +176,7 @@ module l2_snoop_filter #(
                         state <= LOOKUP;
                     end
                 end
+
                 LOOKUP: begin
                     line_hit   <= combo_line_hit;
                     hit_way    <= combo_hit_way;
@@ -160,11 +184,36 @@ module l2_snoop_filter #(
                     hit_mask   <= combo_hit_mask;
 
                     if (!combo_line_hit || (combo_line_state == ST_I)) begin
-                        // Miss: no snoops needed, just fetch from memory
-                        resp_valid <= 1'b1;
-                        resp_hit <= 1'b0;
-                        resp_dirty <= 1'b0;
-                        state <= UPDATE; // Need to allocate in directory
+                        // Directory Miss: Check if an empty way exists in this set
+                        if (has_free_way) begin
+                            chosen_way <= free_way;
+                            resp_valid <= 1'b1;
+                            resp_hit   <= 1'b0;
+                            resp_dirty <= 1'b0;
+                            state      <= UPDATE;
+                        end else begin
+                            // Set Saturation: Evict victim via back-invalidation
+                            chosen_way <= victim_way_comb;
+                            if (victim_way_comb >= DIR_WAYS - 1)
+                                replace_ptr[index] <= 5'd0;
+                            else
+                                replace_ptr[index] <= victim_way_comb + 5'd1;
+
+                            if (victim_mask_comb != 4'h0) begin
+                                snoop_valid       <= victim_mask_comb;
+                                snoop_addr        <= {victim_tag_comb, index, 6'h0};
+                                snoop_type        <= 2'b10; // Invalidate
+                                target_snoop_mask <= victim_mask_comb;
+                                state             <= EVICT_WAIT;
+                            end else begin
+                                // Entry valid but no sharers
+                                dir_state[index][victim_way_comb] <= ST_I;
+                                resp_valid <= 1'b1;
+                                resp_hit   <= 1'b0;
+                                resp_dirty <= 1'b0;
+                                state      <= UPDATE;
+                            end
+                        end
                     end else begin
                         // Hit: determine if snoop is needed
                         if (combo_line_state == ST_M || combo_line_state == ST_E) begin
@@ -176,7 +225,7 @@ module l2_snoop_filter #(
                                 target_snoop_mask <= combo_hit_mask;
                                 state <= SNOOP_REQ;
                             end else begin
-                                // It's us, no snoop needed
+                                // It is us, no snoop needed
                                 resp_valid <= 1'b1;
                                 resp_hit <= 1'b1;
                                 resp_dirty <= 1'b0;
@@ -223,16 +272,31 @@ module l2_snoop_filter #(
                     end
                 end
 
+                EVICT_WAIT: begin
+                    // Wait for all snooped L1 cores to ack the victim back-invalidation
+                    if ((snoop_ack & target_snoop_mask) == target_snoop_mask) begin
+                        snoop_valid <= 4'h0;
+                        dir_state[index][chosen_way] <= ST_I;
+                        dir_mask[index][chosen_way]  <= 4'h0;
+                        resp_valid <= 1'b1;
+                        resp_hit   <= 1'b0;
+                        resp_dirty <= |(snoop_data_valid & target_snoop_mask);
+                        state      <= UPDATE;
+                    end else begin
+                        snoop_valid <= target_snoop_mask & ~snoop_ack; // Keep requesting un-acked
+                    end
+                end
+
                 UPDATE: begin
                     // Update directory state based on req_type and previous state
                     if (!line_hit) begin
-                        // Allocate (find empty way or evict - PLRU omitted for brevity)
-                        dir_tag[index][alloc_way_comb] <= tag;
-                        dir_mask[index][alloc_way_comb] <= (1 << req_core_saved);
-                        dir_state[index][alloc_way_comb] <= (req_type_saved == 2'b00) ? ST_E : ST_M; 
-                        // Note: If read, grant E if no other sharers (which is true here)
+                        // Allocate new line into chosen_way
+                        dir_tag[index][chosen_way]   <= tag;
+                        dir_mask[index][chosen_way]  <= (1 << req_core_saved);
+                        dir_state[index][chosen_way] <= (req_type_saved == 2'b00) ? ST_E :
+                                                        (req_type_saved == 2'b01) ? ST_M : ST_I;
                     end else begin
-                        // Update existing
+                        // Update existing line at hit_way
                         if (req_type_saved == 2'b01) begin // ReadUnique/Write
                             dir_state[index][hit_way] <= ST_M;
                             dir_mask[index][hit_way] <= (1 << req_core_saved);
@@ -252,7 +316,7 @@ module l2_snoop_filter #(
                     end
                     state <= IDLE;
                 end
-                
+
                 default: state <= IDLE;
             endcase
         end
