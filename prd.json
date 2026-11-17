@@ -1,11 +1,11 @@
 {
   "project_metadata": {
     "title": "SMVDU TITAN-X Microprocessor 7-Phase Advanced Verification & Comprehensive ASIC/SoC Sign-off",
-    "standard": "RISC-V RV64GC (RV64IMAFDC)",
+    "standard": "RISC-V RV64IM_Zicsr (M-Mode)",
     "privilege_specification": "RISC-V Privileged Architecture v1.12 (M/S/U Modes)",
     "mmu_architecture": "Sv39 3-Level Radix Tree (39-bit VA, 38-bit PA, 4KB/2MB/1GB Pages)",
     "target_technology": "SCL 180nm Bulk CMOS / Nangate45 Open-Cell Library",
-    "system_topology": "5-Hart Heterogeneous Multi-Core SoC (4x RV64GC App Harts + 1x RV64IMAC Security Hart)",
+    "system_topology": "5-Hart Heterogeneous Multi-Core SoC (4x RV64IM App Harts + 1x RV64IMAC Security Hart)",
     "clock_domains": {
       "core_clk": {
         "freq": "100-200 MHz",

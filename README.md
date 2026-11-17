@@ -6,7 +6,7 @@
 [![Lint](https://img.shields.io/badge/Verilator%20Lint-Clean%20(0%20warn)-brightgreen.svg)](scripts/verilator_lint.sh)
 [![Synthesis](https://img.shields.io/badge/Yosys%20Synthesis-83%2C402%20Cells%20(rv__core)-brightgreen.svg)](docs/qualification/SYNTHESIS_REPORT.md)
 [![Security](https://img.shields.io/badge/RoT%20Hardware-NIST%20P--256%20%2B%20SHA--256-blueviolet.svg)](docs/DEFECT_REGISTER.md)
-[![Architecture](https://img.shields.io/badge/Architecture-RV64GC_Heterogeneous_5--Hart-darkgreen.svg)](Design%20Files%20of%20TITAN%20X/ARCHITECTURE.md)
+[![Architecture](https://img.shields.io/badge/Architecture-RV64IM__Zicsr__Heterogeneous__5--Hart-darkgreen.svg)](docs/qualification/ISA_CAPABILITY_MATRIX.md)
 [![Foundry](https://img.shields.io/badge/Target%20PDK-SCL%20180nm%20ASIC-blue.svg)](docs/rtl_completion_plan.md)
 
 > **Official Canonical Release Repository:** [`https://github.com/anupamsarashwat1-cloud/TITAN-X-2026-11-04.git`](https://github.com/anupamsarashwat1-cloud/TITAN-X-2026-11-04.git)  
@@ -71,7 +71,7 @@
 
 ## 1. Executive System Architecture Overview
 
-The **SMVDU TITAN-X** is an industrial-grade, heterogeneous multi-core System-on-Chip (SoC) engineered for secure embedded computing, industrial edge processing, and high-reliability instrumentation. Fabricated on **SCL 180 nm Bulk CMOS**, the architecture provides a hardened computing envelope combining Linux-capable 64-bit application processors, an isolated security monitor, high-throughput memory channels, and cryptographic hardware acceleration.
+The **SMVDU TITAN-X** is an industrial-grade, heterogeneous multi-core System-on-Chip (SoC) engineered for secure embedded computing, industrial edge processing, and high-reliability instrumentation. Designed for target mapping to **SCL 180 nm Bulk CMOS**, the architecture provides a hardened computing envelope combining 64-bit application processors (RV64IM_Zicsr in Machine-mode), an isolated security monitor, high-throughput memory channels, and cryptographic hardware acceleration.
 
 ```
                                     +-------------------------------------------------+
@@ -84,10 +84,10 @@ The **SMVDU TITAN-X** is an industrial-grade, heterogeneous multi-core System-on
 |                                                                                                                       |
 |   +----------------------------+      +-------------------------------+      +------------------------------------+   |
 |   |   HETEROGENEOUS CPU        |      |    SHARED MEMORY HIERARCHY    |      |      SECURITY & TRUST ENGINE       |   |
-|   |   • 4× RV64GC App Cores    |      |    • 32KB L1 I/D per core     |      |      • Hardware Secure Boot        |   |
-|   |   • 1× RV64IMAC Monitor    | <--> |    • 2MB Shared 16-way L2     | <--> |      • NIST SP 800-90A DRBG + TRNG |   |
-|   |   • Sv39 MMU + PMP         |      |    • 4-Bank DDR4 Controller   |      |      • AES-256 + SHA-256 + ECDSA   |   |
-|   |   • JTAG Hardware Debug    |      |    • SCL 180nm SRAM Arrays    |      |      • 128KB eNVM Storage          |   |
+|   |   • 4× RV64IM_Zicsr App    |      |    • 32KB L1 I/D per core     |      |      • Hardware Secure Boot        |   |
+|   |   • 1× RV64IM Monitor      | <--> |    • 2MB Shared 16-way L2     | <--> |      • NIST SP 800-90A DRBG + TRNG |   |
+|   |   • Physical M-Mode Traps  |      |    • 4-Bank DDR4 Controller   |      |      • AES-256 + SHA-256 + ECDSA   |   |
+|   |   • RISC-V Debug Module    |      |    • SCL 180nm SRAM Arrays    |      |      • 128KB eNVM Storage          |   |
 |   +----------------------------+      +-------------------------------+      +------------------------------------+   |
 |                 |                                     |                                         |                     |
 |                 +-------------------------------------+-----------------------------------------+                     |
@@ -112,7 +112,7 @@ The **SMVDU TITAN-X** is an industrial-grade, heterogeneous multi-core System-on
 ```
 
 ### Key Architectural Specifications
-* **Processing Subsystem**: 4× RISC-V RV64GC (RV64I + M + A + F + D + C) Application Cores with Sv39 Page-Based Virtual Memory + 1× RISC-V RV64IMAC Security & Power Monitor Core.
+* **Processing Subsystem**: 4× RISC-V RV64IM_Zicsr (64-bit Integer, Hardware Mul/Div, Machine CSRs) Application Cores executing in Machine-mode (M-mode) with 40-bit physical addressing + 1× RISC-V RV64IM Security & Power Monitor Core (see [`docs/qualification/ISA_CAPABILITY_MATRIX.md`](docs/qualification/ISA_CAPABILITY_MATRIX.md)).
 * **On-Chip Interconnect**: 15-Master by 9-Slave fully non-blocking AXI4 crossbar with priority QoS scheduling, interconnect MPU protection, and burst-to-lite converters.
 * **Coherent Memory System**: 32KB L1 VIPT Instruction Cache + 32KB L1 VIPT Data Cache per core, backed by a unified 2MB 16-way associative L2 Cache with hardware directory snoop filter (MESI/MOESI protocol).
 * **External Memory Interface**: DDR4 SDRAM Controller supporting up to 2GB physical address space across an 8-bank command-reordering scheduler and DFI 4.0 physical interface.
@@ -164,7 +164,7 @@ graph TB
         u_secure_boot -.->|"auth_fail / mismatch"| boot_fail
     end
 
-    CPU["🧠 CPU Cluster<br/>4× rv_core_top (RV64GC)<br/>1× rv_monitor_core (RV64IMAC)<br/>rv_debug (JTAG)"]
+    CPU["🧠 CPU Cluster<br/>4× rv_core_top (RV64IM_Zicsr)<br/>1× rv_monitor_core (RV64IM)<br/>rv_debug (JTAG)"]
     XBAR["🔀 AXI4 Crossbar<br/>axi4_crossbar.v (15M×9S)<br/>+ qos_controller + mpu<br/>+ axi4_burst_to_lite<br/>+ mmu_arbiter"]
     MEM["💾 Memory Subsystem<br/>l2_cache_top → ddr_ctrl_top<br/>+ SRAM macros<br/>(Slave 0)"]
     BRIDGE["🌉 Bridge Chain<br/>axi4_to_ahb → ahb_to_apb<br/>→ apb_bridge → APB bus<br/>(Slave 1)"]
@@ -243,7 +243,7 @@ graph TB
 
 ### Diagram 2 — CPU Core 0 Internal Pipeline (rv_core_top.v)
 
-Fully expanded view of one RV64GC core — all 16 sub-modules with inter-stage signal buses.
+Fully expanded view of one RV64IM core — active pipeline modules and standalone coprocessor interfaces.
 
 ```mermaid
 graph LR
@@ -1265,7 +1265,7 @@ The repository contains the complete firmware bring-up suite under `firmware/` a
   ```
   ========================================
    SMVDU TITAN-X RISC-V SoC Bring-Up
-   Quad-Core RV64GC + RV64IMAC Monitor
+   Quad-Core RV64IM_Zicsr + RV64IMAC Monitor
    SCL 180nm Silicon Target
   ========================================
   ```
@@ -1283,7 +1283,7 @@ MEMORY {
 ### 13.4 Compilation & Hex Generation
 ```bash
 # Cross-compile firmware using 64-bit RISC-V GCC
-riscv64-unknown-elf-gcc -march=rv64gc -mabi=lp64d -O2 -nostdlib -T firmware/link.ld     firmware/start.S firmware/main.c -o firmware/firmware.elf
+riscv64-unknown-elf-gcc -march=rv64im_zicsr -mabi=lp64 -O2 -nostdlib -T firmware/link.ld     firmware/start.S firmware/main.c -o firmware/firmware.elf
 
 # Extract raw binary and 32-bit hex dump for Verilog $readmemh
 riscv64-unknown-elf-objcopy -O binary firmware/firmware.elf firmware/firmware.bin
@@ -1381,20 +1381,20 @@ During authentic Phase 6 execution, all 5 CPU cores booted concurrently from the
 =========================================================================================================
  Core | Architecture | Active Cycles | Retired Instr |   CPI   |   IPC   | Mul/Div Stall | Fetch Wait Cyc
 ------+--------------+---------------+---------------+---------+---------+---------------+---------------
-  0   |    RV64GC    |       1500    |        50     |  30.00  |   0.03  |        18     |       1322    
-  1   |    RV64GC    |       1500    |        40     |  37.50  |   0.03  |         0     |       1322    
-  2   |    RV64GC    |       1500    |        43     |  34.88  |   0.03  |         0     |       1322    
-  3   |    RV64GC    |       1500    |        44     |  34.09  |   0.03  |        86     |        322    
+  0   |    RV64IM    |       1500    |        50     |  30.00  |   0.03  |        18     |       1322    
+  1   |    RV64IM    |       1500    |        40     |  37.50  |   0.03  |         0     |       1322    
+  2   |    RV64IM    |       1500    |        43     |  34.88  |   0.03  |         0     |       1322    
+  3   |    RV64IM    |       1500    |        44     |  34.09  |   0.03  |        86     |        322    
   4   |   RV64IMAC   |       1500    |         7     |  214.29  |   0.00  |         0     |        118    
 =========================================================================================================
  Total Simulation Cycles: 2,507 | Total Instructions Retired: 231 | Scorecard Checks Passed: 10 / 10
 =========================================================================================================
 ```
 
-* **Core 0 (RV64GC):** Matrix arithmetic accumulation (`Sum = 235`) written to DDR4 address `0x8000_0000`.
-* **Core 1 (RV64GC):** Fibonacci sequence computation (`Fib(12) = 144 = 0x90`) written to DDR4 address `0x8000_0010`.
-* **Core 2 (RV64GC):** Cryptographic bitwise permutation (`RotL + XOR = 0xB5`) written to DDR4 address `0x8000_0020`.
-* **Core 3 (RV64GC):** Factorial & 64-cycle hardware divider stress ($10! / 120 = 30240$) written to DDR4 address `0x8000_0030`.
+* **Core 0 (RV64IM):** Matrix arithmetic accumulation (`Sum = 235`) written to DDR4 address `0x8000_0000`.
+* **Core 1 (RV64IM):** Fibonacci sequence computation (`Fib(12) = 144 = 0x90`) written to DDR4 address `0x8000_0010`.
+* **Core 2 (RV64IM):** Cryptographic bitwise permutation (`RotL + XOR = 0xB5`) written to DDR4 address `0x8000_0020`.
+* **Core 3 (RV64IM):** Factorial & 64-cycle hardware divider stress ($10! / 120 = 30240$) written to DDR4 address `0x8000_0030`.
 * **Core 4 (Monitor):** Security watchdog telemetry loop & UART0 heartbeat character transmission (`'T' = 0x54`).
 
 ### 16.3 Authentic Desktop Waveform Telemetry

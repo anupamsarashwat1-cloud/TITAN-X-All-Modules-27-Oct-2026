@@ -3,7 +3,7 @@
 **Document ID:** TITANX-SIGNOFF-2026-OCT  
 **Classification:** Final Verification Sign-Off & Tape-Out Readiness  
 **Target Process:** SCL 180nm CMOS  
-**SoC Architecture:** 5 CPU Cores (4x RV64GC + 1x RV64IMAC Monitor Core), 15Mx9S AXI4 Interconnect, DDR4 Controller, L2 Cache, BootROM, Peripherals  
+**SoC Architecture:** 5 CPU Cores (4x RV64IM + 1x RV64IMAC Monitor Core), 15Mx9S AXI4 Interconnect, DDR4 Controller, L2 Cache, BootROM, Peripherals  
 **Sign-Off Status:** ✅ **100% PASSED / PRODUCTION READY**
 
 ---

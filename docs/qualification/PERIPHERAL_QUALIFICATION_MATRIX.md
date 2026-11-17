@@ -35,14 +35,14 @@ All 15 crossbar master ports (M0..M14) are now 100% connected to functional comp
 
 | Master Index | Subsystem Engine | Description | Data Width | Address Width |
 |:---:|:---|:---|:---:|:---:|
-| **M0** | Core 0 RV64GC Fetch | Instruction fetch channel for compute Hart 0 | 64-bit | 40-bit |
-| **M1** | Core 1 RV64GC Fetch | Instruction fetch channel for compute Hart 1 | 64-bit | 40-bit |
-| **M2** | Core 2 RV64GC Fetch | Instruction fetch channel for compute Hart 2 | 64-bit | 40-bit |
-| **M3** | Core 3 RV64GC Fetch | Instruction fetch channel for compute Hart 3 | 64-bit | 40-bit |
-| **M4** | Core 0 RV64GC D-Mem | Data memory load/store channel for Hart 0 | 64-bit | 40-bit |
-| **M5** | Core 1 RV64GC D-Mem | Data memory load/store channel for Hart 1 | 64-bit | 40-bit |
-| **M6** | Core 2 RV64GC D-Mem | Data memory load/store channel for Hart 2 | 64-bit | 40-bit |
-| **M7** | Core 3 RV64GC D-Mem | Data memory load/store channel for Hart 3 | 64-bit | 40-bit |
+| **M0** | Core 0 RV64IM Fetch | Instruction fetch channel for compute Hart 0 | 64-bit | 40-bit |
+| **M1** | Core 1 RV64IM Fetch | Instruction fetch channel for compute Hart 1 | 64-bit | 40-bit |
+| **M2** | Core 2 RV64IM Fetch | Instruction fetch channel for compute Hart 2 | 64-bit | 40-bit |
+| **M3** | Core 3 RV64IM Fetch | Instruction fetch channel for compute Hart 3 | 64-bit | 40-bit |
+| **M4** | Core 0 RV64IM D-Mem | Data memory load/store channel for Hart 0 | 64-bit | 40-bit |
+| **M5** | Core 1 RV64IM D-Mem | Data memory load/store channel for Hart 1 | 64-bit | 40-bit |
+| **M6** | Core 2 RV64IM D-Mem | Data memory load/store channel for Hart 2 | 64-bit | 40-bit |
+| **M7** | Core 3 RV64IM D-Mem | Data memory load/store channel for Hart 3 | 64-bit | 40-bit |
 | **M8** | Core 4 RV64IMAC Fetch | Instruction fetch channel for monitor Hart 4 | 64-bit | 40-bit |
 | **M9** | Core 4 RV64IMAC D-Mem | Data memory load/store channel for monitor Hart 4 | 64-bit | 40-bit |
 | **M10** | Gigabit Ethernet MAC | High-speed scatter-gather packet DMA | 64-bit | 40-bit |

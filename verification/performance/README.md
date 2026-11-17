@@ -12,10 +12,10 @@ Upon reset release (`core_rst_n = 1`), each CPU core samples its unique hardware
 
 | Hart ID | Core Architecture | Benchmark Workload | Algorithm Description | Validation Target | Status |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **Hart 0** | RV64GC (Core 0) | **Matrix Accumulation** | Element-wise integer array traversal ($\sum A[i] = 235$) | DDR4 RAM address `0x8000_0000` | ✅ **PASS** |
-| **Hart 1** | RV64GC (Core 1) | **Fibonacci Sequence** | Iterative sequence calculation ($Fib(12) = 144 = 0x90$) | DDR4 RAM address `0x8000_0010` | ✅ **PASS** |
-| **Hart 2** | RV64GC (Core 2) | **Cryptographic Permutation** | Bitwise circular rotation + XOR diffusion ($RotL + XOR = 0xB5$) | DDR4 RAM address `0x8000_0020` | ✅ **PASS** |
-| **Hart 3** | RV64GC (Core 3) | **Hardware Divider Stress** | Radix-4 multiplier & 64-cycle divider ($10! / 120 = 30240$) | DDR4 RAM address `0x8000_0030` | ✅ **PASS** |
+| **Hart 0** | RV64IM (Core 0) | **Matrix Accumulation** | Element-wise integer array traversal ($\sum A[i] = 235$) | DDR4 RAM address `0x8000_0000` | ✅ **PASS** |
+| **Hart 1** | RV64IM (Core 1) | **Fibonacci Sequence** | Iterative sequence calculation ($Fib(12) = 144 = 0x90$) | DDR4 RAM address `0x8000_0010` | ✅ **PASS** |
+| **Hart 2** | RV64IM (Core 2) | **Cryptographic Permutation** | Bitwise circular rotation + XOR diffusion ($RotL + XOR = 0xB5$) | DDR4 RAM address `0x8000_0020` | ✅ **PASS** |
+| **Hart 3** | RV64IM (Core 3) | **Hardware Divider Stress** | Radix-4 multiplier & 64-cycle divider ($10! / 120 = 30240$) | DDR4 RAM address `0x8000_0030` | ✅ **PASS** |
 | **Hart 4** | RV64IMAC (Monitor) | **Security Telemetry Loop** | Monotonic watchdog increment & UART0 heartbeat (`'T' = 0x54`) | UART0 16550 TX FIFO register | ✅ **PASS** |
 
 ---
@@ -28,10 +28,10 @@ Upon reset release (`core_rst_n = 1`), each CPU core samples its unique hardware
 =========================================================================================================
  Core | Architecture | Active Cycles | Retired Instr |   CPI   |   IPC   | Mul/Div Stall | Fetch Wait Cyc
 ------+--------------+---------------+---------------+---------+---------+---------------+---------------
-  0   |    RV64GC    |       1500    |        50     |  30.00  |   0.03  |        18     |       1322    
-  1   |    RV64GC    |       1500    |        40     |  37.50  |   0.03  |         0     |       1322    
-  2   |    RV64GC    |       1500    |        43     |  34.88  |   0.03  |         0     |       1322    
-  3   |    RV64GC    |       1500    |        44     |  34.09  |   0.03  |        86     |        322    
+  0   |    RV64IM    |       1500    |        50     |  30.00  |   0.03  |        18     |       1322    
+  1   |    RV64IM    |       1500    |        40     |  37.50  |   0.03  |         0     |       1322    
+  2   |    RV64IM    |       1500    |        43     |  34.88  |   0.03  |         0     |       1322    
+  3   |    RV64IM    |       1500    |        44     |  34.09  |   0.03  |        86     |        322    
   4   |   RV64IMAC   |       1500    |         7     |  214.29  |   0.00  |         0     |        118    
 =========================================================================================================
  Total Simulation Cycles: 2,507 | Total Instructions Retired: 231 | Verification Checks Passed: 10 / 10

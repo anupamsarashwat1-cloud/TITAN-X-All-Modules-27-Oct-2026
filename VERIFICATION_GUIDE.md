@@ -1134,9 +1134,11 @@ void main() {
 
 **3. Compile to Verilog hex:**
 ```bash
-riscv64-unknown-elf-gcc -march=rv64gc -mabi=lp64d -O2 -nostdlib -T boot/link.ld boot/startup.S boot/main.c -o boot/bootrom.elf
+riscv64-unknown-elf-gcc -march=rv64im_zicsr -mabi=lp64 -O2 -nostdlib -T boot/link.ld boot/startup.S boot/main.c -o boot/bootrom.elf
 riscv64-unknown-elf-objcopy -O verilog boot/bootrom.elf boot/bootrom.hex
 ```
+
+> **Note on Operating System Readiness:** The current hardware baseline implements RV64IM_Zicsr Machine-mode. Operating systems requiring virtual memory and supervisor privilege (such as Linux) require Milestone 2 architecture evolution (S/U privilege modes, MMU page table walker integration, and RV64A atomics). Refer to `docs/qualification/ISA_CAPABILITY_MATRIX.md` for full implementation status.
 
 **4. Inject into the AXI ROM and simulate full SoC:**
 - Modify `top/axi_rom/axi_rom.v` to use `$readmemh("bootrom.hex", mem);`

@@ -4,7 +4,7 @@
 
 This report documents the architectural verification, firmware bring-up, and cycle-accurate performance analysis of the **SMVDU TITAN-X 64-bit Heterogeneous Multi-Core SoC**. 
 The system features **5 RISC-V CPU cores**:
-- **4x RV64GC Application Cores** (Harts 0..3) with 5-stage pipeline, RV64I/M/A/F/D ISA extensions, Radix-4 multiplier, and 64-cycle non-restoring divider.
+- **4x RV64IM Application Cores** (Harts 0..3) with 5-stage pipeline, RV64I/M/A/F/D ISA extensions, Radix-4 multiplier, and 64-cycle non-restoring divider.
 - **1x RV64IMAC Security & Power Management Monitor Core** (Hart 4) with direct memory bus attachment and privileged M-mode execution.
 - **15-Master, 9-Slave High-Bandwidth AXI4 Crossbar Interconnect** (`axi4_crossbar`).
 - **DDR4 SDRAM Controller & Physical Interface** (`ddr_ctrl_top`).
@@ -25,10 +25,10 @@ sequenceDiagram
     participant SEC as Secure Boot RoT
     participant CB as 15Mx9S AXI4 Crossbar
     participant ROM as BootROM (Slave 2)
-    participant C0 as Core 0 (RV64GC)
-    participant C1 as Core 1 (RV64GC)
-    participant C2 as Core 2 (RV64GC)
-    participant C3 as Core 3 (RV64GC)
+    participant C0 as Core 0 (RV64IM)
+    participant C1 as Core 1 (RV64IM)
+    participant C2 as Core 2 (RV64IM)
+    participant C3 as Core 3 (RV64IM)
     participant C4 as Monitor (RV64IMAC)
     participant DDR as DDR4 Controller (Slave 0)
 
@@ -67,10 +67,10 @@ sequenceDiagram
 
 | Hart ID | Core Architecture | Benchmark Workload | Mathematical Operation | Hardware Exercised | Verification Result |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Hart 0** | RV64GC (Core 0) | Arithmetic Matrix Accumulation | $\sum_{i=1}^{10} (3i + 7) = 235$ | Integer ALU + Radix-4 Multiplier + AXI4 Store | **PASSED** (Sum=235 stored to DDR4) |
-| **Hart 1** | RV64GC (Core 1) | Fibonacci Recurrence | $F_n = F_{n-1} + F_{n-2}$, $F_{12} = 144$ (`0x90`) | Dual-Forwarding ALU + Register File + AXI4 Store | **PASSED** (`0x90` verified in DDR4) |
-| **Hart 2** | RV64GC (Core 2) | Cryptographic Permutation | 8 rounds of $\text{RotL}(5) \oplus \text{Key}$ | Barrel Shifter (`slli`/`srli`) + Bitwise Logic | **PASSED** (Cipher word verified) |
-| **Hart 3** | RV64GC (Core 3) | Multiplier / Divider Stress | $10! / 120 = 30240$ | Radix-4 Mult + 64-Cycle Divider + Pipeline Stall Gating | **PASSED** (86 stall cycles tracked, quotient written) |
+| **Hart 0** | RV64IM (Core 0) | Arithmetic Matrix Accumulation | $\sum_{i=1}^{10} (3i + 7) = 235$ | Integer ALU + Radix-4 Multiplier + AXI4 Store | **PASSED** (Sum=235 stored to DDR4) |
+| **Hart 1** | RV64IM (Core 1) | Fibonacci Recurrence | $F_n = F_{n-1} + F_{n-2}$, $F_{12} = 144$ (`0x90`) | Dual-Forwarding ALU + Register File + AXI4 Store | **PASSED** (`0x90` verified in DDR4) |
+| **Hart 2** | RV64IM (Core 2) | Cryptographic Permutation | 8 rounds of $\text{RotL}(5) \oplus \text{Key}$ | Barrel Shifter (`slli`/`srli`) + Bitwise Logic | **PASSED** (Cipher word verified) |
+| **Hart 3** | RV64IM (Core 3) | Multiplier / Divider Stress | $10! / 120 = 30240$ | Radix-4 Mult + 64-Cycle Divider + Pipeline Stall Gating | **PASSED** (86 stall cycles tracked, quotient written) |
 | **Hart 4** | RV64IMAC (Monitor) | Security Telemetry & UART Heartbeat | Monotonic counter increment + Character TX | APB Bridge + UART0 16550 TX FIFO | **PASSED** (Character `'T'` transmitted) |
 
 ---
@@ -81,10 +81,10 @@ The table below presents authentic cycle-accurate simulation metrics captured di
 
 | Hart ID | Core Architecture | Active Cycles | Retired Instructions | CPI (Cycles/Instr) | IPC (Instr/Cycle) | M-Ext Stall Cycles | Fetch Bus Wait Cycles | Interconnect DECERRs |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Hart 0** | RV64GC | 1,500 | 62 | **24.19** | 0.041 | 20 | 974 | 0 |
-| **Hart 1** | RV64GC | 1,500 | 58 | **25.86** | 0.039 | 0 | 975 | 0 |
-| **Hart 2** | RV64GC | 1,500 | 56 | **26.79** | 0.037 | 0 | 974 | 0 |
-| **Hart 3** | RV64GC | 1,500 | 48 | **31.25** | 0.032 | 86 | 905 | 0 |
+| **Hart 0** | RV64IM | 1,500 | 62 | **24.19** | 0.041 | 20 | 974 | 0 |
+| **Hart 1** | RV64IM | 1,500 | 58 | **25.86** | 0.039 | 0 | 975 | 0 |
+| **Hart 2** | RV64IM | 1,500 | 56 | **26.79** | 0.037 | 0 | 974 | 0 |
+| **Hart 3** | RV64IM | 1,500 | 48 | **31.25** | 0.032 | 86 | 905 | 0 |
 | **Hart 4** | RV64IMAC | 1,500 | 7 | **214.29** | 0.005 | 0 | 118 | 0 |
 | **SoC Total**| **Heterogeneous 5-Core** | **7,500 core-cyc** | **231** | **32.47 (avg)** | **0.154 (agg)** | **106** | **3,946** | **0** |
 
