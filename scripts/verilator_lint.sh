@@ -1,19 +1,16 @@
 #!/bin/bash
 set -e
 SCRIPT_DIR="$(dirname "$0")"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-DESIGN_DIR="$REPO_ROOT/Design Files of TITAN X"
+CPU_BASE="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "============================================"
 echo " SMVDU-TITAN-X SoC RTL Lint Analysis"
 echo " Linter : Verilator"
-echo " Target : Design Files of TITAN X/top/titan_x_top/titan_x_top.v"
 echo "============================================"
 
 echo "[1/2] Running Verilator lint..."
-cd "$DESIGN_DIR"
 verilator --lint-only -Wall \
-    -Iincludes \
+    -I"$CPU_BASE/includes" \
     --top-module titan_x_top \
     -Wno-fatal \
     -Wno-DECLFILENAME \
@@ -28,7 +25,7 @@ verilator --lint-only -Wall \
     -Wno-CASEX \
     -Wno-PINMISSING \
     -Wno-UNOPTFLAT \
-    -f soc_filelist.f
+    -f "$CPU_BASE/verilator_files.f"
 
 echo "============================================"
 echo " Verilator Lint: PASSED (Clean)"

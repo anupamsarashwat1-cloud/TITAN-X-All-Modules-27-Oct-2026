@@ -22,22 +22,18 @@ XPAT_RE = re.compile(r"(?:[0-9]+)?'[hHbB][0-9a-fA-F_]*[xXzZ]+|\b[xX]{2,}\b|\bgot
 def rtl_files():
     """Read synthesizable canonical RTL modules from soc_filelist.f + canonical BFMs."""
     rtl = []
-    filelist = REPO / "Design Files of TITAN X" / "soc_filelist.f"
-    if not filelist.exists():
-        filelist = REPO / "soc_filelist.f"
+    filelist = REPO / "soc_filelist.f"
     if filelist.exists():
         with open(filelist) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith("//") and not line.endswith("tb_titan_x_top.v"):
-                    p = (REPO / "Design Files of TITAN X" / line).resolve()
-                    if not p.exists():
-                        p = (REPO / line).resolve()
+                    p = REPO / line
                     if p.exists() and str(p) not in rtl:
                         rtl.append(str(p))
     # Append canonical BFMs if present
     bfms = sorted(
-        str(p.resolve()) for p in REPO.rglob("bfm/*.v")
+        str(p) for p in REPO.rglob("bfm/*.v")
         if not any(x in p.parts for x in EXCLUDE_DIRS)
     )
     for b in bfms:
@@ -49,7 +45,7 @@ def rtl_files():
 def tb_files():
     """Discover all canonical unique testbenches, preferring deepest module path for duplicates."""
     raw_tbs = sorted(
-        p.resolve() for p in REPO.rglob("tb_*.v")
+        p for p in REPO.rglob("tb_*.v")
         if not any(x in p.parts for x in EXCLUDE_DIRS)
     )
     tb_by_stem = {}
@@ -104,9 +100,6 @@ def run_one(tb_path: Path, rtl, timeout: int):
     compile_cmd = [
         "iverilog", "-g2012",
         "-s", name,
-        "-I", str(REPO / "Design Files of TITAN X" / "includes"),
-        "-I", str(REPO / "Design Files of TITAN X" / "common"),
-        "-I", str(REPO / "Design Files of TITAN X"),
         "-I", str(REPO / "includes"),
         "-I", str(REPO / "common"),
         "-I", tb_dir,
