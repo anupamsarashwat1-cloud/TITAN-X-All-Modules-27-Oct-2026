@@ -66,6 +66,15 @@ module rv_csr #(
     reg [63:0] mcause_q;
     reg [63:0] mtval_q;
     reg [63:0] satp_q; // ADDED
+    // Supervisor Mode CSRs
+    reg [63:0] sstatus_q;
+    reg [63:0] sie_q;
+    reg [63:0] stvec_q;
+    reg [63:0] sscratch_q;
+    reg [63:0] sepc_q;
+    reg [63:0] scause_q;
+    reg [63:0] stval_q;
+    
     reg [63:0] mcycle_q, minstret_q;
 
     // RV64IM: Base RV64 (2 << 62) + M extension (1 << 12) + I extension (1 << 8)
@@ -93,6 +102,13 @@ module rv_csr #(
             12'h342:    csr_rdata = mcause_q;
             12'h343:    csr_rdata = mtval_q;
             12'h180:    csr_rdata = satp_q;
+            12'h100:    csr_rdata = sstatus_q;
+            12'h104:    csr_rdata = sie_q;
+            12'h105:    csr_rdata = stvec_q;
+            12'h140:    csr_rdata = sscratch_q;
+            12'h141:    csr_rdata = sepc_q;
+            12'h142:    csr_rdata = scause_q;
+            12'h143:    csr_rdata = stval_q;
             12'hF14:    csr_rdata = {52'h0, HART_ID[11:0]}; // mhartid
             12'hB00:    csr_rdata = mcycle_q;
             12'hB02:    csr_rdata = minstret_q;
