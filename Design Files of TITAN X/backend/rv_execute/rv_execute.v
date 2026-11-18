@@ -477,6 +477,7 @@ module rv_execute #(
                       (irq_sel_ext || irq_sel_soft || irq_sel_timer) &&
                       !mret_req_c && !trap_req_c;
 
+    // For Linux boot, S-mode traps will delegate here once S-mode CSRs are integrated.
     wire trap_commit  = (ex_exit && (is_ecall || is_ebreak || is_illegal ||
                                     branch_misaligned || load_misaligned ||
                                     store_misaligned || clean_fe_fault_in || irq_take)) ||
