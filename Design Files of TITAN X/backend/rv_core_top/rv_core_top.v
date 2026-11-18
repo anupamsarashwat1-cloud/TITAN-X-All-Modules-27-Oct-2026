@@ -148,6 +148,24 @@ module rv_core_top #(
         .fault_tval_out  (fe_fault_tval)
     );
 
+    // Instantiate I-side MMU
+    wire [39:0] fe_pa;
+    wire        fe_trans_valid, fe_trans_busy;
+    
+    rv_mmu u_mmu_fetch (
+        .clk(clk), .rst_n(rst_n),
+        .satp(ex_satp), .priv_mode(ex_priv_mode),
+        .va_req({24'h0, fe_imem_addr}),
+        .req_valid(fe_imem_arvalid),
+        .req_r(1'b0), .req_w(1'b0), .req_x(1'b1),
+        .pa_out(fe_pa), .trans_valid(fe_trans_valid), .trans_busy(fe_trans_busy),
+        .ptw_arvalid(imem_arvalid), .ptw_arready(imem_arready), .ptw_araddr(imem_araddr),
+        .ptw_rvalid(imem_rvalid), .ptw_rready(imem_rready), .ptw_rdata(imem_rdata),
+        .ptw_rresp(imem_rresp),
+        .sfence_vma(1'b0), .sfence_asid_en(1'b0), .sfence_va_en(1'b0), 
+        .sfence_va_val(64'h0), .sfence_asid_val(64'h0)
+    );
+
     // L1 I-Cache & Burst-to-Lite Shim
     wire [31:0] icache_cpu_rdata;
     wire        icache_cpu_valid;
@@ -409,11 +427,17 @@ module rv_core_top #(
         .trap_taken   (ex_trap_taken),
         .trap_pc_out  (ex_trap_pc),
         .trap_cause_out(ex_trap_cause),
+        .trap_cause_out(ex_trap_cause),
         .trap_tval_out(ex_trap_tval),
         .mtvec_out    (ex_mtvec),
         .mepc_out     (ex_mepc),
+        .satp_out     (ex_satp),
+        .priv_mode_out(ex_priv_mode),
         .lr_addr      (),           .lr_valid     ()
     );
+    
+    wire [63:0] ex_satp;
+    wire [1:0]  ex_priv_mode;
 
     // -------------------------------------------------------
     // Memory Stage & L1 D-Cache Datapath
@@ -434,6 +458,24 @@ module rv_core_top #(
     wire        pipe_dmem_rvalid,  pipe_dmem_rready;
     wire [63:0] pipe_dmem_rdata;
     wire [1:0]  pipe_dmem_rresp;
+
+    // Instantiate D-side MMU
+    wire [39:0] mem_pa;
+    wire        mem_trans_valid, mem_trans_busy;
+    
+    rv_mmu u_mmu_mem (
+        .clk(clk), .rst_n(rst_n),
+        .satp(ex_satp), .priv_mode(ex_priv_mode),
+        .va_req(ex_alures),
+        .req_valid(ex_valid && (ex_memr || ex_memw)),
+        .req_r(ex_memr), .req_w(ex_memw), .req_x(1'b0),
+        .pa_out(mem_pa), .trans_valid(mem_trans_valid), .trans_busy(mem_trans_busy),
+        .ptw_arvalid(dmem_arvalid), .ptw_arready(dmem_arready), .ptw_araddr(dmem_araddr),
+        .ptw_rvalid(dmem_rvalid), .ptw_rready(dmem_rready), .ptw_rdata(dmem_rdata),
+        .ptw_rresp(dmem_rresp),
+        .sfence_vma(1'b0), .sfence_asid_en(1'b0), .sfence_va_en(1'b0), 
+        .sfence_va_val(64'h0), .sfence_asid_val(64'h0)
+    );
 
     rv_mem u_mem (
         .clk          (clk),

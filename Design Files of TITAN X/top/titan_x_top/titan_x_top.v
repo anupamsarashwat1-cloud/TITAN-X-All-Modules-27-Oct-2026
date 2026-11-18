@@ -104,8 +104,10 @@ module titan_x_top #(
     // Internal Signals & Routing
     // -------------------------------------------------------
     wire boot_pass, boot_fail;
+    wire rst_n_sync;
     wire wdt_reset_n;
-    wire core_rst_n = rst_n & boot_pass & wdt_reset_n;
+    sync_cell u_sync_rst (.clk(clk), .rst_n(1'b1), .d(rst_n), .q(rst_n_sync));
+    wire core_rst_n = rst_n_sync & boot_pass & wdt_reset_n;
 
     wire [31:0] plic_irq;
     wire [4:0]  timer_irq;

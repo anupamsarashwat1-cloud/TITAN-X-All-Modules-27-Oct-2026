@@ -1,0 +1,7 @@
+create_power_domain PD_TOP
+create_power_domain PD_PERIPH -elements {u_gem u_usb u_mipi}
+set_domain_supply_net PD_TOP -primary_power_net VDD -primary_ground_net VSS
+set_domain_supply_net PD_PERIPH -primary_power_net VDD_PERIPH -primary_ground_net VSS
+create_supply_port VDD
+create_supply_port VDD_PERIPH
+create_supply_port VSS

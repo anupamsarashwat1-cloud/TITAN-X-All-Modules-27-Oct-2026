@@ -50,6 +50,7 @@ module rv_csr #(
     output wire [63:0] mtvec_out,
     output wire [63:0] mepc_out,
     output wire [63:0] mtval_out,
+    output wire [63:0] satp_out,
     output wire        irq_pending      // enabled machine interrupt waiting
 );
 
@@ -64,6 +65,7 @@ module rv_csr #(
     reg [63:0] mepc_q;
     reg [63:0] mcause_q;
     reg [63:0] mtval_q;
+    reg [63:0] satp_q; // ADDED
     reg [63:0] mcycle_q, minstret_q;
 
     // RV64IM: Base RV64 (2 << 62) + M extension (1 << 12) + I extension (1 << 8)
@@ -90,6 +92,7 @@ module rv_csr #(
             12'h341:    csr_rdata = mepc_q;
             12'h342:    csr_rdata = mcause_q;
             12'h343:    csr_rdata = mtval_q;
+            12'h180:    csr_rdata = satp_q;
             12'hF14:    csr_rdata = {52'h0, HART_ID[11:0]}; // mhartid
             12'hB00:    csr_rdata = mcycle_q;
             12'hB02:    csr_rdata = minstret_q;
@@ -114,6 +117,7 @@ module rv_csr #(
             mepc_q     <= 64'h0;
             mcause_q   <= 64'h0;
             mtval_q    <= 64'h0;
+            satp_q     <= 64'h0;
             mcycle_q   <= 64'h0;
             minstret_q <= 64'h0;
         end else begin
@@ -147,6 +151,7 @@ module rv_csr #(
                     12'h341: mepc_q     <= {csr_wdata[63:2], 2'b00};
                     12'h342: mcause_q   <= csr_wdata;
                     12'h343: mtval_q    <= csr_wdata;
+                    12'h180: satp_q     <= csr_wdata;
                     // mhartid RO; counters WRITEME-free (spec: no trap on
                     // write attempt at M-level for these, effects none)
                     default: ;                         // incl. counter writes: ignored
@@ -158,6 +163,7 @@ module rv_csr #(
     assign mtvec_out = {mtvec_q[63:2], 2'b00};
     assign mepc_out  = {mepc_q[63:2], 2'b00};
     assign mtval_out = mtval_q;
+    assign satp_out  = satp_q;
 
     wire irq_any =
         (mip_m_ext   & mie_q[11]) |

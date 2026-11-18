@@ -1,0 +1,5 @@
+create_clock -name clk -period 10.0 [get_ports clk]
+create_clock -name pipe_clk -period 12.5 [get_ports pipe_clk]
+create_clock -name eth_tx_clk -period 8.0 [get_ports eth_tx_clk]
+set_clock_groups -asynchronous -group [get_clocks clk] -group [get_clocks pipe_clk]
+set_clock_groups -asynchronous -group [get_clocks clk] -group [get_clocks eth_tx_clk]

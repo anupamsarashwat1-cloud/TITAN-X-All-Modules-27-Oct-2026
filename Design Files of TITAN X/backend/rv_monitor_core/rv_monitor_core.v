@@ -89,7 +89,11 @@ module rv_monitor_core #(
     assign fe_instr = imem_rdata[31:0]; 
     assign fe_valid = imem_rvalid;
 
-    reg [63:0] pc_reg;
+    always @(posedge clk) begin
+        if (fe_valid) $display("PC=%x, Instr=%x", fe_pc, fe_instr);
+    end
+    
+    reg pc_reg;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) pc_reg <= RESET_PC;
         else if (branch_taken) pc_reg <= branch_target;
@@ -115,7 +119,7 @@ module rv_monitor_core #(
     
     wire        mon_wb_we   = ex_valid && ex_regw && (ex_rd != 5'h0);
     wire [4:0]  mon_wb_rd   = ex_rd;
-    wire [63:0] mon_wb_data = ex_alures;
+    wire [63:0] mon_wb_data = ex_memr ? dmem_rdata : ex_alures;
 
     rv_decode u_decode (
         .clk       (clk),         .rst_n    (rst_n),

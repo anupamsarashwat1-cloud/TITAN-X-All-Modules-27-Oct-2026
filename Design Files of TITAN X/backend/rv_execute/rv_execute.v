@@ -91,6 +91,8 @@ module rv_execute #(
     output wire [63:0] trap_tval_out,
     output wire [63:0] mtvec_out,
     output wire [63:0] mepc_out,
+    output wire [63:0] satp_out,
+    output wire [1:0]  priv_mode_out,
     // LR/SC reservation (exported to memory stage)
     output reg  [63:0] lr_addr,
     output reg         lr_valid
@@ -546,6 +548,7 @@ module rv_execute #(
         .mtvec_out    (mtvec_q),
         .mepc_out     (mepc_q),
         .mtval_out    (),
+        .satp_out     (satp_out),
         .irq_pending  (irq_pend)
     );
 
