@@ -268,62 +268,84 @@ module tb_titan_x_performance;
         end
     endtask
 
-    // Embedded Multi-Core Benchmark Payload (boot_perf / firmware.hex)
-    reg [63:0] fw_buf [0:63];
-    integer fw_k;
+    // Pre-Boot Hardware Authenticated Multi-Core Benchmark Image (NIST P-256 Signed Container)
+    // Image structure:
+    //   Words 0..42: RoT Header (Magic 'TITN', img_len=102, Slot 3 Key ID, SHA-256 Digest, Qx, Qy, ECDSA r, s)
+    //   Words 43..144: 102 authenticated instructions for 5 RISC-V harts
     initial begin
-        for (fw_k = 0; fw_k < 64; fw_k = fw_k + 1) fw_buf[fw_k] = 64'h00000013_00000013;
-        fw_buf[0]  = 64'h00000293_f1402573;
-        fw_buf[1]  = 64'h00100293_02550063;
-        fw_buf[2]  = 64'h00200293_06550063;
-        fw_buf[3]  = 64'h00300293_0a550263;
-        fw_buf[4]  = 64'h1340006f_0e550863;
-        fw_buf[5]  = 64'h00100393_00a00313;
-        fw_buf[6]  = 64'h00300e93_00000e13;
-        fw_buf[7]  = 64'h03d38fb3_00700f13;
-        fw_buf[8]  = 64'h01fe0e33_01ef8fb3;
-        fw_buf[9]  = 64'hfe7358e3_00138393;
-        fw_buf[10] = 64'h01f41413_0010041b;
-        fw_buf[11] = 64'h000064b7_01c43023;
-        fw_buf[12] = 64'h01149493_57f4849b;
-        fw_buf[13] = 64'h11c0006f_00943423;
-        fw_buf[14] = 64'h00000393_00c00313;
-        fw_buf[15] = 64'h00100e93_00100e13;
-        fw_buf[16] = 64'h000e0393_01c38f33;
-        fw_buf[17] = 64'h001e8e93_000f0e13;
-        fw_buf[18] = 64'h0010041b_fe6ec8e3;
-        fw_buf[19] = 64'h01040413_01f41413;
-        fw_buf[20] = 64'h000064b7_01c43023;
-        fw_buf[21] = 64'h01149493_57f4849b;
-        fw_buf[22] = 64'h00943423_00148493;
-        fw_buf[23] = 64'h12345337_0d00006f;
-        fw_buf[24] = 64'h5a5a63b7_6783031b;
-        fw_buf[25] = 64'h00800e13_a5a3839b;
-        fw_buf[26] = 64'h01b35f13_00531e93;
-        fw_buf[27] = 64'h00734333_01eee333;
-        fw_buf[28] = 64'hfe0e16e3_fffe0e13;
-        fw_buf[29] = 64'h01f41413_0010041b;
-        fw_buf[30] = 64'h00643023_02040413;
-        fw_buf[31] = 64'h57f4849b_000064b7;
-        fw_buf[32] = 64'h00248493_01149493;
-        fw_buf[33] = 64'h07c0006f_00943423;
-        fw_buf[34] = 64'h00100393_00100313;
-        fw_buf[35] = 64'h02730333_00a00e13;
-        fw_buf[36] = 64'hfe7e5ce3_00138393;
-        fw_buf[37] = 64'h03d35f33_07800e93;
-        fw_buf[38] = 64'h01f41413_0010041b;
-        fw_buf[39] = 64'h01e43023_03040413;
-        fw_buf[40] = 64'h57f4849b_000064b7;
-        fw_buf[41] = 64'h00348493_01149493;
-        fw_buf[42] = 64'h0340006f_00943423;
-        fw_buf[43] = 64'h05400313_40010437;
-        fw_buf[44] = 64'h0010049b_00642023;
-        fw_buf[45] = 64'h04048493_01f49493;
-        fw_buf[46] = 64'h57f3839b_000063b7;
-        fw_buf[47] = 64'h00438393_01139393;
-        fw_buf[48] = 64'h0040006f_0074b423;
-        fw_buf[49] = 64'h00000013_00000013;
-        fw_buf[50] = 64'h00000013_ff9ff06f;
+        dut.u_boot_rom.rom[ 0] = {32'h00010066, 32'h5449544e}; // Words 1, 0 (img_len=102, Magic 'TITN')
+        dut.u_boot_rom.rom[ 1] = {32'h1efbfa6e, 32'h0001f003}; // Words 3, 2 (SHA[0], Slot 3 Key ID)
+        dut.u_boot_rom.rom[ 2] = {32'h02e8ce68, 32'haf75ad65}; // Words 5, 4 (SHA[2], SHA[1])
+        dut.u_boot_rom.rom[ 3] = {32'h34be9fa2, 32'hf57645b5}; // Words 7, 6 (SHA[4], SHA[3])
+        dut.u_boot_rom.rom[ 4] = {32'hd08773a3, 32'hbd15515f}; // Words 9, 8 (SHA[6], SHA[5])
+        dut.u_boot_rom.rom[ 5] = {32'h22c260d8, 32'hb669def9}; // Words 11, 10 (Qx[0], SHA[7])
+        dut.u_boot_rom.rom[ 6] = {32'h3c0a0a5f, 32'h6cd75617}; // Words 13, 12 (Qx[2], Qx[1])
+        dut.u_boot_rom.rom[ 7] = {32'h0bf58183, 32'h4d7f249c}; // Words 15, 14 (Qx[4], Qx[3])
+        dut.u_boot_rom.rom[ 8] = {32'h1fe3fa6d, 32'hcef18cee}; // Words 17, 16 (Qx[6], Qx[5])
+        dut.u_boot_rom.rom[ 9] = {32'ha359316a, 32'h27e67e6a}; // Words 19, 18 (Qy[0], Qx[7])
+        dut.u_boot_rom.rom[10] = {32'h0ac1bd36, 32'he77d1980}; // Words 21, 20 (Qy[2], Qy[1])
+        dut.u_boot_rom.rom[11] = {32'h6dbe7557, 32'h31284a20}; // Words 23, 22 (Qy[4], Qy[3])
+        dut.u_boot_rom.rom[12] = {32'h7f567bd2, 32'hac0af37f}; // Words 25, 24 (Qy[6], Qy[5])
+        dut.u_boot_rom.rom[13] = {32'h76f8f4b6, 32'hd9430d61}; // Words 27, 26 (r[0], Qy[7])
+        dut.u_boot_rom.rom[14] = {32'h2eccc055, 32'h3b3e7537}; // Words 29, 28 (r[2], r[1])
+        dut.u_boot_rom.rom[15] = {32'hc6717fde, 32'h77253a02}; // Words 31, 30 (r[4], r[3])
+        dut.u_boot_rom.rom[16] = {32'h773ddf3f, 32'h1c853c00}; // Words 33, 32 (r[6], r[5])
+        dut.u_boot_rom.rom[17] = {32'hb4d99c24, 32'h9421a6b4}; // Words 35, 34 (s[0], r[7])
+        dut.u_boot_rom.rom[18] = {32'h6e26faab, 32'h4b258460}; // Words 37, 36 (s[2], s[1])
+        dut.u_boot_rom.rom[19] = {32'h1df0aac1, 32'h5f382257}; // Words 39, 38 (s[4], s[3])
+        dut.u_boot_rom.rom[20] = {32'hfc11ec09, 32'hd6597f51}; // Words 41, 40 (s[6], s[5])
+        dut.u_boot_rom.rom[21] = {32'hf1402573, 32'h1a74b405}; // Words 43, 42 (Payload[0], s[7])
+        dut.u_boot_rom.rom[22] = {32'h02550063, 32'h00000293}; // Words 45, 44 (Payload[2], Payload[1])
+        dut.u_boot_rom.rom[23] = {32'h06550063, 32'h00100293}; // Words 47, 46 (Payload[4], Payload[3])
+        dut.u_boot_rom.rom[24] = {32'h0a550263, 32'h00200293}; // Words 49, 48 (Payload[6], Payload[5])
+        dut.u_boot_rom.rom[25] = {32'h0e550863, 32'h00300293}; // Words 51, 50 (Payload[8], Payload[7])
+        dut.u_boot_rom.rom[26] = {32'h00a00313, 32'h1340006f}; // Words 53, 52 (Payload[10], Payload[9])
+        dut.u_boot_rom.rom[27] = {32'h00000e13, 32'h00100393}; // Words 55, 54 (Payload[12], Payload[11])
+        dut.u_boot_rom.rom[28] = {32'h00700f13, 32'h00300e93}; // Words 57, 56 (Payload[14], Payload[13])
+        dut.u_boot_rom.rom[29] = {32'h01ef8fb3, 32'h03d38fb3}; // Words 59, 58 (Payload[16], Payload[15])
+        dut.u_boot_rom.rom[30] = {32'h00138393, 32'h01fe0e33}; // Words 61, 60 (Payload[18], Payload[17])
+        dut.u_boot_rom.rom[31] = {32'h0010041b, 32'hfe7358e3}; // Words 63, 62 (Payload[20], Payload[19])
+        dut.u_boot_rom.rom[32] = {32'h01c43023, 32'h01f41413}; // Words 65, 64 (Payload[22], Payload[21])
+        dut.u_boot_rom.rom[33] = {32'h57f4849b, 32'h000064b7}; // Words 67, 66 (Payload[24], Payload[23])
+        dut.u_boot_rom.rom[34] = {32'h00943423, 32'h01149493}; // Words 69, 68 (Payload[26], Payload[25])
+        dut.u_boot_rom.rom[35] = {32'h00c00313, 32'h11c0006f}; // Words 71, 70 (Payload[28], Payload[27])
+        dut.u_boot_rom.rom[36] = {32'h00100e13, 32'h00000393}; // Words 73, 72 (Payload[30], Payload[29])
+        dut.u_boot_rom.rom[37] = {32'h01c38f33, 32'h00100e93}; // Words 75, 74 (Payload[32], Payload[31])
+        dut.u_boot_rom.rom[38] = {32'h000f0e13, 32'h000e0393}; // Words 77, 76 (Payload[34], Payload[33])
+        dut.u_boot_rom.rom[39] = {32'hfe6ec8e3, 32'h001e8e93}; // Words 79, 78 (Payload[36], Payload[35])
+        dut.u_boot_rom.rom[40] = {32'h01f41413, 32'h0010041b}; // Words 81, 80 (Payload[38], Payload[37])
+        dut.u_boot_rom.rom[41] = {32'h01c43023, 32'h01040413}; // Words 83, 82 (Payload[40], Payload[39])
+        dut.u_boot_rom.rom[42] = {32'h57f4849b, 32'h000064b7}; // Words 85, 84 (Payload[42], Payload[41])
+        dut.u_boot_rom.rom[43] = {32'h00148493, 32'h01149493}; // Words 87, 86 (Payload[44], Payload[43])
+        dut.u_boot_rom.rom[44] = {32'h0d00006f, 32'h00943423}; // Words 89, 88 (Payload[46], Payload[45])
+        dut.u_boot_rom.rom[45] = {32'h6783031b, 32'h12345337}; // Words 91, 90 (Payload[48], Payload[47])
+        dut.u_boot_rom.rom[46] = {32'ha5a3839b, 32'h5a5a63b7}; // Words 93, 92 (Payload[50], Payload[49])
+        dut.u_boot_rom.rom[47] = {32'h00531e93, 32'h00800e13}; // Words 95, 94 (Payload[52], Payload[51])
+        dut.u_boot_rom.rom[48] = {32'h01eee333, 32'h01b35f13}; // Words 97, 96 (Payload[54], Payload[53])
+        dut.u_boot_rom.rom[49] = {32'hfffe0e13, 32'h00734333}; // Words 99, 98 (Payload[56], Payload[55])
+        dut.u_boot_rom.rom[50] = {32'h0010041b, 32'hfe0e16e3}; // Words 101, 100 (Payload[58], Payload[57])
+        dut.u_boot_rom.rom[51] = {32'h02040413, 32'h01f41413}; // Words 103, 102 (Payload[60], Payload[59])
+        dut.u_boot_rom.rom[52] = {32'h000064b7, 32'h00643023}; // Words 105, 104 (Payload[62], Payload[61])
+        dut.u_boot_rom.rom[53] = {32'h01149493, 32'h57f4849b}; // Words 107, 106 (Payload[64], Payload[63])
+        dut.u_boot_rom.rom[54] = {32'h00943423, 32'h00248493}; // Words 109, 108 (Payload[66], Payload[65])
+        dut.u_boot_rom.rom[55] = {32'h00100313, 32'h07c0006f}; // Words 111, 110 (Payload[68], Payload[67])
+        dut.u_boot_rom.rom[56] = {32'h00a00e13, 32'h00100393}; // Words 113, 112 (Payload[70], Payload[69])
+        dut.u_boot_rom.rom[57] = {32'h00138393, 32'h02730333}; // Words 115, 114 (Payload[72], Payload[71])
+        dut.u_boot_rom.rom[58] = {32'h07800e93, 32'hfe7e5ce3}; // Words 117, 116 (Payload[74], Payload[73])
+        dut.u_boot_rom.rom[59] = {32'h0010041b, 32'h03d35f33}; // Words 119, 118 (Payload[76], Payload[75])
+        dut.u_boot_rom.rom[60] = {32'h03040413, 32'h01f41413}; // Words 121, 120 (Payload[78], Payload[77])
+        dut.u_boot_rom.rom[61] = {32'h000064b7, 32'h01e43023}; // Words 123, 122 (Payload[80], Payload[79])
+        dut.u_boot_rom.rom[62] = {32'h01149493, 32'h57f4849b}; // Words 125, 124 (Payload[82], Payload[81])
+        dut.u_boot_rom.rom[63] = {32'h00943423, 32'h00348493}; // Words 127, 126 (Payload[84], Payload[83])
+        dut.u_boot_rom.rom[64] = {32'h40010437, 32'h0340006f}; // Words 129, 128 (Payload[86], Payload[85])
+        dut.u_boot_rom.rom[65] = {32'h00642023, 32'h05400313}; // Words 131, 130 (Payload[88], Payload[87])
+        dut.u_boot_rom.rom[66] = {32'h01f49493, 32'h0010049b}; // Words 133, 132 (Payload[90], Payload[89])
+        dut.u_boot_rom.rom[67] = {32'h000063b7, 32'h04048493}; // Words 135, 134 (Payload[92], Payload[91])
+        dut.u_boot_rom.rom[68] = {32'h01139393, 32'h57f3839b}; // Words 137, 136 (Payload[94], Payload[93])
+        dut.u_boot_rom.rom[69] = {32'h0074b423, 32'h00438393}; // Words 139, 138 (Payload[96], Payload[95])
+        dut.u_boot_rom.rom[70] = {32'h00000013, 32'h0040006f}; // Words 141, 140 (Payload[98], Payload[97])
+        dut.u_boot_rom.rom[71] = {32'hff9ff06f, 32'h00000013}; // Words 143, 142 (Payload[100], Payload[99])
+        dut.u_boot_rom.rom[72] = {32'h00000013, 32'h00000013}; // Words 145, 144 (NOP, Payload[101])
     end
 
     initial begin
@@ -366,13 +388,7 @@ module tb_titan_x_performance;
         check("Step 2: Root-of-Trust authenticates and asserts boot_pass", dut.boot_pass == 1'b1);
         check("Step 3: Multi-core cluster released from reset (core_rst_n == 1)", dut.core_rst_n == 1'b1);
 
-        // Inject verified multi-core firmware payload into BootROM payload window (Word 43..) upon RoT pass
-        for (fw_k = 0; fw_k < 51; fw_k = fw_k + 1) begin
-            dut.u_boot_rom.rom[21 + fw_k][63:32] = fw_buf[fw_k][31:0];
-            dut.u_boot_rom.rom[22 + fw_k][31:0]  = fw_buf[fw_k][63:32];
-        end
-
-        // 3. Multi-Core Execution Phase
+        // 3. Multi-Core Execution Phase (Authentic execution of verified BootROM payload)
         $display("[EXEC %0t] All 5 cores active. Booting multi-core benchmark from BootROM (0x10000000)...", $time);
         
         // Execute for 2500 cycles to allow all cores to retire workloads

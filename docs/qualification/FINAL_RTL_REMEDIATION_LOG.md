@@ -115,12 +115,14 @@ This engineering remediation log records the systematic resolution of all archit
 - **RTL Remediation:**
   - Automated bounded model checking proofs directly using `yosys-smtbmc` and Z3 SMT solver across all 5 formal proof suites.
 
-#### DEF-VERIF-04: Multi-Core Performance Workload Injection
-- **Files Modified:** `Design Files of TITAN X/performance/tb_titan_x_performance.v`, `verification/performance/tb_titan_x_performance.v`
-- **Root Cause:** Testbench did not load multi-core firmware payload into BootROM upon RoT authentication pass.
-- **RTL Remediation:**
-  - Embedded 51-word multi-core benchmark payload into testbench and injected into BootROM upon `boot_pass`.
-  - Verified instructions retire across all 5 cores (Hart 0-3 RV64IM_Zicsr + Hart 4 RV64IMAC).
+#### DEF-VERIF-04: Multi-Core Benchmark Pre-Boot Authentication and Execution
+- **Files Modified:** `Design Files of TITAN X/security/efuse_ctrl/efuse_ctrl.v`, `Design Files of TITAN X/performance/tb_titan_x_performance.v`, `verification/performance/tb_titan_x_performance.v`
+- **Root Cause:** Prior testbench injected benchmark payload into BootROM post-boot after dummy container authentication.
+- **RTL & Testbench Remediation:**
+  - Provisioned authentic Root-of-Trust public key in `efuse_ctrl.v` Slot 3 matching private key.
+  - Constructed authentic FIPS 180-4 SHA-256 digest and NIST FIPS 186-4 ECDSA P-256 signature for the complete 102-instruction multi-core benchmark image.
+  - Initialized complete signed RoT container in BootROM prior to reset release (at time = 0); eliminated all post-boot testbench memory writes.
+  - Hardware Root-of-Trust cryptographically verifies container pre-boot and releases reset; verified all 5 cores retire instructions (Hart 0-3 RV64IM_Zicsr + Hart 4 RV64IM_Zicsr).
 
 ---
 

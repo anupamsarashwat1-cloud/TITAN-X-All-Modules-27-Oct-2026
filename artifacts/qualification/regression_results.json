@@ -7,7 +7,7 @@
       " Total Verification Failed: 0",
       "=========================================================================================================",
       "[PHASE 6 SIGN-OFF: SUCCESS] Performance verification and multi-core firmware boot 100% complete.",
-      "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/performance/tb_titan_x_performance.v:433: $finish called at 145106000 (1ps)"
+      "/home/anupam-sarashwat/TITAN-X-2026-11-04/Design Files of TITAN X/performance/tb_titan_x_performance.v:449: $finish called at 156406000 (1ps)"
     ]
   }
 ]

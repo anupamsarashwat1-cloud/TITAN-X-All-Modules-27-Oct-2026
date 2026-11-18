@@ -55,4 +55,5 @@ The engineering design team hereby certifies that all technical findings from th
 - **Lead Memory Hierarchy & Physical Design Engineer:**  
   *Om Kumar* — `[SIGNED 2026-11-17]`  
 
-**Canonical Recommendation:** The branch `remediation/post-review-findings-2026-11-17` is completely qualified with an UNCONDITIONAL PASS and is recommended for production merge into `main`.
+**Canonical Recommendation:** The branch is qualified for RTL baseline sign-off and is recommended for production merge into `main`.
+

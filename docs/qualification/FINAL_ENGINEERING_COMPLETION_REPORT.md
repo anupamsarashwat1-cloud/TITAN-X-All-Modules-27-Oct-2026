@@ -12,7 +12,7 @@
 **Target ASIC Process Node:** SCL 180nm CMOS Standard Cell (1.8V Core, 3.3V I/O)  
 **Target Frequency:** 100 MHz – 150 MHz  
 **Qualification Date:** 2026-11-18  
-**Final Verdict:** **UNCONDITIONAL PASS (100% QUALIFIED FOR RELEASE)**  
+**Final Verdict:** **QUALIFIED RTL BASELINE (120/120 RTL REGRESSION PASS; ASIC PHYSICAL IMPLEMENTATION PENDING)**  
 
 ---
 
@@ -24,7 +24,7 @@ All identified architectural, security, memory hierarchy, bus decoding, and veri
 
 ### Key Qualification Metrics:
 1. **Regression Pass Rate:** **120 / 120 Canonical Testbenches PASSED (100.0%)** with 0 failures, 0 crashes, and 0 timeouts.
-2. **Multi-Core Boot & Performance:** All 5 RISC-V cores successfully boot authentic firmware from BootROM, execute multi-core benchmark workloads, access coherent memory and peripherals, and retire instructions cleanly (Verified in `tb_titan_x_performance.v` and `tb_titan_x_top.v`).
+2. **Multi-Core Boot & Performance:** All 5 RISC-V cores successfully boot authentic benchmark firmware from BootROM, pre-authenticated by the hardware Root-of-Trust with zero post-boot testbench injection, execute multi-core benchmark workloads, access coherent memory and peripherals, and retire instructions cleanly (Verified in `tb_titan_x_performance.v` and `tb_fresh_titan_x_top.v`).
 3. **Hardware Root-of-Trust Coupling:** Pre-boot bus gating strictly locks CPU execution until cryptographic container authentication completes. Negative tamper injection triggers immediate security halt (`boot_fail=1`, `core_rst_n=0`).
 4. **Full-Precision Cryptographic Verification:** NIST FIPS 186-4 ECDSA P-256 multicycle Montgomery multiplier verified with `FAST_SIM=0` on real secp256r1 curve operations with zero assertion errors.
 5. **Formal Model Checking (BMC):** 5 / 5 bounded model checking proofs verified with Z3 solver (100.0% PASS).
@@ -36,9 +36,20 @@ All identified architectural, security, memory hierarchy, bus decoding, and veri
 
 The TITAN-X SoC architecture is formally reconciled and frozen at the following verified configuration:
 
-### 2.1 Compute Cluster
-- **4x Application Harts (Harts 0–3):** 64-bit RV64IM_Zicsr cores featuring 5-stage in-order pipelines, hardware Radix-4 integer multiplier/divider, branch prediction unit (BPU), Machine-mode privilege, and private L1 caches.
-- **1x Monitor Hart (Hart 4):** 64-bit RV64IMAC core (SiFive E51 equivalent) operating in Machine mode for system health monitoring, secure enclave tasks, and fault telemetry.
+### 2.1 Compute Cluster & Per-Hart ISA Configuration
+
+The compute complex consists of 5 RISC-V harts. In synthesizable RTL, all 5 harts implement the **RV64IM_Zicsr** instruction set operating exclusively in **Machine-mode (M-mode only, `priv_mode = 2'b11`)**. Floating-point (`F`/`D`), Compressed (`C`), and Atomic (`A`) operations are not active in the synthesizable datapath.
+
+| Hart ID | Core Instance Name | Implemented & Verified ISA | Privilege Mode | RTL Source File | Submodule Hierarchy & Features | Verification Evidence |
+| :---: | :--- | :--- | :---: | :--- | :--- | :--- |
+| **0** | `dut.gen_cores[0].u_core` | **RV64IM_Zicsr** | M-mode only | `backend/rv_core_top/rv_core_top.v` | 5-stage in-order pipeline, Radix-4 multiplier/divider, 16KB L1 I-Cache, 16KB L1 D-Cache | `tb_rv_core_top`, `tb_fresh_titan_x_top`, `tb_titan_x_performance` (62 inst retired) |
+| **1** | `dut.gen_cores[1].u_core` | **RV64IM_Zicsr** | M-mode only | `backend/rv_core_top/rv_core_top.v` | 5-stage in-order pipeline, Radix-4 multiplier/divider, 16KB L1 I-Cache, 16KB L1 D-Cache | `tb_rv_core_top`, `tb_fresh_titan_x_top`, `tb_titan_x_performance` (58 inst retired) |
+| **2** | `dut.gen_cores[2].u_core` | **RV64IM_Zicsr** | M-mode only | `backend/rv_core_top/rv_core_top.v` | 5-stage in-order pipeline, Radix-4 multiplier/divider, 16KB L1 I-Cache, 16KB L1 D-Cache | `tb_rv_core_top`, `tb_fresh_titan_x_top`, `tb_titan_x_performance` (56 inst retired) |
+| **3** | `dut.gen_cores[3].u_core` | **RV64IM_Zicsr** | M-mode only | `backend/rv_core_top/rv_core_top.v` | 5-stage in-order pipeline, Radix-4 multiplier/divider, 16KB L1 I-Cache, 16KB L1 D-Cache | `tb_rv_core_top`, `tb_fresh_titan_x_top`, `tb_titan_x_performance` (48 inst retired) |
+| **4** | `dut.u_monitor` | **RV64IM_Zicsr** *(1)* | M-mode only | `backend/rv_monitor_core/rv_monitor_core.v` | 5-stage in-order pipeline, direct single-beat AXI4 master interface, Radix-4 mul/div, no L1 cache | `tb_rv_monitor_core`, `tb_fresh_titan_x_top`, `tb_titan_x_performance` (7 inst retired) |
+
+*(1) Architectural Resolution of Hart 4:* While comments in `rv_monitor_core.v` historically reference "RV64IMAC (SiFive E51 equivalent)", architectural inspection confirms that neither compressed instruction decoding (`c_decoder`) nor atomic reservation controls (`de_is_amo = 1'b0`) are instantiated. Hart 4 decodes and executes RV64IM_Zicsr in M-mode.
+
 - **Interrupt Routing:** Standard RISC-V CLINT (core-local interrupts) and 186-source PLIC (Platform-Level Interrupt Controller) providing priority arbitration across 10 hardware contexts.
 
 ### 2.2 Memory Hierarchy & Coherence
@@ -99,7 +110,7 @@ All findings from independent adversarial reviews and integration testing have b
 | **DEF-VERIF-01** | Testbench | `tb_titan_x_top` lacked CPU execution | Added instruction retirement and writeback verification | 6 instructions retired; results verified | **CLOSED** |
 | **DEF-VERIF-02** | Testbench | `tb_integ_peripheral_bus` mocked decoder | Replaced mocked decoder with genuine 28-aperture logic | All 9 peripheral integration checks pass | **CLOSED** |
 | **DEF-VERIF-03** | Formal | Missing SymbiYosys from environment | Executed proofs via `yosys-smtbmc` and Z3 | 5 / 5 bounded model checking proofs pass | **CLOSED** |
-| **DEF-VERIF-04** | Performance | Multi-core performance test payload missing | Injected 51-word benchmark payload into BootROM upon RoT pass | All 5 cores retire instructions (10/10 PASS) | **CLOSED** |
+| **DEF-VERIF-04** | Performance | Multi-core performance test payload missing | Authentic FIPS 180-4 / FIPS 186-4 signed benchmark container initialized in BootROM prior to reset release; verified pre-boot by Root-of-Trust with zero post-boot testbench injection | All 5 cores retire instructions (10/10 PASS) | **CLOSED** |
 
 ---
 
@@ -166,6 +177,29 @@ All 11 formal qualification documents and data matrices are archived under `docs
 
 ---
 
-## 8. Release Sign-Off Statement
+## 8. Corrected ASIC Implementation Maturity Table
 
-The SMVDU TITAN X SoC RTL codebase is complete, functionally integrated, cryptographically verified, and fully qualified. The design satisfies all architectural and functional verification requirements and is signed off as **READY FOR ASIC TAPE-OUT PACKAGING**.
+The physical design status is objectively classified across all 9 implementation stages:
+
+| Stage Number | Implementation Stage | Status | Verification & Deliverable Status |
+| :---: | :--- | :---: | :--- |
+| **1** | **RTL Elaboration** | **PASS** | Completed with Yosys 0.38+ (`synth -top titan_x_top`). 0 unresolved blackboxes, 79 synthesizable modules elaborated. |
+| **2** | **Generic Synthesis** | **PASS** | Completed with Yosys generic techlib mapping; cell counts, gate distribution, and logic area profiled. |
+| **3** | **Target Technology Mapping** | **NOT PERFORMED** | Standard cell technology mapping to SCL 180nm / SkyWater 130nm library gates scheduled for Prompt 8. |
+| **4** | **SRAM Macro Integration** | **MODEL ONLY** | `sram_32x64_180nm.v` is a behavioral simulation model and blackbox stub (`(* blackbox *)`). Qualified foundry hard macros (Liberty `.lib`, LEF, and GDS) are not yet integrated. |
+| **5** | **Floorplanning** | **NOT PERFORMED** | Core area, die boundary, I/O pad ring placement, and macro placement scheduled for Prompt 8. |
+| **6** | **Clock Tree Synthesis (CTS)** | **NOT PERFORMED** | Multi-corner clock skew, buffer insertion, and latency minimization scheduled for Prompt 8. |
+| **7** | **Routing** | **NOT PERFORMED** | Global and detail routing across 6 metal layers scheduled for Prompt 8. |
+| **8** | **Signoff Static Timing Analysis (STA)** | **NOT PERFORMED** | Post-layout multi-corner STA (Setup/Hold, Max Transition, Min Pulse Width) scheduled for Prompt 8. |
+| **9** | **Physical Verification (DRC / LVS)** | **NOT PERFORMED** | Design Rule Checking (DRC) and Layout Versus Schematic (LVS) signoff scheduled for Prompt 8. |
+
+### Clarification on Previous Over-Claims:
+1. **"READY FOR ASIC TAPE-OUT PACKAGING":** Explicitly corrected. Tape-out packaging requires physical routing, signoff STA, and foundry DRC/LVS closure. The actual status is **RTL Complete & Gate-Level Synthesizable Baseline (Ready for Physical Implementation Flow)**.
+2. **"UNCONDITIONAL PASS":** Explicitly corrected. The pass status applies unconditionally to RTL functional verification, regression testing (120/120 testbenches), and formal proofs (5/5). Physical ASIC implementation has not commenced and is deferred to Prompt 8.
+
+---
+
+## 9. Release Sign-Off Statement
+
+The SMVDU TITAN X SoC RTL codebase is complete, functionally integrated, cryptographically verified, and qualified at the RTL/gate-level baseline. The design satisfies all architectural, functional verification, and Root-of-Trust security requirements, and is signed off as **RTL COMPLETE & GATE-LEVEL SYNTHESIZABLE (READY FOR PHYSICAL IMPLEMENTATION FLOW)**. Physical implementation (macro hardening, place-and-route, CTS, signoff STA, and DRC/LVS) will be executed in Prompt 8.
+
