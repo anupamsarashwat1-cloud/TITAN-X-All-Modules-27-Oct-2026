@@ -168,6 +168,13 @@ module rv_csr #(
                     12'h342: mcause_q   <= csr_wdata;
                     12'h343: mtval_q    <= csr_wdata;
                     12'h180: satp_q     <= csr_wdata;
+                    12'h100: sstatus_q  <= csr_wdata;
+                    12'h104: sie_q      <= csr_wdata;
+                    12'h105: stvec_q    <= csr_wdata;
+                    12'h140: sscratch_q <= csr_wdata;
+                    12'h141: sepc_q     <= csr_wdata;
+                    12'h142: scause_q   <= csr_wdata;
+                    12'h143: stval_q    <= csr_wdata;
                     // mhartid RO; counters WRITEME-free (spec: no trap on
                     // write attempt at M-level for these, effects none)
                     default: ;                         // incl. counter writes: ignored
