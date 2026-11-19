@@ -1,3 +1,6 @@
+# Automatically ensure ../rtl symlink exists pointing to the RTL directory
+$(shell [ -e ../rtl ] || ln -s "../Design Files of TITAN X" ../rtl)
+
 VERILATOR = verilator
 VERILATOR_FLAGS = -Wno-fatal -Wno-COMBDLY -Wno-PINCONNECTEMPTY -Wno-DECLFILENAME -Wno-SYNCASYNCNET -Wno-SYMRSVDWORD -Wno-MULTIDRIVEN -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC -Wno-PINMISSING -Wno-CASEINCOMPLETE -Wno-LATCH -Wno-UNUSEDSIGNAL -Wno-UNDRIVEN -Wno-UNOPTFLAT -O3 -DSIM_AXI_RAM=1 -DFAST_SIM=1 -GBOOT_ADDR=64\'h0000000080000000 -GFAST_SIM=1 --cc --exe --build -j 4
 V_TOP = ../rtl/top/titan_x_top/titan_x_top.v
