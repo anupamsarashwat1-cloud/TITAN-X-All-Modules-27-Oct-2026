@@ -184,6 +184,11 @@ module axi4_burst_to_lite #(
     reg [DATA_W/8-1:0] w_strb_buf [0:MAX_BEATS-1];
     reg                aw_issued, w_issued;
     reg [1:0]          w_resp_acc;
+    reg [63:0]         cyc;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) cyc <= 0;
+        else cyc <= cyc + 1;
+    end
 
     assign s_awready = (wstate == W_IDLE);
     assign s_wready  = (wstate == W_COLL);
@@ -223,6 +228,10 @@ module axi4_burst_to_lite #(
                     if (s_wvalid) begin
                         w_buf[w_coll[2:0]]      <= s_wdata;
                         w_strb_buf[w_coll[2:0]] <= s_wstrb;
+                        if ((w_base >> 4) == (40'h0082200820 >> 4)) begin
+                            $display("[B2L_WCOLL] cyc=%0d base=0x%010x beat=%0d data=0x%016x strb=0x%02x last=%b",
+                                     cyc, w_base, w_coll, s_wdata, s_wstrb, s_wlast);
+                        end
                         if (s_wlast || (w_coll == w_len)) begin
                             w_coll    <= 8'h0;
                             m_awaddr  <= w_base;
@@ -250,6 +259,10 @@ module axi4_burst_to_lite #(
                     if (m_wvalid && m_wready) begin
                         m_wvalid <= 1'b0;
                         w_issued <= 1'b1;
+                    end
+                    if ((w_base >> 4) == (40'h0082200820 >> 4) && (m_awvalid || m_wvalid)) begin
+                        $display("[B2L_WISSUE] cyc=%0d cnt=%0d awaddr=0x%010x wdata=0x%016x awrdy=%b wrdy=%b",
+                                 cyc, w_cnt, m_awaddr, m_wdata, m_awready, m_wready);
                     end
                     if ((aw_issued || (m_awvalid && m_awready)) &&
                         (w_issued  || (m_wvalid && m_wready))) begin

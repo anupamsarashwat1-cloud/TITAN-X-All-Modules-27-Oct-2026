@@ -56,6 +56,12 @@ module uart_16550 (
 
     wire dlab = lcr[7];
 
+    reg pwrite_active;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) pwrite_active <= 1'b0;
+        else pwrite_active <= psel && penable && pwrite;
+    end
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             ier <= 8'h0;
@@ -69,9 +75,17 @@ module uart_16550 (
             dlm <= 8'h0;
             mode_cr <= 8'h0;
             nbit_cr <= 8'h0;
-        end else if (psel && penable && pwrite) begin
+        end else if (psel && penable && pwrite && !pwrite_active) begin
             case (paddr[5:0])
-                6'h00: if (dlab) dll <= pwdata[7:0]; else thr_rbr <= pwdata[7:0];
+                6'h00: if (dlab) begin
+                    dll <= pwdata[7:0];
+                end else begin
+                    thr_rbr <= pwdata[7:0];
+`ifndef SYNTHESIS
+                    $write("%c", pwdata[7:0]);
+                    $fflush();
+`endif
+                end
                 6'h04: if (dlab) dlm <= pwdata[7:0]; else ier <= pwdata[7:0];
                 6'h08: iir_fcr <= pwdata[7:0];
                 6'h0C: lcr <= pwdata[7:0];

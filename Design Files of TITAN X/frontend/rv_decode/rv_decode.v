@@ -6,7 +6,10 @@
 // Included at file scope, matching every other consumer of this header.
 `include "isa_pkg.vh"
 
-module rv_decode (
+module rv_decode #(
+    parameter [63:0] HART_ID  = 64'd0,
+    parameter [63:0] FDT_ADDR = 64'h0000_0000_8002_0000
+) (
     input  wire        clk,
     input  wire        rst_n,
     input  wire        stall,
@@ -47,6 +50,9 @@ module rv_decode (
     output reg         is_ecall,
     output reg         is_ebreak,
     output reg         is_mret,
+    output reg         is_sret,
+    output reg         is_amo,
+    output reg  [4:0]  amo_funct5,
     output reg         illegal_instr,
     output reg         fault_out,
     output reg  [63:0] fault_cause_out,
@@ -64,24 +70,29 @@ module rv_decode (
     reg [63:0] imm_comb;
     reg [4:0]  alu_op_comb;
     reg        mem_r_comb, mem_w_comb, reg_w_comb, br_comb, jal_comb, jalr_comb;
-    reg        csr_comb, ec_comb, eb_comb, mret_comb, illegal_comb;
+    reg        csr_comb, ec_comb, eb_comb, mret_comb, sret_comb, illegal_comb;
+    reg        is_amo_comb;
+    reg [4:0]  amo_funct5_comb;
     reg [1:0]  csrop_comb;
 
     always @(*) begin
-        imm_comb     = 64'h0;
-        alu_op_comb  = `ALU_ADD;
-        mem_r_comb   = 1'b0;
-        mem_w_comb   = 1'b0;
-        reg_w_comb   = 1'b0;
-        br_comb      = 1'b0;
-        jal_comb     = 1'b0;
-        jalr_comb    = 1'b0;
-        csr_comb     = 1'b0;
-        ec_comb      = 1'b0;
-        eb_comb      = 1'b0;
-        mret_comb    = 1'b0;
-        illegal_comb = (instr_in[1:0] != 2'b11); // Non-32-bit instructions illegal in RV64IM
-        csrop_comb   = 2'b00;
+        imm_comb        = 64'h0;
+        alu_op_comb     = `ALU_ADD;
+        mem_r_comb      = 1'b0;
+        mem_w_comb      = 1'b0;
+        reg_w_comb      = 1'b0;
+        br_comb         = 1'b0;
+        jal_comb        = 1'b0;
+        jalr_comb       = 1'b0;
+        csr_comb        = 1'b0;
+        ec_comb         = 1'b0;
+        eb_comb         = 1'b0;
+        mret_comb       = 1'b0;
+        sret_comb       = 1'b0;
+        is_amo_comb     = 1'b0;
+        amo_funct5_comb = 5'h0;
+        illegal_comb    = (instr_in[1:0] != 2'b11); // Non-32-bit instructions illegal
+        csrop_comb      = 2'b00;
 
         case (op)
             `OP_LUI: begin
@@ -191,7 +202,15 @@ module rv_decode (
                         12'h000: ec_comb   = 1'b1;    // ECALL
                         12'h001: eb_comb   = 1'b1;    // EBREAK
                         12'h302: mret_comb = 1'b1;    // MRET
-                        default: illegal_comb = 1'b1; // unrecognized SYSTEM -> illegal-instruction
+                        12'h102: sret_comb = 1'b1;    // SRET
+                        12'h105: ;                    // WFI (handled as NOP)
+                        default: begin
+                            if (instr_in[31:25] == 7'b0001001) begin
+                                // SFENCE.VMA (handled as valid fence)
+                            end else begin
+                                illegal_comb = 1'b1;
+                            end
+                        end
                     endcase
                 end else if (f3 == 3'b100) begin
                     illegal_comb = 1'b1; // reserved CSR opcode
@@ -206,6 +225,23 @@ module rv_decode (
                 alu_op_comb = `ALU_ADD;
                 reg_w_comb  = 1'b0;
             end
+            `OP_AMO: begin
+                is_amo_comb     = 1'b1;
+                amo_funct5_comb = instr_in[31:27];
+                reg_w_comb      = 1'b1; // rd receives old value (or SC status)
+                alu_op_comb     = `ALU_ADD;
+                if (instr_in[31:27] == `AMO_SC) begin
+                    mem_w_comb = 1'b1;
+                    mem_r_comb = 1'b0;
+                end else if (instr_in[31:27] == `AMO_LR) begin
+                    mem_r_comb = 1'b1;
+                    mem_w_comb = 1'b0;
+                end else begin
+                    // Read-modify-write atomic
+                    mem_r_comb = 1'b1;
+                    mem_w_comb = 1'b1;
+                end
+            end
             default: begin
                 illegal_comb = 1'b1;
             end
@@ -217,7 +253,10 @@ module rv_decode (
     // Register file: dedicated module (unit-tested under backend/rv_regfile),
     // written from the writeback stage through the wb_* feedback port.
     wire [63:0] rf_rs1_data, rf_rs2_data;
-    rv_regfile u_rf (
+    rv_regfile #(
+        .HART_ID  (HART_ID),
+        .FDT_ADDR (FDT_ADDR)
+    ) u_rf (
         .clk      (clk),
         .rst_n    (rst_n),
         .rd_addr1 (r_rs1),   .rd_data1 (rf_rs1_data),
@@ -301,11 +340,14 @@ module rv_decode (
             branch    <= 1'b0;
             jal       <= 1'b0;
             jalr      <= 1'b0;
-            is_csr    <= 1'b0;
-            csr_op    <= 2'b00;
+            is_csr        <= 1'b0;
+            csr_op        <= 2'b00;
             is_ecall      <= 1'b0;
             is_ebreak     <= 1'b0;
             is_mret       <= 1'b0;
+            is_sret       <= 1'b0;
+            is_amo        <= 1'b0;
+            amo_funct5    <= 5'h0;
             illegal_instr <= 1'b0;
             fault_out       <= 1'b0;
             fault_cause_out <= 64'h0;
@@ -330,6 +372,9 @@ module rv_decode (
             is_ecall      <= 1'b0;
             is_ebreak     <= 1'b0;
             is_mret       <= 1'b0;
+            is_sret       <= 1'b0;
+            is_amo        <= 1'b0;
+            amo_funct5    <= 5'h0;
             illegal_instr <= 1'b0;
             fault_out       <= 1'b0;
             fault_cause_out <= 64'h0;
@@ -354,6 +399,9 @@ module rv_decode (
             is_ecall      <= ec_comb;
             is_ebreak     <= eb_comb;
             is_mret       <= mret_comb;
+            is_sret       <= sret_comb;
+            is_amo        <= is_amo_comb;
+            amo_funct5    <= amo_funct5_comb;
             illegal_instr <= valid_in && illegal_comb;
             fault_out       <= valid_in && (fault_in === 1'b1);
             fault_cause_out <= (valid_in && (fault_in === 1'b1)) ? fault_cause_in : 64'h0;

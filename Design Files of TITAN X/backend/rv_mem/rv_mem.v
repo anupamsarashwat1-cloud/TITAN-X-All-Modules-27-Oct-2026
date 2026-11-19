@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-// SMVDU-TITAN-X SoC — RV64I Memory Access Stage
+// SMVDU-TITAN-X SoC — RV64I Memory Access Stage with A-Extension (Atomics)
 `timescale 1ns/1ps
+`include "params.vh"
+`include "isa_pkg.vh"
+
 module rv_mem (
     input  wire        clk,
     input  wire        rst_n,
@@ -14,6 +17,8 @@ module rv_mem (
     input  wire        mem_read,
     input  wire        mem_write,
     input  wire        reg_write,
+    input  wire        is_amo,
+    input  wire [4:0]  amo_funct5,
     input  wire        valid_in,
     // Data memory AXI4-Lite master
     output reg         dmem_awvalid,
@@ -51,15 +56,22 @@ module rv_mem (
     // Stall request
     output wire        mem_stall
 );
-    localparam MS_IDLE  = 2'd0;
-    localparam MS_ADDR  = 2'd1;
-    localparam MS_DATA  = 2'd2;
-    localparam MS_DONE  = 2'd3;
-    reg [1:0] mstate;
+    localparam MS_IDLE      = 3'd0;
+    localparam MS_DATA      = 3'd1;
+    localparam MS_DONE      = 3'd2;
+    localparam MS_AMO_READ  = 3'd3;
+    localparam MS_AMO_WRITE = 3'd4;
+    reg [2:0]  mstate;
     reg [63:0] load_data;
     reg        mem_active;
     reg [63:0] pc_q;
     reg [39:0] store_addr_q;
+    reg        lr_valid;
+    reg [39:0] lr_addr;
+    reg        is_sc_q;
+
+    reg [31:0] amo_old_32, amo_new_32;
+    reg [63:0] amo_old_64, amo_new_64;
 
     wire [1:0]  clean_bresp = dmem_bresp;
     wire [1:0]  clean_rresp = dmem_rresp;
@@ -102,6 +114,44 @@ module rv_mem (
         endcase
     endfunction
 
+    // 32-bit AMO compute function
+    function [31:0] calc_amo_32;
+        input [4:0]  af5;
+        input [31:0] old_v;
+        input [31:0] op_v;
+        case (af5)
+            `AMO_SWAP: calc_amo_32 = op_v;
+            `AMO_ADD:  calc_amo_32 = old_v + op_v;
+            `AMO_XOR:  calc_amo_32 = old_v ^ op_v;
+            `AMO_AND:  calc_amo_32 = old_v & op_v;
+            `AMO_OR:   calc_amo_32 = old_v | op_v;
+            `AMO_MIN:  calc_amo_32 = ($signed(old_v) < $signed(op_v)) ? old_v : op_v;
+            `AMO_MAX:  calc_amo_32 = ($signed(old_v) > $signed(op_v)) ? old_v : op_v;
+            `AMO_MINU: calc_amo_32 = (old_v < op_v) ? old_v : op_v;
+            `AMO_MAXU: calc_amo_32 = (old_v > op_v) ? old_v : op_v;
+            default:   calc_amo_32 = old_v + op_v;
+        endcase
+    endfunction
+
+    // 64-bit AMO compute function
+    function [63:0] calc_amo_64;
+        input [4:0]  af5;
+        input [63:0] old_v;
+        input [63:0] op_v;
+        case (af5)
+            `AMO_SWAP: calc_amo_64 = op_v;
+            `AMO_ADD:  calc_amo_64 = old_v + op_v;
+            `AMO_XOR:  calc_amo_64 = old_v ^ op_v;
+            `AMO_AND:  calc_amo_64 = old_v & op_v;
+            `AMO_OR:   calc_amo_64 = old_v | op_v;
+            `AMO_MIN:  calc_amo_64 = ($signed(old_v) < $signed(op_v)) ? old_v : op_v;
+            `AMO_MAX:  calc_amo_64 = ($signed(old_v) > $signed(op_v)) ? old_v : op_v;
+            `AMO_MINU: calc_amo_64 = (old_v < op_v) ? old_v : op_v;
+            `AMO_MAXU: calc_amo_64 = (old_v > op_v) ? old_v : op_v;
+            default:   calc_amo_64 = old_v + op_v;
+        endcase
+    endfunction
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             dmem_awvalid    <= 1'b0;  dmem_awaddr  <= 40'h0;
@@ -118,6 +168,9 @@ module rv_mem (
             mstate          <= MS_IDLE;
             pc_q            <= 64'h0;
             store_addr_q    <= 40'h0;
+            lr_valid        <= 1'b0;
+            lr_addr         <= 40'h0;
+            is_sc_q         <= 1'b0;
             mem_fault       <= 1'b0;
             mem_fault_pc    <= 64'h0;
             mem_fault_cause <= 64'h0;
@@ -137,6 +190,7 @@ module rv_mem (
             mstate          <= MS_IDLE;
             pc_q            <= 64'h0;
             store_addr_q    <= 40'h0;
+            is_sc_q         <= 1'b0;
             mem_fault       <= 1'b0;
             mem_fault_pc    <= 64'h0;
             mem_fault_cause <= 64'h0;
@@ -145,7 +199,65 @@ module rv_mem (
             case (mstate)
                 MS_IDLE: begin
                     mem_fault <= 1'b0;
-                    if (valid_in && mem_write) begin
+                    if (valid_in && is_amo) begin
+                        if (amo_funct5 == `AMO_LR) begin
+                            // LR: Load Reserved
+                            dmem_arvalid  <= 1'b1;
+                            dmem_araddr   <= alu_result[39:0];
+                            pc_q          <= clean_pc_in;
+                            dmem_rready   <= 1'b1;
+                            mem_active    <= 1'b1;
+                            mstate        <= MS_DATA;
+                            rd_out        <= rd_in;
+                            reg_write_out <= reg_write;
+                            valid_out     <= 1'b0;
+                            lr_valid      <= 1'b1;
+                            lr_addr       <= alu_result[39:0];
+                            is_sc_q       <= 1'b0;
+                        end else if (amo_funct5 == `AMO_SC) begin
+                            // SC: Store Conditional
+                            if (lr_valid && (lr_addr[39:3] == alu_result[39:3])) begin
+                                lr_valid      <= 1'b0;
+                                dmem_awvalid  <= 1'b1;
+                                dmem_awaddr   <= alu_result[39:0];
+                                store_addr_q  <= alu_result[39:0];
+                                pc_q          <= clean_pc_in;
+                                dmem_wvalid   <= 1'b1;
+                                dmem_wdata    <= rs2_data << {alu_result[2:0], 3'b000};
+                                dmem_wstrb    <= wstrb_from_f3(funct3) << alu_result[2:0];
+                                dmem_bready   <= 1'b1;
+                                mem_active    <= 1'b1;
+                                mstate        <= MS_DATA;
+                                rd_out        <= rd_in;
+                                reg_write_out <= 1'b1;
+                                result        <= 64'd0; // 0 = SC success
+                                valid_out     <= 1'b0;
+                                is_sc_q       <= 1'b1;
+                            end else begin
+                                lr_valid      <= 1'b0;
+                                result        <= 64'd1; // 1 = SC failure
+                                rd_out        <= rd_in;
+                                reg_write_out <= 1'b1;
+                                valid_out     <= 1'b1;
+                                mem_active    <= 1'b0;
+                                mstate        <= MS_IDLE;
+                                is_sc_q       <= 1'b0;
+                            end
+                        end else begin
+                            // Read-Modify-Write AMO (AMOADD, AMOSWAP, etc.)
+                            dmem_arvalid  <= 1'b1;
+                            dmem_araddr   <= alu_result[39:0];
+                            store_addr_q  <= alu_result[39:0];
+                            pc_q          <= clean_pc_in;
+                            dmem_rready   <= 1'b1;
+                            mem_active    <= 1'b1;
+                            mstate        <= MS_AMO_READ;
+                            rd_out        <= rd_in;
+                            reg_write_out <= reg_write;
+                            valid_out     <= 1'b0;
+                            is_sc_q       <= 1'b0;
+                        end
+                    end else if (valid_in && mem_write) begin
                         dmem_awvalid  <= 1'b1;
                         dmem_awaddr   <= alu_result[39:0];
                         store_addr_q  <= alu_result[39:0];
@@ -162,6 +274,7 @@ module rv_mem (
                         reg_write_out <= reg_write;
                         result        <= alu_result;
                         valid_out     <= 1'b0;
+                        is_sc_q       <= 1'b0;
                     end else if (valid_in && mem_read) begin
                         dmem_arvalid  <= 1'b1;
                         dmem_araddr   <= alu_result[39:0];
@@ -172,19 +285,21 @@ module rv_mem (
                         rd_out        <= rd_in;
                         reg_write_out <= reg_write;
                         valid_out     <= 1'b0;
+                        is_sc_q       <= 1'b0;
                     end else begin
                         result        <= alu_result;
                         rd_out        <= rd_in;
                         reg_write_out <= reg_write;
                         valid_out     <= valid_in;
                         mem_active    <= 1'b0;
+                        is_sc_q       <= 1'b0;
                     end
                 end
                 MS_DATA: begin
                     if (dmem_awready) dmem_awvalid <= 1'b0;
                     if (dmem_wready)  dmem_wvalid  <= 1'b0;
                     if (dmem_arready) dmem_arvalid <= 1'b0;
-                    if (dmem_bvalid) begin
+                    if (dmem_bvalid && dmem_bready) begin
                         dmem_bready <= 1'b0;
                         mem_active  <= 1'b0;
                         mstate      <= MS_IDLE;
@@ -198,9 +313,10 @@ module rv_mem (
                         end else begin
                             valid_out       <= 1'b1;
                             mem_fault       <= 1'b0;
+                            if (is_sc_q)
+                                result      <= 64'd0;
                         end
-                    end
-                    if (dmem_rvalid) begin
+                    end else if (dmem_rvalid && dmem_rready) begin
                         dmem_rready <= 1'b0;
                         mem_active  <= 1'b0;
                         mstate      <= MS_IDLE;
@@ -218,6 +334,62 @@ module rv_mem (
                                 funct3);
                             valid_out    <= 1'b1;
                             mem_fault    <= 1'b0;
+                        end
+                    end
+                end
+                MS_AMO_READ: begin
+                    if (dmem_arready) dmem_arvalid <= 1'b0;
+                    if (dmem_rvalid) begin
+                        dmem_rready <= 1'b0;
+                        if (clean_rresp[1] == 1'b1 || clean_rresp[0] == 1'b1) begin
+                            mem_fault       <= 1'b1;
+                            mem_fault_pc    <= pc_q;
+                            mem_fault_cause <= 64'd5;
+                            mem_fault_tval  <= {24'h0, store_addr_q};
+                            valid_out       <= 1'b0;
+                            reg_write_out   <= 1'b0;
+                            mem_active      <= 1'b0;
+                            mstate          <= MS_IDLE;
+                        end else begin
+                            dmem_awvalid <= 1'b1;
+                            dmem_awaddr  <= store_addr_q;
+                            dmem_wvalid  <= 1'b1;
+                            dmem_bready  <= 1'b1;
+                            mstate       <= MS_AMO_WRITE;
+
+                            if (funct3 == `AMO_W) begin
+                                amo_old_32 = (dmem_rdata >> {store_addr_q[2:0], 3'b000}) & 32'hFFFF_FFFF;
+                                amo_new_32 = calc_amo_32(amo_funct5, amo_old_32, rs2_data[31:0]);
+                                result     <= {{32{amo_old_32[31]}}, amo_old_32};
+                                dmem_wdata <= {32'h0, amo_new_32} << {store_addr_q[2:0], 3'b000};
+                                dmem_wstrb <= 8'h0F << store_addr_q[2:0];
+                            end else begin
+                                amo_old_64 = dmem_rdata;
+                                amo_new_64 = calc_amo_64(amo_funct5, amo_old_64, rs2_data);
+                                result     <= amo_old_64;
+                                dmem_wdata <= amo_new_64;
+                                dmem_wstrb <= 8'hFF;
+                            end
+                        end
+                    end
+                end
+                MS_AMO_WRITE: begin
+                    if (dmem_awready) dmem_awvalid <= 1'b0;
+                    if (dmem_wready)  dmem_wvalid  <= 1'b0;
+                    if (dmem_bvalid) begin
+                        dmem_bready <= 1'b0;
+                        mem_active  <= 1'b0;
+                        mstate      <= MS_IDLE;
+                        if (clean_bresp[1] == 1'b1 || clean_bresp[0] == 1'b1) begin
+                            mem_fault       <= 1'b1;
+                            mem_fault_pc    <= pc_q;
+                            mem_fault_cause <= 64'd7;
+                            mem_fault_tval  <= {24'h0, store_addr_q};
+                            valid_out       <= 1'b0;
+                            reg_write_out   <= 1'b0;
+                        end else begin
+                            valid_out       <= 1'b1;
+                            mem_fault       <= 1'b0;
                         end
                     end
                 end

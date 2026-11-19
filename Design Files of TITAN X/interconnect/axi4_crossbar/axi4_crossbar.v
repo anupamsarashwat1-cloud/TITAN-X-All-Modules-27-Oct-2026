@@ -41,6 +41,9 @@ module axi4_crossbar #(
     output wire [NM-1:0]        m_awready,
     input  wire [(NM*AW)-1:0]   m_awaddr,
     input  wire [(NM*IDW)-1:0]  m_awid,
+    input  wire [(NM*8)-1:0]    m_awlen,
+    input  wire [(NM*3)-1:0]    m_awsize,
+    input  wire [(NM*2)-1:0]    m_awburst,
 
     input  wire [NM-1:0]        m_wvalid,
     output wire [NM-1:0]        m_wready,
@@ -57,6 +60,9 @@ module axi4_crossbar #(
     output wire [NM-1:0]        m_arready,
     input  wire [(NM*AW)-1:0]   m_araddr,
     input  wire [(NM*IDW)-1:0]  m_arid,
+    input  wire [(NM*8)-1:0]    m_arlen,
+    input  wire [(NM*3)-1:0]    m_arsize,
+    input  wire [(NM*2)-1:0]    m_arburst,
 
     output wire [NM-1:0]        m_rvalid,
     input  wire [NM-1:0]        m_rready,
@@ -72,6 +78,9 @@ module axi4_crossbar #(
     input  wire [NS-1:0]        s_awready,
     output wire [(NS*AW)-1:0]   s_awaddr,
     output wire [(NS*IDW)-1:0]  s_awid,
+    output wire [(NS*8)-1:0]    s_awlen,
+    output wire [(NS*3)-1:0]    s_awsize,
+    output wire [(NS*2)-1:0]    s_awburst,
 
     output wire [NS-1:0]        s_wvalid,
     input  wire [NS-1:0]        s_wready,
@@ -88,6 +97,9 @@ module axi4_crossbar #(
     input  wire [NS-1:0]        s_arready,
     output wire [(NS*AW)-1:0]   s_araddr,
     output wire [(NS*IDW)-1:0]  s_arid,
+    output wire [(NS*8)-1:0]    s_arlen,
+    output wire [(NS*3)-1:0]    s_arsize,
+    output wire [(NS*2)-1:0]    s_arburst,
 
     input  wire [NS-1:0]        s_rvalid,
     output wire [NS-1:0]        s_rready,
@@ -440,12 +452,24 @@ module axi4_crossbar #(
             ? m_awaddr[aw_sel[gs2]*AW +: AW] : {AW{1'b0}};
         assign s_awid[gs2*IDW +: IDW]  = (aw_sel[gs2] != 5'd31)
             ? m_awid[aw_sel[gs2]*IDW +: IDW] : {IDW{1'b0}};
+        assign s_awlen[gs2*8 +: 8]     = (aw_sel[gs2] != 5'd31)
+            ? m_awlen[aw_sel[gs2]*8 +: 8] : 8'd0;
+        assign s_awsize[gs2*3 +: 3]    = (aw_sel[gs2] != 5'd31)
+            ? m_awsize[aw_sel[gs2]*3 +: 3] : 3'd0;
+        assign s_awburst[gs2*2 +: 2]   = (aw_sel[gs2] != 5'd31)
+            ? m_awburst[aw_sel[gs2]*2 +: 2] : 2'd0;
 
         assign s_arvalid[gs2] = (ar_sel[gs2] != 5'd31);
         assign s_araddr[gs2*AW +: AW]  = (ar_sel[gs2] != 5'd31)
             ? m_araddr[ar_sel[gs2]*AW +: AW] : {AW{1'b0}};
         assign s_arid[gs2*IDW +: IDW]  = (ar_sel[gs2] != 5'd31)
             ? m_arid[ar_sel[gs2]*IDW +: IDW] : {IDW{1'b0}};
+        assign s_arlen[gs2*8 +: 8]     = (ar_sel[gs2] != 5'd31)
+            ? m_arlen[ar_sel[gs2]*8 +: 8] : 8'd0;
+        assign s_arsize[gs2*3 +: 3]    = (ar_sel[gs2] != 5'd31)
+            ? m_arsize[ar_sel[gs2]*3 +: 3] : 3'd0;
+        assign s_arburst[gs2*2 +: 2]   = (ar_sel[gs2] != 5'd31)
+            ? m_arburst[ar_sel[gs2]*2 +: 2] : 2'd0;
 
         assign s_wvalid[gs2] = (w_sel[gs2] != 5'd31) ? m_wvalid[w_sel[gs2]] : 1'b0;
         assign s_wdata[gs2*DW +: DW] = (w_sel[gs2] != 5'd31)

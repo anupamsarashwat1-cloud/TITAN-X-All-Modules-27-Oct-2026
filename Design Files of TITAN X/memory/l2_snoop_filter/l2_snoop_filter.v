@@ -160,11 +160,11 @@ module l2_snoop_filter #(
             ack_accum <= 4'h0;
             dirty_accum <= 1'b0;
             for (s_i = 0; s_i < DIR_SETS; s_i = s_i + 1) begin
-                replace_ptr[s_i] <= 5'd0;
+                replace_ptr[s_i] = 5'd0;
                 for (w_i = 0; w_i < DIR_WAYS; w_i = w_i + 1) begin
-                    dir_state[s_i][w_i] <= ST_I;
-                    dir_mask[s_i][w_i]  <= 4'h0;
-                    dir_tag[s_i][w_i]   <= 28'h0;
+                    dir_state[s_i][w_i] = ST_I;
+                    dir_mask[s_i][w_i]  = 4'h0;
+                    dir_tag[s_i][w_i]   = 28'h0;
                 end
             end
         end else begin

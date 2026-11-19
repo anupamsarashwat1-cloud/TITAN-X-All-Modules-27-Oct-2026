@@ -7,6 +7,11 @@ module axi_rom #(
 ) (
     input  wire         clk,
     input  wire         rst_n,
+    input  wire         boot_pass,
+    input  wire         rom_preboot_en,
+    input  wire [16:0]  rom_preboot_addr,
+    output reg  [31:0]  rom_preboot_rdata,
+    output reg          rom_preboot_valid,
 
     // AXI4 Slave Interface
     input  wire         s_arvalid,

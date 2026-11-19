@@ -6,7 +6,8 @@
 `include "params.vh"
 
 module titan_x_top #(
-    parameter FAST_SIM = 0
+    parameter FAST_SIM = 0,
+    parameter BOOT_ADDR = 64'h0000_0000_1000_0000
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -189,6 +190,9 @@ module titan_x_top #(
     wire [NM-1:0]        axm_awvalid, axm_awready;
     wire [(NM*AW)-1:0]   axm_awaddr;
     wire [(NM*IDW)-1:0]  axm_awid;
+    wire [(NM*8)-1:0]    axm_awlen;
+    wire [(NM*3)-1:0]    axm_awsize;
+    wire [(NM*2)-1:0]    axm_awburst;
     wire [NM-1:0]        axm_wvalid, axm_wready, axm_wlast;
     wire [(NM*DW)-1:0]   axm_wdata;
     wire [(NM*8)-1:0]    axm_wstrb;
@@ -198,6 +202,9 @@ module titan_x_top #(
     wire [NM-1:0]        axm_arvalid, axm_arready, axm_rlast;
     wire [(NM*AW)-1:0]   axm_araddr;
     wire [(NM*IDW)-1:0]  axm_arid;
+    wire [(NM*8)-1:0]    axm_arlen;
+    wire [(NM*3)-1:0]    axm_arsize;
+    wire [(NM*2)-1:0]    axm_arburst;
     wire [NM-1:0]        axm_rvalid, axm_rready;
     wire [(NM*DW)-1:0]   axm_rdata;
     wire [(NM*2)-1:0]    axm_rresp;
@@ -206,6 +213,9 @@ module titan_x_top #(
     wire [NS-1:0]        axs_awvalid, axs_awready;
     wire [(NS*AW)-1:0]   axs_awaddr;
     wire [(NS*IDW)-1:0]  axs_awid;
+    wire [(NS*8)-1:0]    axs_awlen;
+    wire [(NS*3)-1:0]    axs_awsize;
+    wire [(NS*2)-1:0]    axs_awburst;
     wire [NS-1:0]        axs_wvalid, axs_wready, axs_wlast;
     wire [(NS*DW)-1:0]   axs_wdata;
     wire [(NS*8)-1:0]    axs_wstrb;
@@ -215,6 +225,9 @@ module titan_x_top #(
     wire [NS-1:0]        axs_arvalid, axs_arready, axs_rlast;
     wire [(NS*AW)-1:0]   axs_araddr;
     wire [(NS*IDW)-1:0]  axs_arid;
+    wire [(NS*8)-1:0]    axs_arlen;
+    wire [(NS*3)-1:0]    axs_arsize;
+    wire [(NS*2)-1:0]    axs_arburst;
     wire [NS-1:0]        axs_rvalid, axs_rready;
     wire [(NS*DW)-1:0]   axs_rdata;
     wire [(NS*2)-1:0]    axs_rresp;
@@ -294,15 +307,19 @@ module titan_x_top #(
     ) u_crossbar (
         .clk(clk), .rst_n(core_rst_n),
         .m_awvalid(xbar_axm_awvalid), .m_awready(xbar_axm_awready), .m_awaddr(xbar_axm_awaddr), .m_awid(xbar_axm_awid),
+        .m_awlen(axm_awlen), .m_awsize(axm_awsize), .m_awburst(axm_awburst),
         .m_wvalid(xbar_axm_wvalid), .m_wready(xbar_axm_wready), .m_wdata(xbar_axm_wdata), .m_wstrb(xbar_axm_wstrb), .m_wlast(xbar_axm_wlast),
         .m_bvalid(xbar_axm_bvalid), .m_bready(xbar_axm_bready), .m_bresp(xbar_axm_bresp), .m_bid(xbar_axm_bid),
         .m_arvalid(xbar_axm_arvalid), .m_arready(xbar_axm_arready), .m_araddr(xbar_axm_araddr), .m_arid(xbar_axm_arid),
+        .m_arlen(axm_arlen), .m_arsize(axm_arsize), .m_arburst(axm_arburst),
         .m_rvalid(xbar_axm_rvalid), .m_rready(xbar_axm_rready), .m_rdata(xbar_axm_rdata), .m_rresp(xbar_axm_rresp), .m_rlast(xbar_axm_rlast), .m_rid(xbar_axm_rid),
         .m_awqos(qos_aw), .m_arqos(qos_ar),
         .s_awvalid(axs_awvalid), .s_awready(axs_awready), .s_awaddr(axs_awaddr), .s_awid(axs_awid),
+        .s_awlen(axs_awlen), .s_awsize(axs_awsize), .s_awburst(axs_awburst),
         .s_wvalid(axs_wvalid), .s_wready(axs_wready), .s_wdata(axs_wdata), .s_wstrb(axs_wstrb), .s_wlast(axs_wlast),
         .s_bvalid(axs_bvalid), .s_bready(axs_bready), .s_bresp(axs_bresp), .s_bid(axs_bid),
         .s_arvalid(axs_arvalid), .s_arready(axs_arready), .s_araddr(axs_araddr), .s_arid(axs_arid),
+        .s_arlen(axs_arlen), .s_arsize(axs_arsize), .s_arburst(axs_arburst),
         .s_rvalid(axs_rvalid), .s_rready(axs_rready), .s_rdata(axs_rdata), .s_rresp(axs_rresp), .s_rlast(axs_rlast), .s_rid(axs_rid)
     );
 
@@ -391,7 +408,7 @@ module titan_x_top #(
     wire        rom_preboot_valid;
 
     axi_rom #(
-        .HEX_FILE("firmware.hex")
+        .HEX_FILE("")
     ) u_boot_rom (
         .clk(clk),
         .rst_n(rst_n),
@@ -439,38 +456,37 @@ module titan_x_top #(
             assign axm_awvalid[c] = 1'b0;
             assign axm_awaddr[c*40 +: 40] = 40'h0;
             assign axm_awid[c*4 +: 4] = 4'h0;
+            assign axm_awlen[c*8 +: 8] = 8'h0;
+            assign axm_awsize[c*3 +: 3] = 3'h0;
+            assign axm_awburst[c*2 +: 2] = 2'h0;
             assign axm_wvalid[c] = 1'b0;
             assign axm_wdata[c*64 +: 64] = 64'h0;
             assign axm_wstrb[c*8 +: 8] = 8'h0;
             assign axm_wlast[c] = 1'b0;
             assign axm_bready[c] = 1'b1;
 
-            wire [7:0] imem_arlen;
-            wire [2:0] imem_arsize;
-            wire [1:0] imem_arburst;
-            
             rv_core_top #(
                 .HART_ID(c),
-                .RESET_PC(64'h0000_0000_1000_0000),
+                .RESET_PC(BOOT_ADDR),
                 .ENABLE_L1_CACHE(1)
             ) u_core (
                 .clk(clk), .rst_n(core_rst_n),
                 .irq_m_ext(plic_targets[c*2]), .irq_m_timer(timer_irq[c]), .irq_m_soft(sw_irq[c]),
                 
                 .imem_arvalid(axm_arvalid[c]), .imem_arready(axm_arready[c]), 
-                .imem_araddr(axm_araddr[c*40 +: 40]), .imem_arlen(imem_arlen), 
-                .imem_arsize(imem_arsize), .imem_arburst(imem_arburst),
+                .imem_araddr(axm_araddr[c*40 +: 40]), .imem_arlen(axm_arlen[c*8 +: 8]), 
+                .imem_arsize(axm_arsize[c*3 +: 3]), .imem_arburst(axm_arburst[c*2 +: 2]),
                 .imem_rvalid(axm_rvalid[c]), .imem_rready(axm_rready[c]), 
                 .imem_rdata(axm_rdata[c*64 +: 64]), .imem_rresp(axm_rresp[c*2 +: 2]), .imem_rlast(axm_rlast[c]),
 
                 .dmem_awvalid(axm_awvalid[c+4]), .dmem_awready(axm_awready[c+4]), .dmem_awaddr(axm_awaddr[(c+4)*40 +: 40]), 
-                .dmem_awlen(), .dmem_awsize(), .dmem_awburst(),
+                .dmem_awlen(axm_awlen[(c+4)*8 +: 8]), .dmem_awsize(axm_awsize[(c+4)*3 +: 3]), .dmem_awburst(axm_awburst[(c+4)*2 +: 2]),
                 .dmem_wvalid(axm_wvalid[c+4]), .dmem_wready(axm_wready[c+4]), .dmem_wdata(axm_wdata[(c+4)*64 +: 64]), 
                 .dmem_wstrb(axm_wstrb[(c+4)*8 +: 8]), .dmem_wlast(axm_wlast[c+4]),
                 .dmem_bvalid(axm_bvalid[c+4]), .dmem_bready(axm_bready[c+4]), .dmem_bresp(axm_bresp[(c+4)*2 +: 2]),
                 
                 .dmem_arvalid(axm_arvalid[c+4]), .dmem_arready(axm_arready[c+4]), .dmem_araddr(axm_araddr[(c+4)*40 +: 40]), 
-                .dmem_arlen(), .dmem_arsize(), .dmem_arburst(), .dmem_arlock(),
+                .dmem_arlen(axm_arlen[(c+4)*8 +: 8]), .dmem_arsize(axm_arsize[(c+4)*3 +: 3]), .dmem_arburst(axm_arburst[(c+4)*2 +: 2]), .dmem_arlock(),
                 .dmem_rvalid(axm_rvalid[c+4]), .dmem_rready(axm_rready[c+4]), .dmem_rdata(axm_rdata[(c+4)*64 +: 64]), 
                 .dmem_rresp(axm_rresp[(c+4)*2 +: 2]), .dmem_rlast(axm_rlast[c+4]),
                 .snoop_valid(l2_snoop_valid[c]), .snoop_addr(l2_snoop_addr), .snoop_type(l2_snoop_type),
@@ -481,6 +497,18 @@ module titan_x_top #(
             assign axm_arid[c*4 +: 4] = c[3:0];
             assign axm_awid[(c+4)*4 +: 4] = c[3:0] + 4'd4;
             assign axm_arid[(c+4)*4 +: 4] = c[3:0] + 4'd4;
+        end
+    endgenerate
+
+    genvar m_unused;
+    generate
+        for (m_unused = 8; m_unused < NM; m_unused = m_unused + 1) begin : gen_burst_defaults
+            assign axm_awlen[m_unused*8 +: 8] = 8'h0;
+            assign axm_awsize[m_unused*3 +: 3] = 3'h3;
+            assign axm_awburst[m_unused*2 +: 2] = 2'h1;
+            assign axm_arlen[m_unused*8 +: 8] = 8'h0;
+            assign axm_arsize[m_unused*3 +: 3] = 3'h3;
+            assign axm_arburst[m_unused*2 +: 2] = 2'h1;
         end
     endgenerate
 
@@ -576,6 +604,7 @@ module titan_x_top #(
     wire         l2_m_bvalid, l2_m_bready;
     wire [1:0]   l2_m_bresp;
 
+`ifndef SIM_AXI_RAM
     // Crossbar Slave 0 ID tracking
     reg [3:0] l2_s_rid, l2_s_bid;
     always @(posedge clk or negedge rst_n) begin
@@ -651,7 +680,30 @@ module titan_x_top #(
         .snoop_data_valid(l2_snoop_data_valid),
         .snoop_data (l2_snoop_data_mux)
     );
+`else
+    assign l2_snoop_valid = 4'b0;
+    assign l2_snoop_addr  = 40'b0;
+    assign l2_snoop_type  = 2'b0;
+`endif
 
+`ifdef SIM_AXI_RAM
+    axi_ram #(
+        .MEM_SIZE(64 * 1024 * 1024),
+        .BASE_ADDR(40'h0000_8000_0000)
+    ) u_ddr_ctrl (
+        .clk(clk), .rst_n(rst_n),
+        .s_awvalid(axs_awvalid[0]), .s_awready(axs_awready[0]), .s_awaddr(axs_awaddr[0*40 +: 40]),
+        .s_awid(axs_awid[0*4 +: 4]), .s_awlen(axs_awlen[0*8 +: 8]),
+        .s_wvalid(axs_wvalid[0]), .s_wready(axs_wready[0]), .s_wdata(axs_wdata[0*64 +: 64]),
+        .s_wstrb(axs_wstrb[0*8 +: 8]), .s_wlast(axs_wlast[0]),
+        .s_bvalid(axs_bvalid[0]), .s_bready(axs_bready[0]), .s_bresp(axs_bresp[0*2 +: 2]), .s_bid(axs_bid[0*4 +: 4]),
+        
+        .s_arvalid(axs_arvalid[0]), .s_arready(axs_arready[0]), .s_araddr(axs_araddr[0*40 +: 40]),
+        .s_arid(axs_arid[0*4 +: 4]), .s_arlen(axs_arlen[0*8 +: 8]),
+        .s_rvalid(axs_rvalid[0]), .s_rready(axs_rready[0]), .s_rdata(axs_rdata[0*64 +: 64]),
+        .s_rresp(axs_rresp[0*2 +: 2]), .s_rlast(axs_rlast[0]), .s_rid(axs_rid[0*4 +: 4])
+    );
+`else
     ddr_ctrl_top u_ddr_ctrl (
         .clk(clk), .rst_n(rst_n),
         .s_awvalid(l2_m_awvalid), .s_awready(l2_m_awready), .s_awaddr(l2_m_awaddr), 
@@ -670,6 +722,7 @@ module titan_x_top #(
         .ddr_ras_n(ddr_ras_n), .ddr_cas_n(ddr_cas_n), .ddr_we_n(ddr_we_n),
         .ddr_dq(ddr_dq), .ddr_dqs_p(ddr_dqs_p), .ddr_dqs_n(ddr_dqs_n)
     );
+`endif
 
     // -------------------------------------------------------
     // AHB & APB Bridge (Slave 1)

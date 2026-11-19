@@ -118,6 +118,11 @@ module rv_dcache #(
     reg [LINE_BITS-1:0] fill_buf;
     reg [2:0]         fill_beat;
     reg [2:0]         evict_beat;
+    reg [63:0]        cyc;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) cyc <= 0;
+        else cyc <= cyc + 1;
+    end
 
     // Flush machinery
     reg               flush_pend;   // flush_all pulse latched

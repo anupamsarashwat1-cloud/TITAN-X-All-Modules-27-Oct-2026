@@ -1,0 +1,126 @@
+/dts-v1/;
+
+/ {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    compatible = "smvdu,titan-x";
+    model = "SMVDU TITAN-X SoC";
+
+    chosen {
+        bootargs = "console=ttyS0,115200 earlycon=sbi";
+        stdout-path = "/soc/serial@40000000";
+    };
+
+    cpus {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        timebase-frequency = <10000000>; /* 10 MHz */
+
+        cpu0: cpu@0 {
+            device_type = "cpu";
+            reg = <0>;
+            status = "okay";
+            compatible = "riscv";
+            riscv,isa = "rv64imafd";
+            mmu-type = "riscv,sv39";
+            clock-frequency = <100000000>; /* 100 MHz */
+            cpu0_intc: interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
+        };
+
+        cpu1: cpu@1 {
+            device_type = "cpu";
+            reg = <1>;
+            status = "okay";
+            compatible = "riscv";
+            riscv,isa = "rv64imafd";
+            mmu-type = "riscv,sv39";
+            clock-frequency = <100000000>;
+            cpu1_intc: interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
+        };
+
+        cpu2: cpu@2 {
+            device_type = "cpu";
+            reg = <2>;
+            status = "okay";
+            compatible = "riscv";
+            riscv,isa = "rv64imafd";
+            mmu-type = "riscv,sv39";
+            clock-frequency = <100000000>;
+            cpu2_intc: interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
+        };
+
+        cpu3: cpu@3 {
+            device_type = "cpu";
+            reg = <3>;
+            status = "okay";
+            compatible = "riscv";
+            riscv,isa = "rv64imafd";
+            mmu-type = "riscv,sv39";
+            clock-frequency = <100000000>;
+            cpu3_intc: interrupt-controller {
+                #interrupt-cells = <1>;
+                interrupt-controller;
+                compatible = "riscv,cpu-intc";
+            };
+        };
+    };
+
+    memory@80000000 {
+        device_type = "memory";
+        /* 64 MB starting at 0x8000_0000 */
+        reg = <0x0 0x80000000 0x0 0x04000000>;
+    };
+
+    soc {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        compatible = "simple-bus";
+        ranges;
+
+        clint@2000000 {
+            compatible = "riscv,clint0";
+            interrupts-extended = <
+                &cpu0_intc 3 &cpu0_intc 7
+                &cpu1_intc 3 &cpu1_intc 7
+                &cpu2_intc 3 &cpu2_intc 7
+                &cpu3_intc 3 &cpu3_intc 7
+            >;
+            reg = <0x0 0x2000000 0x0 0x10000>;
+        };
+
+        plic: interrupt-controller@c000000 {
+            #interrupt-cells = <1>;
+            interrupt-controller;
+            compatible = "riscv,plic0";
+            riscv,ndev = <31>;
+            interrupts-extended = <
+                &cpu0_intc 11 &cpu0_intc 9
+                &cpu1_intc 11 &cpu1_intc 9
+                &cpu2_intc 11 &cpu2_intc 9
+                &cpu3_intc 11 &cpu3_intc 9
+            >;
+            reg = <0x0 0xc000000 0x0 0x4000000>;
+        };
+
+        serial@40000000 {
+            compatible = "ns16550a";
+            reg = <0x0 0x40000000 0x0 0x100>;
+            reg-shift = <2>;
+            interrupts = <20>; /* plic_irq[20] is UART0 */
+            interrupt-parent = <&plic>;
+            clock-frequency = <100000000>;
+        };
+    };
+};

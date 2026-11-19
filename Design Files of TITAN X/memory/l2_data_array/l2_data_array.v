@@ -20,6 +20,28 @@ module l2_data_array #(
     output wire [DATA_W-1:0]   dout,        // read data (1-cycle synchronous latency)
     output reg                 dout_valid   // 1 cycle after read issued
 );
+`ifdef VERILATOR
+    reg [DATA_W-1:0] mem [0:DEPTH-1];
+    reg [DATA_W-1:0] dout_r;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            dout_valid <= 1'b0;
+            dout_r     <= {DATA_W{1'b0}};
+        end else begin
+            dout_valid <= cs && !we;
+            if (cs && !we) begin
+                dout_r <= mem[addr];
+            end
+            if (cs && we) begin
+                integer i;
+                for (i = 0; i < DATA_W/8; i = i + 1) begin
+                    if (wmask[i]) mem[addr][i*8 +: 8] <= din[i*8 +: 8];
+                end
+            end
+        end
+    end
+    assign dout = dout_r;
+`else
     localparam WORDS_PER_BANK = 64;
     localparam NUM_BANKS      = (DEPTH + WORDS_PER_BANK - 1) / WORDS_PER_BANK;
     localparam BANK_SEL_W     = (NUM_BANKS > 1) ? $clog2(NUM_BANKS) : 1;
@@ -71,5 +93,6 @@ module l2_data_array #(
     end
 
     assign dout = {bank_dout_hi[bank_sel_r], bank_dout_lo[bank_sel_r]};
+`endif
 
 endmodule

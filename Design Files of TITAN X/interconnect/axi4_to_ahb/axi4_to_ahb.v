@@ -9,8 +9,8 @@
 // to exactly one AHB word per transfer.
 module axi4_to_ahb #(
     parameter AW  = 40,
-    parameter DW  = 32,   // AXI-side datapath width
-    parameter HDW = 32,   // AHB-side datapath width (bridge adapts DW->HDW)
+    parameter DW  = 64,   // AXI-side datapath width (64 bits for Titan-X fabric)
+    parameter HDW = 32,   // AHB-side datapath width (32 bits for peripheral subsystem)
     parameter IDW = 4
 ) (
     input  wire        clk,
@@ -54,6 +54,9 @@ module axi4_to_ahb #(
     reg is_wr;
     reg [IDW-1:0] saved_id;
 
+    wire [HDW-1:0] wdata_sel = (s_awaddr[2] && (DW > HDW)) ? s_wdata[63:32] : s_wdata[31:0];
+    wire [HDW-1:0] wdata_sel_hold = (haddr[2] && (DW > HDW)) ? s_wdata[63:32] : s_wdata[31:0];
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             bstate    <= BS_IDLE;
@@ -62,10 +65,15 @@ module axi4_to_ahb #(
             s_wready  <= 1'b0;
             s_bvalid  <= 1'b0;
             s_rvalid  <= 1'b0;
+            s_rdata   <= {DW{1'b0}};
             htrans    <= HTRANS_IDLE;
             hwrite    <= 1'b0;
             hsize     <= 3'b010;
             hburst    <= 3'b000;
+            haddr     <= 32'h0;
+            hwdata    <= {HDW{1'b0}};
+            is_wr     <= 1'b0;
+            saved_id  <= {IDW{1'b0}};
         end else begin
             s_bvalid <= 1'b0;
             s_rvalid <= 1'b0;
@@ -73,7 +81,8 @@ module axi4_to_ahb #(
                 BS_IDLE: begin
                     s_awready <= 1'b1;
                     s_arready <= 1'b1;
-                    htrans <= HTRANS_IDLE;
+                    s_wready  <= 1'b0;
+                    htrans    <= HTRANS_IDLE;
                     if (s_awvalid) begin
                         haddr     <= s_awaddr[31:0];
                         hwrite    <= 1'b1;
@@ -81,9 +90,15 @@ module axi4_to_ahb #(
                         hsize     <= 3'b010;
                         saved_id  <= s_awid;
                         s_awready <= 1'b0;
-                        s_wready  <= 1'b1;
                         is_wr     <= 1'b1;
-                        bstate    <= BS_DATA;
+                        if (s_wvalid) begin
+                            hwdata   <= wdata_sel;
+                            s_wready <= 1'b1;
+                            bstate   <= BS_DATA;
+                        end else begin
+                            s_wready <= 1'b1;
+                            bstate   <= BS_ADDR;
+                        end
                     end else if (s_arvalid) begin
                         haddr     <= s_araddr[31:0];
                         hwrite    <= 1'b0;
@@ -95,29 +110,63 @@ module axi4_to_ahb #(
                         bstate    <= BS_DATA;
                     end
                 end
+
+                BS_ADDR: begin
+                    if (s_wvalid) begin
+                        hwdata   <= wdata_sel_hold;
+                        s_wready <= 1'b1;
+                        bstate   <= BS_DATA;
+                    end
+                end
+
                 BS_DATA: begin
-                    if (is_wr && s_wvalid) begin
-                        hwdata   <= s_wdata[HDW-1:0];      // low lanes only
-                        s_wready <= 1'b0;
-                        bstate   <= BS_RESP;
-                    end else if (!is_wr && hready) begin
-                        s_rdata  <= {{(DW-HDW){1'b0}}, hrdata};
-                        s_rvalid <= 1'b1;
-                        htrans   <= HTRANS_IDLE;
-                        if (s_rready) bstate <= BS_IDLE;
-                        else          bstate <= BS_RESP;
+                    s_wready <= 1'b0;
+                    if (is_wr) begin
+                        if (hready) begin
+                            s_bvalid <= 1'b1;
+                            htrans   <= HTRANS_IDLE;
+                            if (s_bready) begin
+                                s_awready <= 1'b1;
+                                s_arready <= 1'b1;
+                                bstate    <= BS_IDLE;
+                            end else begin
+                                bstate    <= BS_RESP;
+                            end
+                        end
+                    end else begin
+                        if (hready) begin
+                            s_rdata  <= (DW == 64) ? {hrdata, hrdata} : {{(DW-HDW){1'b0}}, hrdata};
+                            s_rvalid <= 1'b1;
+                            htrans   <= HTRANS_IDLE;
+                            if (s_rready) begin
+                                s_awready <= 1'b1;
+                                s_arready <= 1'b1;
+                                bstate    <= BS_IDLE;
+                            end else begin
+                                bstate    <= BS_RESP;
+                            end
+                        end
                     end
                 end
+
                 BS_RESP: begin
-                    if (is_wr && hready) begin
+                    if (is_wr) begin
                         s_bvalid <= 1'b1;
-                        htrans   <= HTRANS_IDLE;
-                        if (s_bready) bstate <= BS_IDLE;
-                    end else if (!is_wr) begin
+                        if (s_bready) begin
+                            s_awready <= 1'b1;
+                            s_arready <= 1'b1;
+                            bstate    <= BS_IDLE;
+                        end
+                    end else begin
                         s_rvalid <= 1'b1;
-                        if (s_rready) bstate <= BS_IDLE;
+                        if (s_rready) begin
+                            s_awready <= 1'b1;
+                            s_arready <= 1'b1;
+                            bstate    <= BS_IDLE;
+                        end
                     end
                 end
+
                 default: bstate <= BS_IDLE;
             endcase
         end

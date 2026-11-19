@@ -89,11 +89,9 @@ module rv_monitor_core #(
     assign fe_instr = imem_rdata[31:0]; 
     assign fe_valid = imem_rvalid;
 
-    always @(posedge clk) begin
-        if (fe_valid) $display("PC=%x, Instr=%x", fe_pc, fe_instr);
-    end
+
     
-    reg pc_reg;
+    reg [63:0] pc_reg;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) pc_reg <= RESET_PC;
         else if (branch_taken) pc_reg <= branch_target;

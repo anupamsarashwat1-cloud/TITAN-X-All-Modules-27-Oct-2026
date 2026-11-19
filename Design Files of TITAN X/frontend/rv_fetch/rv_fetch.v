@@ -11,7 +11,8 @@
 `include "params.vh"
 
 module rv_fetch #(
-    parameter RESET_PC = `RESET_PC
+    parameter RESET_PC     = `RESET_PC,
+    parameter ENABLE_DRAIN = 1
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -136,8 +137,8 @@ module rv_fetch #(
                         // drains through F_FLUSH first. This closes the
                         // redirect-vs-AR-acceptance same-edge race where
                         // the orphan beat would be paired with the new PC.
-                        if ((imem_arvalid && !ar_fire) ||
-                            ((pending_r || ar_fire) && !r_fire))
+                        if (ENABLE_DRAIN && ((imem_arvalid && !ar_fire) ||
+                            ((pending_r || ar_fire) && !r_fire)))
                             fstate <= F_FLUSH;
                         else begin
                             // Beat (if any) consumed this very edge —
@@ -145,6 +146,7 @@ module rv_fetch #(
                             pending_r    <= 1'b0;
                             imem_addr    <= branch_target;
                             imem_arvalid <= 1'b1;
+                            fstate       <= F_WAIT;
                         end
                     end else if (!stall && pending_r && imem_rvalid) begin
                         pc_out <= pc;
@@ -172,8 +174,15 @@ module rv_fetch #(
                     fault_cause_out <= 64'h0;
                     fault_tval_out  <= 64'h0;
                     // Latest target wins if another redirect arrives mid-drain.
-                    if (redirect)
-                        pc    <= branch_target;
+                    if (redirect) begin
+                        pc <= branch_target;
+                        if (!ENABLE_DRAIN) begin
+                            imem_addr    <= branch_target;
+                            imem_arvalid <= 1'b1;
+                            pending_r    <= 1'b0;
+                            fstate       <= F_WAIT;
+                        end
+                    end
                     if (imem_arvalid) begin
                         // Old request still waiting for its AR handshake:
                         // hold address/arvalid stable until accepted.
@@ -192,6 +201,11 @@ module rv_fetch #(
                 end
                 default: fstate <= F_REQ;
             endcase
+`ifndef SYNTHESIS
+            if ($time > 0) begin
+                // Check if in window
+            end
+`endif
         end
     end
 endmodule

@@ -25,7 +25,8 @@
 module rv_core_top #(
     parameter HART_ID  = 0,
     parameter RESET_PC = `RESET_PC,
-    parameter ENABLE_L1_CACHE = 0
+    parameter ENABLE_L1_CACHE = 0,
+    parameter [63:0] FDT_ADDR = 64'h0000_0000_8002_0000
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -125,7 +126,8 @@ module rv_core_top #(
     wire [1:0]  fe_imem_rresp;
 
     rv_fetch #(
-        .RESET_PC (RESET_PC)
+        .RESET_PC     (RESET_PC),
+        .ENABLE_DRAIN (!ENABLE_L1_CACHE)
     ) u_fetch (
         .clk             (clk),
         .rst_n           (rst_n),
@@ -151,6 +153,9 @@ module rv_core_top #(
     // Instantiate I-side MMU
     wire [39:0] fe_pa;
     wire        fe_trans_valid, fe_trans_busy;
+    wire        ptw_imem_arvalid;
+    wire [39:0] ptw_imem_araddr;
+    wire        ptw_imem_rready;
     
     rv_mmu u_mmu_fetch (
         .clk(clk), .rst_n(rst_n),
@@ -159,9 +164,9 @@ module rv_core_top #(
         .req_valid(fe_imem_arvalid),
         .req_r(1'b0), .req_w(1'b0), .req_x(1'b1),
         .pa_out(fe_pa), .trans_valid(fe_trans_valid), .trans_busy(fe_trans_busy),
-        .ptw_arvalid(imem_arvalid), .ptw_arready(imem_arready), .ptw_araddr(imem_araddr),
-        .ptw_rvalid(imem_rvalid), .ptw_rready(imem_rready), .ptw_rdata(imem_rdata),
-        .ptw_rresp(imem_rresp),
+        .ptw_arvalid(ptw_imem_arvalid), .ptw_arready(1'b0), .ptw_araddr(ptw_imem_araddr),
+        .ptw_rvalid(1'b0), .ptw_rready(ptw_imem_rready), .ptw_rdata(64'h0),
+        .ptw_rresp(2'b00),
         .sfence_vma(1'b0), .sfence_asid_en(1'b0), .sfence_va_en(1'b0), 
         .sfence_va_val(64'h0), .sfence_asid_val(64'h0)
     );
@@ -338,7 +343,9 @@ module rv_core_top #(
     // SYSTEM controls (Step 5.4)
     wire        de_iscsr;
     wire [1:0]  de_csrop;
-    wire        de_ecall, de_ebreak, de_mret;
+    wire        de_ecall, de_ebreak, de_mret, de_sret;
+    wire        de_is_amo;
+    wire [4:0]  de_amo_funct5;
     wire        de_illegal;
     wire        de_fault;
     wire [63:0] de_fault_cause, de_fault_tval;
@@ -348,7 +355,10 @@ module rv_core_top #(
     wire [4:0]  wb_rd;
     wire        wb_we;
 
-    rv_decode u_decode (
+    rv_decode #(
+        .HART_ID  ({56'h0, HART_ID[7:0]}),
+        .FDT_ADDR (FDT_ADDR)
+    ) u_decode (
         .clk          (clk),         .rst_n         (rst_n),
         .stall        (stall),
         .flush        (flush_de_1),
@@ -364,6 +374,8 @@ module rv_core_top #(
         .jalr         (de_jalr),
         .is_csr       (de_iscsr),    .csr_op        (de_csrop),
         .is_ecall     (de_ecall),    .is_ebreak     (de_ebreak),   .is_mret  (de_mret),
+        .is_sret      (de_sret),
+        .is_amo       (de_is_amo),   .amo_funct5    (de_amo_funct5),
         .illegal_instr(de_illegal),
         .fault_out    (de_fault),    .fault_cause_out(de_fault_cause), .fault_tval_out(de_fault_tval),
         .valid_out    (de_valid)
@@ -377,6 +389,8 @@ module rv_core_top #(
     wire [2:0]  ex_f3;
     wire [6:0]  ex_op;
     wire        ex_memr, ex_memw, ex_regw, ex_valid;
+    wire        ex_is_amo;
+    wire [4:0]  ex_amo_funct5;
     wire        mul_div_stall;
     wire        stall_ex;
 
@@ -397,10 +411,11 @@ module rv_core_top #(
         .alu_op       (de_aluop),   .mem_read     (de_memr),   .mem_write   (de_memw),
         .reg_write    (de_regw),    .branch       (de_branch), .jal         (de_jal),
         .jalr         (de_jalr),
-        .is_amo       (1'b0),       .amo_funct5   (5'h0),      // A-ext decodes later
+        .is_amo       (de_is_amo),  .amo_funct5   (de_amo_funct5),
         .is_csr       (de_iscsr),   .csr_op       (de_csrop),
         .is_ecall     (de_ecall),   .is_ebreak    (de_ebreak),
         .is_mret      (de_mret),
+        .is_sret      (de_sret),
         .illegal_in   (de_illegal),
         .instr_in     (de_instr),
         .fe_fault_in  (de_fault),
@@ -420,13 +435,12 @@ module rv_core_top #(
         .alu_result   (ex_alures),  .rs2_out      (ex_rs2),
         .rd_out       (ex_rd),      .funct3_out   (ex_f3),     .opcode_out  (ex_op),
         .mem_read_out (ex_memr),    .mem_write_out(ex_memw),   .reg_write_out(ex_regw),
-        .is_amo_out   (),           .amo_funct5_out(),
+        .is_amo_out   (ex_is_amo),  .amo_funct5_out(ex_amo_funct5),
         .valid_out    (ex_valid),
         .mul_div_stall(mul_div_stall),
         .branch_taken (branch_taken), .branch_target(branch_target),
         .trap_taken   (ex_trap_taken),
         .trap_pc_out  (ex_trap_pc),
-        .trap_cause_out(ex_trap_cause),
         .trap_cause_out(ex_trap_cause),
         .trap_tval_out(ex_trap_tval),
         .mtvec_out    (ex_mtvec),
@@ -462,6 +476,9 @@ module rv_core_top #(
     // Instantiate D-side MMU
     wire [39:0] mem_pa;
     wire        mem_trans_valid, mem_trans_busy;
+    wire        ptw_dmem_arvalid;
+    wire [39:0] ptw_dmem_araddr;
+    wire        ptw_dmem_rready;
     
     rv_mmu u_mmu_mem (
         .clk(clk), .rst_n(rst_n),
@@ -470,9 +487,9 @@ module rv_core_top #(
         .req_valid(ex_valid && (ex_memr || ex_memw)),
         .req_r(ex_memr), .req_w(ex_memw), .req_x(1'b0),
         .pa_out(mem_pa), .trans_valid(mem_trans_valid), .trans_busy(mem_trans_busy),
-        .ptw_arvalid(dmem_arvalid), .ptw_arready(dmem_arready), .ptw_araddr(dmem_araddr),
-        .ptw_rvalid(dmem_rvalid), .ptw_rready(dmem_rready), .ptw_rdata(dmem_rdata),
-        .ptw_rresp(dmem_rresp),
+        .ptw_arvalid(ptw_dmem_arvalid), .ptw_arready(1'b0), .ptw_araddr(ptw_dmem_araddr),
+        .ptw_rvalid(1'b0), .ptw_rready(ptw_dmem_rready), .ptw_rdata(64'h0),
+        .ptw_rresp(2'b00),
         .sfence_vma(1'b0), .sfence_asid_en(1'b0), .sfence_va_en(1'b0), 
         .sfence_va_val(64'h0), .sfence_asid_val(64'h0)
     );
@@ -489,6 +506,8 @@ module rv_core_top #(
         .mem_read     (ex_memr),
         .mem_write    (ex_memw),
         .reg_write    (ex_regw),
+        .is_amo       (ex_is_amo),
+        .amo_funct5   (ex_amo_funct5),
         .valid_in     (ex_valid),
         .dmem_awvalid (pipe_dmem_awvalid),  .dmem_awready(pipe_dmem_awready),
         .dmem_awaddr  (pipe_dmem_awaddr),
@@ -768,14 +787,14 @@ module rv_core_top #(
     assign pipe_dmem_wready  = !ENABLE_L1_CACHE ? dmem_wready  :
                                is_mmio          ? dmem_wready  : dcache_cpu_valid;
     assign pipe_dmem_bvalid  = !ENABLE_L1_CACHE ? dmem_bvalid  :
-                               is_mmio          ? dmem_bvalid  : dcache_cpu_valid;
+                               is_mmio          ? dmem_bvalid  : (dcache_cpu_valid && (pipe_dmem_awvalid || dc_wr_pending));
     assign pipe_dmem_bresp   = !ENABLE_L1_CACHE ? dmem_bresp   :
                                is_mmio          ? dmem_bresp   : 2'b00;
 
     assign pipe_dmem_arready = !ENABLE_L1_CACHE ? dmem_arready :
                                is_mmio          ? dmem_arready : dcache_cpu_valid;
     assign pipe_dmem_rvalid  = !ENABLE_L1_CACHE ? dmem_rvalid  :
-                               is_mmio          ? dmem_rvalid  : dcache_cpu_valid;
+                               is_mmio          ? dmem_rvalid  : (dcache_cpu_valid && !pipe_dmem_awvalid && !dc_wr_pending);
     assign pipe_dmem_rdata   = !ENABLE_L1_CACHE ? dmem_rdata   :
                                is_mmio          ? dmem_rdata   : (dcache_cpu_rdata << {cur_mem_addr[2:0], 3'b000});
     assign pipe_dmem_rresp   = !ENABLE_L1_CACHE ? dmem_rresp   :
@@ -866,5 +885,76 @@ module rv_core_top #(
 
     assign hart_halted = halt_req;
     assign hart_running = !halt_req;
+
+`ifndef SYNTHESIS
+    integer trace_cnt;
+    integer cycle_cnt;
+    reg [63:0] pc_hist [0:15];
+    reg [31:0] instr_hist [0:15];
+    integer h_idx;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            trace_cnt <= 0;
+            cycle_cnt <= 0;
+            h_idx <= 0;
+        end else if (HART_ID == 0) begin
+            cycle_cnt <= cycle_cnt + 1;
+`ifdef DEBUG_CORE_TRACE
+            if (cycle_cnt % 50000 == 0) begin
+                $display("[CORE 0 CYC %0d] instr_cnt=%0d dec_pc=0x%016x fe_pc=0x%016x stall=%b",
+                         cycle_cnt, trace_cnt, u_decode.pc_in, fe_pc, stall);
+            end
+`endif
+            if (u_decode.valid_in && !stall) begin
+                trace_cnt <= trace_cnt + 1;
+                pc_hist[h_idx[3:0]] <= u_decode.pc_in;
+                instr_hist[h_idx[3:0]] <= u_decode.instr_in;
+                h_idx <= h_idx + 1;
+
+                if (u_decode.pc_in == 64'h80000550) begin
+                    $display("[HANG DETECTED] Core 0 entered _start_hang at instr #%0d! History:", trace_cnt);
+                    for (integer k = 0; k < 16; k = k + 1) begin
+                        $display("  hist[%0d]: PC=0x%016x Instr=0x%08x", k,
+                                 pc_hist[(h_idx - 15 + k) & 4'hf],
+                                 instr_hist[(h_idx - 15 + k) & 4'hf]);
+                    end
+                    $finish;
+                end
+
+                if (u_decode.pc_in == 64'h8000ddbc) begin
+                    $display("[SBI_HART_HANG DETECTED] Core 0 entered sbi_hart_hang at instr #%0d! ra=0x%016x a0=0x%016x a1=0x%016x a2=0x%016x",
+                             trace_cnt, u_decode.u_rf.mem[1], u_decode.u_rf.mem[10], u_decode.u_rf.mem[11], u_decode.u_rf.mem[12]);
+                    for (integer k = 0; k < 16; k = k + 1) begin
+                        $display("  hist[%0d]: PC=0x%016x Instr=0x%08x", k,
+                                 pc_hist[(h_idx - 15 + k) & 4'hf],
+                                 instr_hist[(h_idx - 15 + k) & 4'hf]);
+                    end
+                    $finish;
+                end
+
+`ifdef DEBUG_CORE_TRACE
+                if (u_decode.pc_in >= 64'h8000deb0 && u_decode.pc_in <= 64'h8000debc) begin
+                    $display("[SWITCH_MODE] PC=0x%016x Instr=0x%08x ra=0x%016x a0=0x%016x a1=0x%016x",
+                             u_decode.pc_in, u_decode.instr_in, u_decode.u_rf.mem[1], u_decode.u_rf.mem[10], u_decode.u_rf.mem[11]);
+                end
+
+                if (u_decode.pc_in >= 64'h80200000 && u_decode.pc_in <= 64'h80200090) begin
+                    $display("[PAYLOAD EXEC] PC=0x%016x Instr=0x%08x a0=0x%016x a1=0x%016x",
+                             u_decode.pc_in, u_decode.instr_in, u_decode.u_rf.mem[10], u_decode.u_rf.mem[11]);
+                end
+
+                if (trace_cnt % 100000 == 0) begin
+                    $display("[CORE 0 EXEC #%0d] PC=0x%016x Instr=0x%08x", trace_cnt, u_decode.pc_in, u_decode.instr_in);
+                end
+`endif
+            end
+`ifdef DEBUG_CORE_TRACE
+            if (ex_trap_taken) begin
+                $display("[CORE 0 TRAP taken] PC=0x%016x cause=0x%016x tval=0x%016x", ex_trap_pc, ex_trap_cause, ex_trap_tval);
+            end
+`endif
+        end
+    end
+`endif
 
 endmodule

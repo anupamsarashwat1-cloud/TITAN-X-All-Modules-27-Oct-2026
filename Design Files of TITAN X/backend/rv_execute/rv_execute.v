@@ -39,6 +39,7 @@ module rv_execute #(
     input  wire        is_ecall,
     input  wire        is_ebreak,
     input  wire        is_mret,
+    input  wire        is_sret,
     // Exception inputs from decode, fetch, and memory
     input  wire        illegal_in,
     input  wire [31:0] instr_in,
@@ -86,9 +87,9 @@ module rv_execute #(
     output reg  [63:0] branch_target,
     // Trap / Exception signals
     output reg         trap_taken,
-    output wire [63:0] trap_pc_out,
-    output wire [63:0] trap_cause_out,
-    output wire [63:0] trap_tval_out,
+    output reg  [63:0] trap_pc_out,
+    output reg  [63:0] trap_cause_out,
+    output reg  [63:0] trap_tval_out,
     output wire [63:0] mtvec_out,
     output wire [63:0] mepc_out,
     output wire [63:0] satp_out,
@@ -107,9 +108,11 @@ module rv_execute #(
     // excluded: during their memory access alu_result holds the ADDRESS,
     // not data; load-use is covered by mem_stall plus the MEM-stage
     // forwarding path instead.
+    reg         sc_success_q;
     wire        fwd_ex_valid = valid_out && reg_write_out && !mem_read_out;
     wire [4:0]  fwd_ex_rd    = rd_out;
-    wire [63:0] fwd_ex_data  = alu_result;
+    wire [63:0] fwd_ex_data  = (is_amo_out && (amo_funct5_out == `AMO_SC)) ?
+                               (sc_success_q ? 64'd0 : 64'd1) : alu_result;
 
     wire [63:0] src1 = (fwd_ex_valid   && (fwd_ex_rd   == rs1_addr) && (rs1_addr != 5'h0)) ? fwd_ex_data  :
                        (fwd_mem_valid && (fwd_mem_rd == rs1_addr) && (rs1_addr != 5'h0)) ? fwd_mem_data :
@@ -392,23 +395,65 @@ module rv_execute #(
     // Distance-1 CSR RAW needs no forwarding: a younger CSR op reaches
     // EX at least one cycle after the older one's synchronous write.
     // -------------------------------------------------------
+    wire is_wfi         = (instr_in[31:20] == 12'h105) && (funct3 == 3'b000);
+    wire is_sfence_vma  = (funct7 == 7'b0001001) && (funct3 == 3'b000);
+    wire priv_wfi_ok    = (priv_mode_out != 2'b00);
+    wire priv_sfence_ok = (priv_mode_out != 2'b00);
+    wire priv_mret_ok   = (priv_mode_out == 2'b11);
+    wire priv_sret_ok   = (priv_mode_out >= 2'b01);
+
     wire sys_present  = valid_in && (opcode == `OP_SYSTEM);
-    wire sys_illegal  = sys_present && !is_csr && !is_ecall &&
-                        !is_ebreak && !is_mret;
+    wire sys_illegal  = sys_present && (
+                        (!is_csr && !is_ecall && !is_ebreak && !is_mret && !is_sret && !is_wfi && !is_sfence_vma) ||
+                        (is_mret && !priv_mret_ok) ||
+                        (is_sret && !priv_sret_ok) ||
+                        (is_wfi && !priv_wfi_ok) ||
+                        (is_sfence_vma && !priv_sfence_ok)
+                        );
 
     wire [11:0] csr_a = imm[11:0];
     wire        csr_rmw = (csr_op == 2'b10) || (csr_op == 2'b11);
     // CSRRS/CSRRC with rs1=x0 read only — spec forbids side effects there.
-    // Implemented-set decoder (must mirror rv_csr's read decode): access
-    // to any other address raises illegal-instruction per the Zicsr spec.
-    wire csr_impl = (csr_a == 12'h300) || (csr_a == 12'h301) ||
-                    (csr_a == 12'h304) || (csr_a == 12'h305) ||
-                    (csr_a == 12'h340) || (csr_a == 12'h341) ||
-                    (csr_a == 12'h342) || (csr_a == 12'h343) ||
-                    (csr_a == 12'hF14) || (csr_a == 12'hB00) ||
-                    (csr_a == 12'hB02) || (csr_a == 12'hC00) ||
-                    (csr_a == 12'hC02);
-    wire csr_illegal = sys_present && is_csr && !csr_impl;
+    wire csr_impl = (csr_a == 12'h300) || // mstatus
+                    (csr_a == 12'h301) || // misa
+                    (csr_a == 12'h302) || // medeleg
+                    (csr_a == 12'h303) || // mideleg
+                    (csr_a == 12'h304) || // mie
+                    (csr_a == 12'h305) || // mtvec
+                    (csr_a == 12'h306) || // mcounteren
+                    (csr_a == 12'h320) || // mcountinhibit
+                    ((csr_a >= 12'h323) && (csr_a <= 12'h33F)) || // mhpmevent3..31
+                    (csr_a == 12'h340) || // mscratch
+                    (csr_a == 12'h341) || // mepc
+                    (csr_a == 12'h342) || // mcause
+                    (csr_a == 12'h343) || // mtval
+                    (csr_a == 12'h344) || // mip
+                    ((csr_a >= 12'h3A0) && (csr_a <= 12'h3A3)) || // pmpcfg0..3
+                    ((csr_a >= 12'h3B0) && (csr_a <= 12'h3EF)) || // pmpaddr0..63
+                    (csr_a == 12'h100) || // sstatus
+                    (csr_a == 12'h104) || // sie
+                    (csr_a == 12'h105) || // stvec
+                    (csr_a == 12'h106) || // scounteren
+                    (csr_a == 12'h140) || // sscratch
+                    (csr_a == 12'h141) || // sepc
+                    (csr_a == 12'h142) || // scause
+                    (csr_a == 12'h143) || // stval
+                    (csr_a == 12'h144) || // sip
+                    (csr_a == 12'h180) || // satp
+                    (csr_a == 12'hF11) || // mvendorid
+                    (csr_a == 12'hF12) || // marchid
+                    (csr_a == 12'hF13) || // mimpid
+                    (csr_a == 12'hF14) || // mhartid
+                    (csr_a == 12'hB00) || // mcycle
+                    (csr_a == 12'hB02) || // minstret
+                    ((csr_a >= 12'hB03) && (csr_a <= 12'hB1F)) || // mhpmcounter3..31
+                    (csr_a == 12'hC00) || // cycle
+                    (csr_a == 12'hC01) || // time
+                    (csr_a == 12'hC02);   // instret
+    wire csr_priv_ok    = (priv_mode_out >= csr_a[9:8]);
+    wire csr_ro         = (csr_a[11:10] == 2'b11);
+    wire csr_wr_illegal = csr_commit && csr_ro && !((csr_op != 2'b01) && (rs1_addr == 5'h0));
+    wire csr_illegal    = sys_present && is_csr && (!csr_impl || !csr_priv_ok || csr_wr_illegal);
 
     wire clean_illegal_in   = (illegal_in === 1'b1);
     wire clean_fe_fault_in  = (fe_fault_in === 1'b1);
@@ -434,23 +479,25 @@ module rv_execute #(
                             (jump_branch_target[1:0] != 2'b00);
 
     // Misaligned load / store address calculation
+    wire [63:0] eff_addr = is_amo ? src1 : alu_res_comb;
     wire is_load = valid_in && mem_read;
     wire is_store = valid_in && mem_write;
     wire load_misaligned = is_load && (
-        (funct3[1:0] == 2'b01 && alu_res_comb[0] != 1'b0) ||   // LH/LHU halfword
-        (funct3[1:0] == 2'b10 && alu_res_comb[1:0] != 2'b00) || // LW/LWU word
-        (funct3[1:0] == 2'b11 && alu_res_comb[2:0] != 3'b000)   // LD doubleword
+        (funct3[1:0] == 2'b01 && eff_addr[0] != 1'b0) ||   // LH/LHU halfword
+        (funct3[1:0] == 2'b10 && eff_addr[1:0] != 2'b00) || // LW/LWU word
+        (funct3[1:0] == 2'b11 && eff_addr[2:0] != 3'b000)   // LD doubleword
     );
     wire store_misaligned = is_store && (
-        (funct3[1:0] == 2'b01 && alu_res_comb[0] != 1'b0) ||   // SH halfword
-        (funct3[1:0] == 2'b10 && alu_res_comb[1:0] != 2'b00) || // SW word
-        (funct3[1:0] == 2'b11 && alu_res_comb[2:0] != 3'b000)   // SD doubleword
+        (funct3[1:0] == 2'b01 && eff_addr[0] != 1'b0) ||   // SH halfword
+        (funct3[1:0] == 2'b10 && eff_addr[1:0] != 2'b00) || // SW word
+        (funct3[1:0] == 2'b11 && eff_addr[2:0] != 3'b000)   // SD doubleword
     );
 
     wire ex_exit      = valid_in && !stall && !flush &&
                         !mul_div_stall && !mx_fin;
     wire csr_commit   = ex_exit && is_csr;
     wire mret_commit  = ex_exit && is_mret;
+    wire sret_commit  = ex_exit && is_sret;
 
     wire trap_req_c = (valid_in && !stall && !flush && !mul_div_stall && !mx_fin &&
                       (is_ecall || is_ebreak || is_illegal || branch_misaligned ||
@@ -471,11 +518,13 @@ module rv_execute #(
                          irq_m_timer;
 
     wire mret_req_c = valid_in && !stall && !flush &&
-                      !mul_div_stall && !mx_fin && is_mret;
+                      !mul_div_stall && !mx_fin && is_mret && priv_mret_ok;
+    wire sret_req_c = valid_in && !stall && !flush &&
+                      !mul_div_stall && !mx_fin && is_sret && priv_sret_ok;
 
     wire irq_take   = ex_exit &&
                       (irq_sel_ext || irq_sel_soft || irq_sel_timer) &&
-                      !mret_req_c && !trap_req_c;
+                      !mret_req_c && !sret_req_c && !trap_req_c;
 
     // For Linux boot, S-mode traps will delegate here once S-mode CSRs are integrated.
     wire trap_commit  = (ex_exit && (is_ecall || is_ebreak || is_illegal ||
@@ -512,10 +561,10 @@ module rv_execute #(
             trap_tval_w  = pc_in;
         end else if (load_misaligned) begin
             trap_cause_w = 64'd4;    // Load address misaligned
-            trap_tval_w  = alu_res_comb;
+            trap_tval_w  = eff_addr;
         end else if (store_misaligned) begin
             trap_cause_w = 64'd6;    // Store address misaligned
-            trap_tval_w  = alu_res_comb;
+            trap_tval_w  = eff_addr;
         end else if (is_ecall) begin
             trap_cause_w = 64'd11;   // ECALL from M-mode
             trap_tval_w  = 64'h0;
@@ -525,7 +574,7 @@ module rv_execute #(
         end
     end
 
-    wire [63:0] csr_old, mtvec_q, mepc_q;
+    wire [63:0] csr_old, mtvec_q, mepc_q, stvec_q, sepc_q, medeleg_w, mideleg_w;
     wire        irq_pend;
     rv_csr #(
         .HART_ID(HART_ID)
@@ -542,6 +591,7 @@ module rv_execute #(
         .trap_cause   (trap_cause_w),
         .trap_tval    (trap_tval_w),
         .mret_we      (mret_commit),
+        .sret_we      (sret_commit),
         .mip_m_ext    (irq_m_ext),
         .mip_m_timer  (irq_m_timer),
         .mip_m_soft   (irq_m_soft),
@@ -549,25 +599,46 @@ module rv_execute #(
         .mtvec_out    (mtvec_q),
         .mepc_out     (mepc_q),
         .mtval_out    (),
+        .stvec_out    (stvec_q),
+        .sepc_out     (sepc_q),
+        .medeleg_out  (medeleg_w),
+        .mideleg_out  (mideleg_w),
         .satp_out     (satp_out),
+        .priv_mode_out(priv_mode_out),
         .irq_pending  (irq_pend)
     );
+
+    wire trap_deleg_s = (priv_mode_out < `PRIV_M) &&
+                        (trap_cause_w[63] ? mideleg_w[trap_cause_w[5:0]] : medeleg_w[trap_cause_w[5:0]]);
+    wire [63:0] trap_target = trap_deleg_s ? stvec_q : mtvec_q;
 
     // -------------------------------------------------------
     // A-Extension: LR/SC Reservation
     // -------------------------------------------------------
     // LR: set reservation; SC: check reservation
     // AMO arithmetic operations handled in memory stage (read-modify-write)
+    wire sc_success_comb = lr_valid && (lr_addr[63:3] == src1[63:3]);
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            lr_addr  <= 64'h0;
-            lr_valid <= 1'b0;
-        end else if (is_amo && valid_in && (amo_funct5 == `AMO_LR) && !stall) begin
-            lr_addr  <= src1;     // LR: address = rs1
-            lr_valid <= 1'b1;
-        end else if (is_amo && valid_in && (amo_funct5 == `AMO_SC) && !stall) begin
-            // SC clears reservation regardless of success/failure
-            lr_valid <= 1'b0;
+            lr_addr      <= 64'h0;
+            lr_valid     <= 1'b0;
+            sc_success_q <= 1'b0;
+        end else if (flush_ex_1 || trap_req_c || mret_req_c || sret_req_c || irq_take) begin
+            lr_valid     <= 1'b0;
+            sc_success_q <= 1'b0;
+        end else if (!stall && !mul_div_stall && !mx_fin) begin
+            if (is_amo && valid_in && (amo_funct5 == `AMO_LR)) begin
+                lr_addr      <= src1;     // LR: address = rs1
+                lr_valid     <= 1'b1;
+                sc_success_q <= 1'b0;
+            end else if (is_amo && valid_in && (amo_funct5 == `AMO_SC)) begin
+                // SC clears reservation regardless of success/failure
+                lr_valid     <= 1'b0;
+                sc_success_q <= sc_success_comb;
+            end else begin
+                sc_success_q <= 1'b0;
+            end
         end
     end
 
@@ -579,15 +650,16 @@ module rv_execute #(
         branch_comb = 1'b0;
         if (branch) begin
             branch_comb = branch_cond;
-        end else if (jal || jalr || trap_req_c || mret_req_c ||
+        end else if (jal || jalr || trap_req_c || mret_req_c || sret_req_c ||
                      irq_take || clean_mem_fault_in) begin
             branch_comb = 1'b1;
         end
     end
 
     wire [63:0] branch_tgt =
-        (trap_req_c || irq_take || clean_mem_fault_in) ? mtvec_q :
-        mret_req_c                                     ? mepc_q  :
+        (trap_req_c || irq_take || clean_mem_fault_in) ? trap_target :
+        mret_req_c                                     ? mepc_q      :
+        sret_req_c                                     ? sepc_q      :
         jump_branch_target;
 
     // -------------------------------------------------------
@@ -606,6 +678,7 @@ module rv_execute #(
                                  is_fp_op         ? fpu_result        :
                                  is_mext          ? mext_result        :
                                  is_csr           ? csr_old           :
+                                 is_amo           ? src1              :
                                  is_wop           ? alu_res_w          :
                                                     alu_res_comb;
 
@@ -676,20 +749,26 @@ module rv_execute #(
             is_amo_out    <= 1'b0;
             amo_funct5_out<= 5'h0;
             valid_out     <= 1'b0;
-            branch_taken  <= 1'b0;
-            trap_taken    <= 1'b0;
+            branch_taken   <= 1'b0;
+            trap_taken     <= 1'b0;
+            trap_pc_out    <= 64'h0;
+            trap_cause_out <= 64'h0;
+            trap_tval_out  <= 64'h0;
         end else if (flush_ex_4) begin
-            rd_out        <= 5'h0;
-            funct3_out    <= 3'h0;
-            opcode_out    <= 7'h0;
-            mem_read_out  <= 1'b0;
-            mem_write_out <= 1'b0;
-            reg_write_out <= 1'b0;
-            is_amo_out    <= 1'b0;
-            amo_funct5_out<= 5'h0;
-            valid_out     <= 1'b0;
-            branch_taken  <= 1'b0;
-            trap_taken    <= 1'b0;
+            rd_out         <= 5'h0;
+            funct3_out     <= 3'h0;
+            opcode_out     <= 7'h0;
+            mem_read_out   <= 1'b0;
+            mem_write_out  <= 1'b0;
+            reg_write_out  <= 1'b0;
+            is_amo_out     <= 1'b0;
+            amo_funct5_out <= 5'h0;
+            valid_out      <= 1'b0;
+            branch_taken   <= 1'b0;
+            trap_taken     <= 1'b0;
+            trap_pc_out    <= 64'h0;
+            trap_cause_out <= 64'h0;
+            trap_tval_out  <= 64'h0;
         end else if (!stall && !mul_div_stall && !mx_fin) begin
             rd_out        <= rd_in;
             funct3_out    <= funct3;
@@ -706,6 +785,9 @@ module rv_execute #(
             valid_out     <= valid_in && !trap_req_c && !clean_fe_fault_in && !clean_mem_fault_in;
             branch_taken  <= branch_comb && valid_in;
             trap_taken    <= trap_commit;
+            trap_pc_out   <= trap_pc_w;
+            trap_cause_out<= trap_cause_w;
+            trap_tval_out <= trap_tval_w;
         end else if (mx_done) begin
             // M-ext delivery: replay the CAPTURED instruction's control
             // fields — decode is frozen presenting this same op, so the
@@ -722,12 +804,12 @@ module rv_execute #(
             valid_out     <= mx_v_q;
             branch_taken  <= 1'b0;
             trap_taken    <= 1'b0;
+            trap_pc_out   <= 64'h0;
+            trap_cause_out<= 64'h0;
+            trap_tval_out <= 64'h0;
         end
     end
 
-    assign trap_pc_out    = trap_pc_w;
-    assign trap_cause_out = trap_cause_w;
-    assign trap_tval_out  = trap_tval_w;
     assign mtvec_out      = mtvec_q;
     assign mepc_out       = mepc_q;
 

@@ -8,7 +8,10 @@
 // x0 is architecturally hardwired to zero — writes to it are dropped and
 // reads always return 0 regardless of stored content.
 `timescale 1ns/1ps
-module rv_regfile (
+module rv_regfile #(
+    parameter [63:0] HART_ID  = 64'd0,
+    parameter [63:0] FDT_ADDR = 64'h0000_0000_8002_0000
+) (
     input  wire        clk,
     input  wire        rst_n,
     // Read port 1
@@ -29,6 +32,8 @@ module rv_regfile (
         if (!rst_n) begin
             for (i = 0; i < 32; i = i + 1)
                 mem[i] <= 64'h0;
+            mem[10] <= HART_ID;   // a0 = hartid
+            mem[11] <= FDT_ADDR;  // a1 = FDT / DTB pointer
         end else if (wr_en && wr_addr != 5'h0) begin
             mem[wr_addr] <= wr_data;
         end
